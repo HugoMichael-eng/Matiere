@@ -1,0 +1,19 @@
+kind = "design-system"
+previewPath = "/s1/"
+title = "S1 Design System"
+description = "The visual language of Sillage Lab. Industrial cool-lab aesthetic — CDG meets Acne Studio. Bodoni Moda editorial serif, Jost geometric grotesque, German yellow accent on a concrete grey-blue ground."
+version = "1.0.0"
+id = "artifacts/s1"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/s1/" ]
+localPort = 24301
+
+[services.development]
+run = "pnpm --filter @workspace/s1 run dev"
+
+[services.env]
+PORT = "24301"
+BASE_PATH = "/s1/"
