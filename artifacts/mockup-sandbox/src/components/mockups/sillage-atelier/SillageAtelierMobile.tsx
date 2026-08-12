@@ -11,18 +11,18 @@
 import React, { useState } from "react";
 import "./sillage-atelier.css";
 
-// ─── S1 colour tokens (dark mode, matching index.css) ─────────────────────────
+// ─── White & grey palette — light, monochromatic ──────────────────────────────
 const C = {
-  bg:        "hsl(220, 11.1%, 5.3%)",
-  card:      "hsl(216, 11.1%, 8.8%)",
-  border:    "hsl(220, 11.7%, 15.1%)",
-  fg:        "hsl(225, 18.2%, 91.4%)",
-  mutedFg:   "hsl(221, 15.5%, 59.6%)",
-  muted:     "hsl(227, 26.7%, 19.8%)",
-  secondary: "hsl(226, 30.2%, 16.9%)",
-  accent:    "hsl(46, 83.8%, 61.4%)",
-  accentFg:  "hsl(220, 11.1%, 5.3%)",
-  input:     "hsl(220, 11.7%, 15.1%)",
+  bg:        "#FFFFFF",
+  card:      "#F4F4F4",
+  border:    "#E2E2E2",
+  fg:        "#111111",
+  mutedFg:   "#888888",
+  muted:     "#EEEEEE",
+  secondary: "#F0F0F0",
+  accent:    "#111111",
+  accentFg:  "#FFFFFF",
+  input:     "#E2E2E2",
 };
 
 // ─── Typography (S1 design system) ───────────────────────────────────────────
