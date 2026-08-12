@@ -75,7 +75,7 @@ function Phone({ children, label }: { children: React.ReactNode; label: string }
     <div className="atelier-phone-frame">
       <div className="atelier-phone-shell">
         <div className="atelier-phone-notch" />
-        <div className="atelier-phone-screen">{children}</div>
+        <div className="atelier-phone-screen border-t-[0px] border-r-[0px] border-b-[0px] border-l-[0px]">{children}</div>
       </div>
       <div className="atelier-phone-label">{label}</div>
     </div>
@@ -186,10 +186,10 @@ function SignInScreen() {
 
 // ─── SCREEN 2 — Sessions ──────────────────────────────────────────────────────
 const SESSIONS = [
-  { id: 1, title: "Iris & Vetiver Structure",  sub: "12 messages · Today",    },
-  { id: 2, title: "Civet Dosage Experiment",    sub: "7 messages · Yesterday", },
-  { id: 3, title: "Chypre Accord Balance",      sub: "23 messages · Mon",      },
-  { id: 4, title: "Top Note Volatility Study",  sub: "4 messages · Aug 10",    },
+  { id: 1, title: "Iris & Vetiver Structure",  sub: "12 messages · Today",    bg: "#ffebeb" },
+  { id: 2, title: "Civet Dosage Experiment",    sub: "7 messages · Yesterday", bg: undefined },
+  { id: 3, title: "Chypre Accord Balance",      sub: "23 messages · Mon",      bg: "#bdbdbd" },
+  { id: 4, title: "Top Note Volatility Study",  sub: "4 messages · Aug 10",    bg: undefined },
 ];
 
 function SessionsScreen() {
@@ -198,7 +198,7 @@ function SessionsScreen() {
   return (
     <div className="atelier-screen">
       {/* Header */}
-      <div className="atelier-sessions-header">
+      <div className="atelier-sessions-header mt-[0px] mb-[0px]">
         <div>
           <div
             style={{
@@ -241,9 +241,8 @@ function SessionsScreen() {
           </button>
         </div>
       </div>
-
       {/* Session list */}
-      <div className="atelier-list">
+      <div className="atelier-list gap-[0px]">
         {SESSIONS.map((s) => {
           const on = active === s.id;
           return (
@@ -251,14 +250,14 @@ function SessionsScreen() {
               key={s.id}
               className={`atelier-session-item${on ? " is-active" : ""}`}
               onClick={() => setActive(on ? null : s.id)}
-              style={{ backgroundColor: on ? C.secondary : C.card }}
+              style={{ backgroundColor: s.bg ?? (on ? C.secondary : C.card) }}
             >
               <div className="atelier-session-body">
                 <div
+                  className="font-bold"
                   style={{
                     fontFamily: F.sans,
                     fontSize: 14,
-                    fontWeight: 600,
                     color: C.fg,
                     marginBottom: 3,
                     overflow: "hidden",
@@ -269,10 +268,10 @@ function SessionsScreen() {
                   {s.title}
                 </div>
                 <div
+                  className="font-light"
                   style={{
                     fontFamily: F.sans,
                     fontSize: 12,
-                    fontWeight: 400,
                     color: C.mutedFg,
                   }}
                 >
