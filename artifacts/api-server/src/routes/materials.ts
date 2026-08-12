@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { ilike, or } from "drizzle-orm";
+import { asc, ilike, or } from "drizzle-orm";
 import { db, materialsTable } from "@workspace/db";
 import { ListMaterialsQueryParams, ListMaterialsResponse } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
@@ -18,7 +18,8 @@ router.get("/materials", async (req, res): Promise<void> => {
         .select()
         .from(materialsTable)
         .where(or(ilike(materialsTable.name, `%${query.data.search}%`), ilike(materialsTable.family, `%${query.data.search}%`)))
-    : await db.select().from(materialsTable);
+        .orderBy(asc(materialsTable.name))
+    : await db.select().from(materialsTable).orderBy(asc(materialsTable.name));
   res.json(ListMaterialsResponse.parse(rows));
 });
 

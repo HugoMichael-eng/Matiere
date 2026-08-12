@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { ClerkProvider, SignIn, SignUp, useAuth, useClerk, useUser } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
@@ -169,12 +169,139 @@ function MaterialCard({ material }: { material: Material }) {
   return <article className="group border border-border bg-card p-5" data-testid={`card-material-${material.id}`}><div className="flex items-start justify-between gap-3"><div className="grid size-10 place-items-center bg-secondary text-foreground"><Leaf size={18} strokeWidth={1.5} /></div><StatusPill value={material.safetyStatus} /></div><h3 className="mt-5 font-display text-2xl leading-none" data-testid={`text-material-name-${material.id}`}>{material.name}</h3><p className="mt-2 text-xs text-muted-foreground">{material.family} · {material.origin}</p><div className="mt-5 flex items-center justify-between border-t border-border pt-4 font-mono-ui text-[9px] uppercase tracking-[.11em] text-muted-foreground"><span>IFRA {material.ifraLimit}%</span><span>{material.inStock ? "In stock" : "To source"}</span></div><button onClick={() => setExpanded(!expanded)} data-testid={`button-material-details-${material.id}`} className="mt-4 flex w-full items-center justify-between text-left text-[11px] uppercase tracking-widest text-foreground">{expanded ? "Hide notes" : "Read usage notes"}<ChevronDown size={14} className={`transition-transform ${expanded ? "rotate-180" : ""}`} /></button>{expanded && <div className="mt-3 border-t border-border pt-3 text-xs leading-5 text-muted-foreground animate-fade-in"><p>{material.usageNotes}</p>{material.allergens.length > 0 && <p className="mt-2 text-destructive">Allergens to note: {material.allergens.join(", ")}</p>}<p className="mt-2 font-mono-ui text-[9px]">CAS {material.casNumber ?? "Not listed"}</p></div>}</article>;
 }
 
+function MaterialCombobox({ materials, value, onChange, index }: {
+  materials: Material[];
+  value: { materialId: number; materialName: string };
+  onChange: (materialId: number, materialName: string) => void;
+  index: number;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = query.trim()
+    ? materials.filter(m =>
+        m.name.toLowerCase().includes(query.toLowerCase()) ||
+        m.family.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 40)
+    : materials.slice(0, 40);
+
+  const selectedName = value.materialId ? value.materialName : "";
+
+  return (
+    <div ref={ref} className="relative min-w-0">
+      <div className="flex items-center border border-border bg-card">
+        <Search size={12} className="ml-3 shrink-0 text-muted-foreground" />
+        <input
+          type="text"
+          data-testid={`select-ingredient-material-${index}`}
+          className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs outline-none placeholder:text-muted-foreground/50"
+          placeholder="Search material…"
+          value={open ? query : selectedName}
+          onFocus={() => { setOpen(true); setQuery(""); }}
+          onChange={e => { setQuery(e.target.value); setOpen(true); }}
+        />
+        {value.materialId > 0 && !open && (
+          <span className="mr-2 shrink-0 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/60">
+            {materials.find(m => m.id === value.materialId)?.family ?? ""}
+          </span>
+        )}
+      </div>
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-50 max-h-52 overflow-y-auto border border-t-0 border-border bg-card shadow-lg">
+          {filtered.length === 0 ? (
+            <p className="px-3 py-2 text-[11px] text-muted-foreground">No materials found.</p>
+          ) : (
+            filtered.map(m => (
+              <button
+                key={m.id}
+                type="button"
+                onMouseDown={() => { onChange(m.id, m.name); setQuery(""); setOpen(false); }}
+                className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs hover:bg-secondary ${m.id === value.materialId ? "bg-secondary font-medium" : ""}`}
+              >
+                <span>{m.name}</span>
+                <span className="ml-2 shrink-0 font-mono-ui text-[8px] uppercase tracking-wider text-muted-foreground/60">{m.family}</span>
+              </button>
+            ))
+          )}
+          {!query && materials.length > 40 && (
+            <p className="border-t border-border px-3 py-2 text-[10px] text-muted-foreground">Type to search all {materials.length} materials</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function IngredientBuilder({ ingredients, setIngredients }: { ingredients: FormulaIngredientInput[]; setIngredients: (next: FormulaIngredientInput[]) => void }) {
   const materialsQuery = useListMaterials();
   const materials = materialsQuery.data ?? [];
-  const add = () => setIngredients([...ingredients, { materialId: materials[0]?.id ?? 0, materialName: materials[0]?.name ?? "", percentage: 0, grams: 0, role: "heart" }]);
+  const add = () => setIngredients([...ingredients, { materialId: 0, materialName: "", percentage: 0, grams: 0, role: "heart" }]);
   const update = (index: number, patch: Partial<FormulaIngredientInput>) => setIngredients(ingredients.map((item, i) => i === index ? { ...item, ...patch } : item));
-  return <div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-start justify-between"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The palette</p><h2 className="mt-1 font-display text-3xl">Materials in the blend</h2></div><Button onClick={add} variant="outline" testId="button-add-ingredient">Add material</Button></div><div className="mt-5 space-y-3">{ingredients.map((ingredient, index) => <div key={`${index}-${ingredient.materialId}`} className="grid gap-2 bg-secondary/60 p-3 sm:grid-cols-[1.6fr_.7fr_.7fr_30px]"><select value={ingredient.materialId} onChange={e => { const mat = materials.find(m => m.id === Number(e.target.value)); update(index, { materialId: Number(e.target.value), materialName: mat?.name ?? "" }); }} data-testid={`select-ingredient-material-${index}`} className="min-w-0 border border-border bg-card px-3 py-2 text-xs outline-none focus:border-foreground/40"><option value={0}>Choose a material</option>{materials.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select><input type="number" min="0" step=".1" value={ingredient.percentage} onChange={e => update(index, { percentage: Number(e.target.value) })} data-testid={`input-ingredient-percentage-${index}`} className="border border-border bg-card px-3 py-2 text-xs outline-none focus:border-foreground/40" placeholder="%" /><select value={ingredient.role} onChange={e => update(index, { role: e.target.value as FormulaIngredientInput["role"] })} data-testid={`select-ingredient-role-${index}`} className="border border-border bg-card px-3 py-2 text-xs outline-none focus:border-foreground/40"><option value="top">Top</option><option value="heart">Heart</option><option value="base">Base</option><option value="modifier">Modifier</option></select><button type="button" onClick={() => setIngredients(ingredients.filter((_, i) => i !== index))} data-testid={`button-remove-ingredient-${index}`} className="grid place-items-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Minus size={15} /></button></div>)}{!ingredients.length && <div className="p-8 text-center text-xs text-muted-foreground border border-border">No materials yet. Add the first thread.</div>}</div></div>;
+  return (
+    <div className="border border-border bg-card p-6 sm:p-7">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The palette</p>
+          <h2 className="mt-1 font-display text-3xl">Materials in the blend</h2>
+        </div>
+        <Button onClick={add} variant="outline" testId="button-add-ingredient">Add material</Button>
+      </div>
+      {materialsQuery.isLoading && <p className="mt-4 text-xs text-muted-foreground">Loading material library…</p>}
+      <div className="mt-5 space-y-3">
+        {ingredients.map((ingredient, index) => (
+          <div key={`${index}-${ingredient.materialId}`} className="grid gap-2 bg-secondary/60 p-3 sm:grid-cols-[1.8fr_.55fr_.65fr_28px]">
+            <MaterialCombobox
+              materials={materials}
+              value={{ materialId: ingredient.materialId, materialName: ingredient.materialName }}
+              onChange={(materialId, materialName) => update(index, { materialId, materialName })}
+              index={index}
+            />
+            <input
+              type="number" min="0" max="100" step="0.1"
+              value={ingredient.percentage}
+              onChange={e => update(index, { percentage: Number(e.target.value) })}
+              data-testid={`input-ingredient-percentage-${index}`}
+              className="border border-border bg-card px-3 py-2 text-xs outline-none focus:border-foreground/40"
+              placeholder="%"
+            />
+            <select
+              value={ingredient.role}
+              onChange={e => update(index, { role: e.target.value as FormulaIngredientInput["role"] })}
+              data-testid={`select-ingredient-role-${index}`}
+              className="border border-border bg-card px-3 py-2 text-xs outline-none focus:border-foreground/40"
+            >
+              <option value="top">Top</option>
+              <option value="heart">Heart</option>
+              <option value="base">Base</option>
+              <option value="modifier">Modifier</option>
+            </select>
+            <button
+              type="button"
+              onClick={() => setIngredients(ingredients.filter((_, i) => i !== index))}
+              data-testid={`button-remove-ingredient-${index}`}
+              className="grid place-items-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Minus size={15} />
+            </button>
+          </div>
+        ))}
+        {!ingredients.length && (
+          <div className="border border-border p-8 text-center text-xs text-muted-foreground">
+            No materials yet. Add the first thread.
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function NewFormula() {
@@ -232,11 +359,9 @@ function Shop() {
           </p>
           <div className="mt-8 space-y-px border border-border">
             {[
-              { name: "The Perfumer's Apprentice", category: "Aroma chemicals · essential oils", url: "https://www.perfumersapprentice.com" },
-              { name: "Hermitage Oils", category: "Natural essential oils · absolutes", url: "https://www.hermitageoils.com" },
-              { name: "Sigma-Aldrich (Merck)", category: "Aroma chemicals · research grade", url: "https://www.sigmaaldrich.com" },
-              { name: "Pell Wall Perfumes", category: "Raw materials · education resources", url: "https://pellwall.com" },
-              { name: "White Lotus Aromatics", category: "Attars · naturals · rare absolutes", url: "https://whitelotusaromatics.com" },
+              { name: "Fraterworks", category: "Aroma chemicals · bases · specialties", url: "https://www.fraterworks.com" },
+              { name: "PCW", category: "Essential oils · aroma chemicals · raw materials", url: "https://www.pcw.ca" },
+              { name: "Contrebande", category: "Naturals · aroma chemicals · Canada", url: "https://contrebande.ca" },
             ].map(supplier => (
               <a key={supplier.name} href={supplier.url} target="_blank" rel="noopener noreferrer"
                 className="flex items-start justify-between gap-4 bg-card p-4 transition-colors hover:bg-secondary group">
