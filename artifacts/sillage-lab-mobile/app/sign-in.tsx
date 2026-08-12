@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Platform,
   Pressable,
   StyleSheet,
@@ -52,17 +53,11 @@ export default function SignInScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* Hero */}
       <View style={[styles.hero, { paddingTop: topPad + 60 }]}>
-        <View
-          style={[
-            styles.logoMark,
-            {
-              backgroundColor: colors.accent,
-              borderRadius: nativeTheme.radius,
-            },
-          ]}
-        >
-          <Feather name="droplet" size={30} color={colors.accentForeground} />
-        </View>
+        <Image
+          source={require('../assets/images/logo.png')}
+          style={styles.logoMark}
+          resizeMode="contain"
+        />
 
         <Text
           style={[

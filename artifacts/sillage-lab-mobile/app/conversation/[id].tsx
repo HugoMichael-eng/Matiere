@@ -2,6 +2,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Image as RNImage,
   Platform,
   Pressable,
   StyleSheet,
@@ -309,17 +310,11 @@ export default function ConversationScreen() {
           ListFooterComponent={
             messages.length === 0 ? (
               <View style={styles.emptyChat}>
-                <View
-                  style={[
-                    styles.emptyIcon,
-                    {
-                      backgroundColor: colors.accent,
-                      borderRadius: nativeTheme.radius,
-                    },
-                  ]}
-                >
-                  <Feather name="droplet" size={22} color={colors.accentForeground} />
-                </View>
+                <RNImage
+                  source={require('../../assets/images/logo.png')}
+                  style={styles.emptyIcon}
+                  resizeMode="contain"
+                />
                 <Text
                   style={[
                     styles.emptyChatTitle,
