@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { ClerkProvider, SignIn, SignUp, useAuth, useClerk, useUser } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
@@ -118,36 +118,287 @@ function FormulaRow({ formula }: { formula: Formula }) {
   </Link>;
 }
 
+function useCountUp(target: number, duration = 1100) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (target === 0) { setCount(0); return; }
+    const start = performance.now();
+    const id = requestAnimationFrame(function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setCount(Math.round(eased * target));
+      if (t < 1) requestAnimationFrame(tick);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [target, duration]);
+  return count;
+}
+
+function MetricCard({ label, value, Icon, delay, testId }: { label: string; value: number; Icon: LucideIcon; delay: number; testId: string }) {
+  const count = useCountUp(value);
+  return (
+    <motion.div
+      data-testid={testId}
+      initial={{ opacity: 0, y: 20, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -5, transition: { duration: 0.16 } }}
+      className="border border-border bg-card p-5 text-foreground cursor-default"
+    >
+      <div className="flex items-start justify-between">
+        <p className="max-w-[120px] text-[11px] leading-4 text-muted-foreground">{label}</p>
+        <Icon size={17} strokeWidth={1.6} className="text-muted-foreground" />
+      </div>
+      <p className="mt-5 font-display text-4xl">{count}</p>
+    </motion.div>
+  );
+}
+
 function Dashboard() {
   const summaryQuery = useGetDashboardSummary();
+  const materialsQuery = useListMaterials({});
+  const draftsQuery = useListFormulas({ status: "draft" });
+  const restingQuery = useListFormulas({ status: "resting" });
+  const approvedQuery = useListFormulas({ status: "approved" });
+
   const summary = summaryQuery.data;
-  if (summaryQuery.isLoading) return <Shell><div className="space-y-7"><Skeleton className="h-32 w-2/3" /><div className="grid gap-4 sm:grid-cols-4">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-28" />)}</div><Skeleton className="h-80" /></div></Shell>;
+  const materials = materialsQuery.data ?? [];
+
+  const greeting = useMemo(() => {
+    const h = new Date().getHours();
+    return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  }, []);
+
+  const weekday = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: "long" }), []);
+
+  // Stable-per-day material selection
+  const materialOfDay = useMemo(() => {
+    if (!materials.length) return null;
+    const seed = new Date().getDate() + new Date().getMonth() * 31;
+    return materials[seed % materials.length];
+  }, [materials]);
+
+  const stageCounts = {
+    draft: draftsQuery.data?.length ?? 0,
+    resting: restingQuery.data?.length ?? 0,
+    approved: approvedQuery.data?.length ?? 0,
+  };
+  const stageTotal = stageCounts.draft + stageCounts.resting + stageCounts.approved;
+
+  if (summaryQuery.isLoading) return (
+    <Shell>
+      <div className="space-y-7">
+        <Skeleton className="h-32 w-2/3" />
+        <Skeleton className="h-28 w-full" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-28" />)}</div>
+        <Skeleton className="h-80" />
+      </div>
+    </Shell>
+  );
   if (summaryQuery.isError || !summary) return <Shell><ErrorState retry={() => summaryQuery.refetch()} /></Shell>;
-  const metrics: Array<[string, number, LucideIcon]> = [
-    ["Saved formulas", summary.formulaCount, BookOpen],
-    ["Material library", summary.materialCount, Leaf],
-    ["Needs a second look", summary.reviewCount, ShieldCheck],
-    ["Allergen notes", summary.allergenCount, CircleAlert],
+
+  const spotlight = summary.recentFormulas[0];
+  const metrics: Array<[string, number, LucideIcon, string]> = [
+    ["Saved formulas", summary.formulaCount, BookOpen, "metric-0"],
+    ["Material library", summary.materialCount, Leaf, "metric-1"],
+    ["Needs a second look", summary.reviewCount, ShieldCheck, "metric-2"],
+    ["Allergen notes", summary.allergenCount, CircleAlert, "metric-3"],
   ];
-  return <Shell><PageHeader eyebrow="Wednesday · studio desk" title="Good morning, maker." description="A clear view of the work that’s still becoming." action={<Button href="/formulas/new" testId="button-new-formula">New formula</Button>} />
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {metrics.map(([label, count, Icon], i) => <div key={label} data-testid={`metric-${i}`} className="border border-border p-5 bg-card text-foreground"><div className="flex items-start justify-between"><p className="max-w-[120px] text-[11px] leading-4 text-muted-foreground">{label}</p><Icon size={17} strokeWidth={1.6} className="text-muted-foreground" /></div><p className="mt-5 font-display text-4xl">{count}</p></div>)}
-    </div>
-    <div className="mt-10 grid gap-6 lg:grid-cols-[1.5fr_.8fr]">
-      <section className="border border-border bg-card p-6 sm:p-7"><div className="mb-3 flex items-center justify-between"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">The notebook, recently</p><h2 className="mt-1 font-display text-3xl">Latest formulas</h2></div><Link href="/formulas" data-testid="link-view-all-formulas" className="text-[11px] uppercase tracking-widest text-foreground hover:underline">View all</Link></div>{summary.recentFormulas.length ? summary.recentFormulas.map(formula => <FormulaRow key={formula.id} formula={formula} />) : <EmptyState title="Your first formula is waiting." copy="Start with a feeling, a material, or a strange little question." href="/formulas/new" label="Open a fresh page" />}</section>
-      <section className="border border-border bg-card p-7 text-foreground"><Sparkles size={19} className="text-muted-foreground" /><p className="mt-12 font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Creative focus</p><p className="mt-3 font-display text-[31px] leading-[1.02] text-accent" data-testid="text-focus-prompt">{summary.focusPrompt}</p><Link href="/coach" data-testid="link-open-coach" className="mt-8 inline-flex items-center gap-2 text-[11px] uppercase tracking-widest hover:underline">Open creative lab <ArrowUpRight size={14} /></Link></section>
-    </div>
-    <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-border bg-secondary/30 p-6 sm:p-7">
-      <div>
-        <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">Supplier sourcing</p>
-        <h2 className="mt-2 font-display text-3xl">Stock the palette.</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">Browse Fraterworks, PCW, and Contrebande — the three suppliers this studio tracks.</p>
+
+  return (
+    <Shell>
+      <PageHeader
+        eyebrow={`${weekday} · studio desk`}
+        title={`${greeting}, maker.`}
+        description="A clear view of the work that's still becoming."
+        action={<Button href="/formulas/new" testId="button-new-formula">New formula</Button>}
+      />
+
+      {/* ── FORMULA SPOTLIGHT ─────────────────────────────── */}
+      {spotlight ? (
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-6"
+        >
+          <Link
+            href={`/formulas/${spotlight.id}`}
+            data-testid="link-spotlight-formula"
+            className="group block border border-border bg-card overflow-hidden"
+          >
+            <div className="flex flex-col gap-5 p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">
+                    Formula {String(spotlight.id).padStart(3, "0")} · most recent
+                  </p>
+                  <StatusPill value={spotlight.status} />
+                  <StatusPill value={spotlight.ifraStatus} />
+                </div>
+                <h2 className="mt-4 font-display text-[clamp(2.6rem,5.5vw,5.5rem)] leading-[.86] tracking-[-.03em] transition-colors duration-300 group-hover:text-accent">
+                  {spotlight.name}
+                </h2>
+                {spotlight.brief && (
+                  <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground line-clamp-2">{spotlight.brief}</p>
+                )}
+              </div>
+              <div className="flex shrink-0 flex-wrap items-end gap-6 lg:pb-1">
+                <div className="text-right">
+                  <p className="font-display text-5xl">{spotlight.concentration}%</p>
+                  <p className="mt-0.5 font-mono-ui text-[9px] uppercase text-muted-foreground">{spotlight.totalMl} ml batch</p>
+                </div>
+                <div className="border-l border-border pl-6">
+                  <p className="font-display text-5xl">{spotlight.ingredients.length}</p>
+                  <p className="mt-0.5 font-mono-ui text-[9px] uppercase text-muted-foreground">materials</p>
+                </div>
+                <div className="flex items-center gap-1.5 pb-1 font-mono-ui text-[10px] uppercase tracking-widest text-foreground transition-colors group-hover:text-accent">
+                  Continue <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </div>
+              </div>
+            </div>
+            {/* Ingredient strip */}
+            {spotlight.ingredients.length > 0 && (
+              <div className="flex border-t border-border">
+                {spotlight.ingredients.slice(0, 6).map((ing, i) => (
+                  <div key={i} className={`flex-1 px-3 py-2.5 min-w-0 ${i > 0 ? "border-l border-border" : ""}`}>
+                    <p className="truncate font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">{ing.materialName}</p>
+                    <p className="mt-0.5 font-mono-ui text-[9px] text-foreground">{ing.percentage}%</p>
+                  </div>
+                ))}
+                {spotlight.ingredients.length > 6 && (
+                  <div className="border-l border-border px-3 py-2.5 text-muted-foreground">
+                    <p className="font-mono-ui text-[8px]">+{spotlight.ingredients.length - 6}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </Link>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mb-6 border border-dashed border-border p-8 text-center"
+        >
+          <p className="font-display text-3xl">The first formula is still blank.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Start with something that makes you curious.</p>
+          <div className="mt-6"><Button href="/formulas/new" testId="button-spotlight-new">Open a fresh page</Button></div>
+        </motion.div>
+      )}
+
+      {/* ── STAGE PIPELINE ────────────────────────────────── */}
+      {stageTotal > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-6 grid grid-cols-3 border border-border bg-card"
+        >
+          {(["draft", "resting", "approved"] as const).map((stage, i) => {
+            const count = stageCounts[stage];
+            const pct = stageTotal > 0 ? count / stageTotal : 0;
+            const stageLabel = stage.charAt(0).toUpperCase() + stage.slice(1);
+            return (
+              <div key={stage} className={`relative p-5 ${i < 2 ? "border-r border-border" : ""}`}>
+                <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">{stageLabel}</p>
+                <p className="mt-2 font-display text-4xl">{count}</p>
+                {/* Progress fill */}
+                <div className="mt-3 h-[2px] w-full overflow-hidden bg-border">
+                  <motion.div
+                    className="h-full bg-foreground"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct * 100}%` }}
+                    transition={{ duration: 1, delay: 0.35 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                </div>
+                {/* Connector arrow */}
+                {i < 2 && (
+                  <ChevronRight
+                    size={11}
+                    className="absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-[55%] bg-card text-border"
+                  />
+                )}
+              </div>
+            );
+          })}
+        </motion.div>
+      )}
+
+      {/* ── ANIMATED METRICS ──────────────────────────────── */}
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {metrics.map(([label, count, Icon, testId], i) => (
+          <MetricCard key={label} label={label} value={count} Icon={Icon} delay={0.07 * i} testId={testId} />
+        ))}
       </div>
-      <div className="shrink-0">
-        <Button href="/shop" testId="button-dashboard-shop">Browse shop</Button>
+
+      {/* ── BOTTOM GRID ───────────────────────────────────── */}
+      <div className="grid gap-6 lg:grid-cols-[1.5fr_.8fr]">
+        <section className="border border-border bg-card p-6 sm:p-7">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">The notebook, recently</p>
+              <h2 className="mt-1 font-display text-3xl">Latest formulas</h2>
+            </div>
+            <Link href="/formulas" data-testid="link-view-all-formulas" className="text-[11px] uppercase tracking-widest text-foreground hover:underline">View all</Link>
+          </div>
+          {summary.recentFormulas.length
+            ? summary.recentFormulas.map(formula => <FormulaRow key={formula.id} formula={formula} />)
+            : <EmptyState title="Your first formula is waiting." copy="Start with a feeling, a material, or a strange little question." href="/formulas/new" label="Open a fresh page" />}
+        </section>
+
+        {/* ── MATERIAL OF THE DAY ───────────────────────── */}
+        {materialOfDay ? (
+          <motion.section
+            initial={{ opacity: 0, x: 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="border border-border bg-card p-7"
+          >
+            <div className="flex items-start justify-between">
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Material of the day</p>
+              <StatusPill value={materialOfDay.safetyStatus} />
+            </div>
+            <h3 className="mt-6 font-display text-[2.1rem] leading-[.88]">{materialOfDay.name}</h3>
+            <p className="mt-1.5 font-mono-ui text-[10px] uppercase tracking-widest text-muted-foreground">
+              {materialOfDay.family} · {materialOfDay.origin}
+            </p>
+            <p className="mt-5 text-sm leading-6 text-muted-foreground line-clamp-4">{materialOfDay.usageNotes}</p>
+            <div className="mt-5 flex items-center justify-between border-t border-border pt-4 font-mono-ui text-[9px] uppercase tracking-[.1em] text-muted-foreground">
+              <span>IFRA {materialOfDay.ifraLimit}%</span>
+              <span>{materialOfDay.inStock ? "In stock" : "To source"}</span>
+            </div>
+            <div className="mt-5">
+              <Link href="/materials" data-testid="link-material-library" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-foreground hover:underline">
+                Browse library <ArrowUpRight size={13} />
+              </Link>
+            </div>
+          </motion.section>
+        ) : (
+          <section className="border border-border bg-card p-7">
+            <Sparkles size={19} className="text-muted-foreground" />
+            <p className="mt-12 font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Creative focus</p>
+            <p className="mt-3 font-display text-[31px] leading-[1.02] text-accent" data-testid="text-focus-prompt">{summary.focusPrompt}</p>
+            <Link href="/coach" data-testid="link-open-coach" className="mt-8 inline-flex items-center gap-2 text-[11px] uppercase tracking-widest hover:underline">
+              Open creative lab <ArrowUpRight size={14} />
+            </Link>
+          </section>
+        )}
       </div>
-    </div>
-  </Shell>;
+
+      {/* ── SHOP BANNER ───────────────────────────────────── */}
+      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-border bg-secondary/30 p-6 sm:p-7">
+        <div>
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">Supplier sourcing</p>
+          <h2 className="mt-2 font-display text-3xl">Stock the palette.</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Browse Fraterworks, PCW, and Contrebande — the three suppliers this studio tracks.</p>
+        </div>
+        <div className="shrink-0">
+          <Button href="/shop" testId="button-dashboard-shop">Browse shop</Button>
+        </div>
+      </div>
+    </Shell>
+  );
 }
 
 function EmptyState({ title, copy, href, label }: { title: string; copy: string; href: string; label: string }) {
