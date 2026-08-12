@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/mobile/"
+title = "Sillage Lab Mobile"
+description = "A mobile companion app for perfumers to coach with Sillage Lab on the go. Covers sign-in via Clerk, conversation list, and an active session screen with live streaming AI responses from the coaching endpoint. Designed for use at the bench, away from a keyboard."
+version = "1.0.0"
+id = "artifacts/sillage-lab-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/mobile/" ]
+localPort = 24901
+
+[services.development]
+run = "pnpm --filter @workspace/sillage-lab-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sillage-lab-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/sillage-lab-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "24901"
+BASE_PATH = "/mobile/"
