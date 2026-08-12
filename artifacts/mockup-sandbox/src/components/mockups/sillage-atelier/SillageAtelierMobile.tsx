@@ -11,18 +11,18 @@
 import React, { useState } from "react";
 import "./sillage-atelier.css";
 
-// ─── White & grey palette — light, monochromatic ──────────────────────────────
+// ─── Editorial palette — warm linen · forest green · charcoal ─────────────────
 const C = {
-  bg:        "#FFFFFF",
-  card:      "#F4F4F4",
-  border:    "#E2E2E2",
-  fg:        "#111111",
-  mutedFg:   "#888888",
-  muted:     "#EEEEEE",
-  secondary: "#F0F0F0",
-  accent:    "#111111",
-  accentFg:  "#FFFFFF",
-  input:     "#E2E2E2",
+  bg:        "#F6F2EC",
+  card:      "#EDE8DF",
+  border:    "#D4CEC4",
+  fg:        "#1B1916",
+  mutedFg:   "#8A8278",
+  muted:     "#E4DED6",
+  secondary: "#DDD8CF",
+  accent:    "#2D4A3A",
+  accentFg:  "#F0EBE2",
+  input:     "#D4CEC4",
 };
 
 // ─── Typography (S1 design system) ───────────────────────────────────────────
@@ -274,7 +274,7 @@ function SessionsScreen() {
         ))}
       </div>
       {/* ── Continue hero ── */}
-      <div style={{ margin: "14px 16px 0", background: C.fg, padding: "16px 16px 14px" }}>
+      <div style={{ margin: "14px 16px 0", background: C.accent, padding: "16px 16px 14px" }}>
         <div style={{ fontFamily: F.mono, fontSize: 7.5, fontWeight: 300,
           letterSpacing: "0.22em", textTransform: "uppercase", color: C.accentFg,
           opacity: 0.45, marginBottom: 8 }}>

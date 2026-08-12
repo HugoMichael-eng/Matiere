@@ -2,16 +2,16 @@
 
 /* ─── S1 design system tokens (dark mode) ─────────────────────────────────── */
 :root {
-  --sl-bg:         #FFFFFF;
-  --sl-card:       #F4F4F4;
-  --sl-border:     #E2E2E2;
-  --sl-fg:         #111111;
-  --sl-muted-fg:   #888888;
-  --sl-muted:      #EEEEEE;
-  --sl-secondary:  #F0F0F0;
-  --sl-accent:     #111111;
-  --sl-accent-fg:  #FFFFFF;
-  --sl-input:      #E2E2E2;
+  --sl-bg:         #F6F2EC;
+  --sl-card:       #EDE8DF;
+  --sl-border:     #D4CEC4;
+  --sl-fg:         #1B1916;
+  --sl-muted-fg:   #8A8278;
+  --sl-muted:      #E4DED6;
+  --sl-secondary:  #DDD8CF;
+  --sl-accent:     #2D4A3A;
+  --sl-accent-fg:  #F0EBE2;
+  --sl-input:      #D4CEC4;
   --sl-font-sans:  'Jost', system-ui, sans-serif;
   --sl-font-mono:  'DM Mono', 'Courier New', monospace;
 }
