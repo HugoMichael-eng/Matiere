@@ -418,7 +418,16 @@ function ChatScreen() {
 }
 
 // ─── Root — single screen, tab-switched ───────────────────────────────────────
-const TABS = ["Sign In", "Sessions", "Chat"] as const;
+// ─── Tab icon paths ───────────────────────────────────────────────────────────
+const TAB_ICONS: Record<string, string> = {
+  "Sessions":  "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  "Formulas":  "M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18",
+  "Shop":      "M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0",
+  "Lab":       "M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M6 22h12",
+  "Sign In":   "M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3",
+};
+
+const TABS = ["Sessions", "Formulas", "Shop", "Lab"] as const;
 type Tab = typeof TABS[number];
 
 export default function SillageAtelierMobile() {
@@ -428,12 +437,13 @@ export default function SillageAtelierMobile() {
     <div className="atelier-root">
       {/* Active screen fills all available space */}
       <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        {tab === "Sign In"  && <SignInScreen />}
-        {tab === "Sessions" && <SessionsScreen />}
-        {tab === "Chat"     && <ChatScreen />}
+        {tab === "Sessions"  && <SessionsScreen />}
+        {tab === "Formulas"  && <PlaceholderScreen label="Formulas" />}
+        {tab === "Shop"      && <PlaceholderScreen label="Shop" />}
+        {tab === "Lab"       && <PlaceholderScreen label="Lab" />}
       </div>
 
-      {/* Tab switcher */}
+      {/* Tab bar */}
       <div className="atelier-tab-bar">
         {TABS.map((t) => (
           <button
@@ -441,9 +451,31 @@ export default function SillageAtelierMobile() {
             className={`atelier-tab${tab === t ? " is-active" : ""}`}
             onClick={() => setTab(t)}
           >
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"
+              style={{ display: "block", margin: "0 auto 3px" }}
+            >
+              <path d={TAB_ICONS[t]} />
+            </svg>
             {t}
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Placeholder for new screens ──────────────────────────────────────────────
+function PlaceholderScreen({ label }: { label: string }) {
+  return (
+    <div className="atelier-screen" style={{ alignItems: "center", justifyContent: "center", gap: 10 }}>
+      <svg width={32} height={32} viewBox="0 0 24 24" fill="none"
+        stroke={C.border} strokeWidth={1} strokeLinecap="round" strokeLinejoin="round">
+        <path d={TAB_ICONS[label]} />
+      </svg>
+      <div style={{ fontFamily: F.mono, fontSize: 9, letterSpacing: "0.22em",
+        textTransform: "uppercase", color: C.border }}>
+        {label}
       </div>
     </div>
   );
