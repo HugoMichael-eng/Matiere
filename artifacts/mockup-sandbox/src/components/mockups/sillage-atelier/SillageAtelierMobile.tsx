@@ -186,108 +186,170 @@ function SignInScreen() {
 
 // ─── SCREEN 2 — Sessions ──────────────────────────────────────────────────────
 const SESSIONS = [
-  { id: 1, title: "Iris & Vetiver Structure",  sub: "12 messages · Today",    bg: "#ffebeb" },
-  { id: 2, title: "Civet Dosage Experiment",    sub: "7 messages · Yesterday", bg: undefined },
-  { id: 3, title: "Chypre Accord Balance",      sub: "23 messages · Mon",      bg: "#bdbdbd" },
-  { id: 4, title: "Top Note Volatility Study",  sub: "4 messages · Aug 10",    bg: undefined },
+  { id: 1, title: "Iris & Vetiver Structure",  msgs: 12, date: "Today",     tag: "Structure",  excerpt: "Try orris concrete at 1–2% to bridge vetiver and iris heart.", bg: "#ffebeb" },
+  { id: 2, title: "Civet Dosage Experiment",    msgs: 7,  date: "Yesterday", tag: "Materials",  excerpt: "Keep civet below 0.3% — character reads animalic beyond that.", bg: undefined },
+  { id: 3, title: "Chypre Accord Balance",      msgs: 23, date: "Mon",       tag: "Accord",     excerpt: "Labdanum is your missing anchor in the base.", bg: "#bdbdbd" },
+  { id: 4, title: "Top Note Volatility Study",  msgs: 4,  date: "Aug 10",    tag: "Evaluation", excerpt: "Bergamot opens too fast — consider a small ethanol dilution.", bg: undefined },
 ];
+
+const STATS = [
+  { label: "Sessions", value: "4" },
+  { label: "Messages", value: "46" },
+  { label: "Materials", value: "12" },
+];
+
+function Tag({ label }: { label: string }) {
+  return (
+    <span style={{
+      fontFamily: F.mono,
+      fontSize: 8,
+      fontWeight: 400,
+      letterSpacing: "0.16em",
+      textTransform: "uppercase",
+      color: C.mutedFg,
+      border: `1px solid ${C.border}`,
+      padding: "2px 6px",
+      flexShrink: 0,
+    }}>
+      {label}
+    </span>
+  );
+}
 
 function SessionsScreen() {
   const [active, setActive] = useState<number | null>(null);
+  const [featured] = SESSIONS;
+  const rest = SESSIONS.slice(1);
 
   return (
-    <div className="atelier-screen">
-      {/* Header */}
-      <div className="atelier-sessions-header mt-[0px] mb-[0px]">
-        <div>
-          <div
-            style={{
-              fontFamily: F.sans,
-              fontSize: 22,
-              fontWeight: 700,
-              color: C.fg,
-              lineHeight: 1.1,
-            }}
-          >
-            Sessions
-          </div>
-          <div
-            style={{
-              fontFamily: F.sans,
-              fontSize: 13,
-              fontWeight: 400,
-              color: C.mutedFg,
-              marginTop: 3,
-            }}
-          >
-            {SESSIONS.length} sessions
-          </div>
-        </div>
+    <div className="atelier-screen" style={{ overflowY: "auto" }}>
 
-        <div style={{ display: "flex", gap: 8 }}>
-          {/* + button — accent fill */}
-          <button
-            className="atelier-icon-btn"
-            style={{ backgroundColor: C.accent }}
-          >
-            <Icon d={PATH.plus} size={18} color={C.accentFg} sw={2} />
+      {/* ── Header ── */}
+      <div style={{
+        padding: "18px 16px 14px",
+        borderBottom: `1px solid ${C.border}`,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+      }}>
+        <div>
+          <div style={{ fontFamily: F.mono, fontSize: 8, fontWeight: 300,
+            letterSpacing: "0.22em", textTransform: "uppercase", color: C.mutedFg, marginBottom: 4 }}>
+            Wed, Aug 12
+          </div>
+          <div style={{ fontFamily: F.sans, fontSize: 20, fontWeight: 700, color: C.fg, lineHeight: 1.1 }}>
+            Good morning.
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 6, marginTop: 2 }}>
+          <button className="atelier-icon-btn" style={{ backgroundColor: C.accent }}>
+            <Icon d={PATH.plus} size={16} color={C.accentFg} sw={2} />
           </button>
-          {/* Log out button — muted fill */}
-          <button
-            className="atelier-icon-btn"
-            style={{ backgroundColor: C.muted }}
-          >
-            <Icon d={PATH.logOut} size={16} color={C.mutedFg} sw={1.5} />
+          <button className="atelier-icon-btn" style={{ backgroundColor: C.muted }}>
+            <Icon d={PATH.logOut} size={14} color={C.mutedFg} sw={1.5} />
           </button>
         </div>
       </div>
-      {/* Session list */}
-      <div className="atelier-list gap-[0px]">
-        {SESSIONS.map((s) => {
-          const on = active === s.id;
-          return (
-            <button
-              key={s.id}
-              className={`atelier-session-item${on ? " is-active" : ""}`}
-              onClick={() => setActive(on ? null : s.id)}
-              style={{ backgroundColor: s.bg ?? (on ? C.secondary : C.card) }}
-            >
-              <div className="atelier-session-body">
-                <div
-                  className="font-bold"
-                  style={{
-                    fontFamily: F.sans,
-                    fontSize: 14,
-                    color: C.fg,
-                    marginBottom: 3,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {s.title}
-                </div>
-                <div
-                  className="font-light"
-                  style={{
-                    fontFamily: F.sans,
-                    fontSize: 12,
-                    color: C.mutedFg,
-                  }}
-                >
-                  {s.sub}
-                </div>
-              </div>
-              <Icon
-                d={PATH.chevronRight}
-                size={14}
-                color={C.mutedFg}
-                sw={1.5}
-              />
-            </button>
-          );
-        })}
+
+      {/* ── Stats strip ── */}
+      <div style={{
+        display: "flex",
+        borderBottom: `1px solid ${C.border}`,
+      }}>
+        {STATS.map((s, i) => (
+          <div key={s.label} style={{
+            flex: 1,
+            padding: "12px 0",
+            textAlign: "center",
+            borderRight: i < STATS.length - 1 ? `1px solid ${C.border}` : "none",
+          }}>
+            <div style={{ fontFamily: F.sans, fontSize: 20, fontWeight: 700, color: C.fg, lineHeight: 1 }}>
+              {s.value}
+            </div>
+            <div style={{ fontFamily: F.mono, fontSize: 7.5, fontWeight: 300,
+              letterSpacing: "0.18em", textTransform: "uppercase", color: C.mutedFg, marginTop: 4 }}>
+              {s.label}
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* ── Pinned / featured session ── */}
+      <div style={{ padding: "12px 16px 0" }}>
+        <div style={{ fontFamily: F.mono, fontSize: 8, fontWeight: 300,
+          letterSpacing: "0.22em", textTransform: "uppercase", color: C.mutedFg, marginBottom: 10 }}>
+          Pinned
+        </div>
+        <button
+          onClick={() => setActive(active === featured.id ? null : featured.id)}
+          style={{
+            width: "100%", textAlign: "left", background: featured.bg ?? C.card,
+            border: `1px solid ${C.border}`, padding: "14px 14px 16px", cursor: "pointer",
+            marginBottom: 16,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+            <Tag label={featured.tag} />
+            <span style={{ fontFamily: F.mono, fontSize: 8, color: C.mutedFg, letterSpacing: "0.1em" }}>
+              {featured.date}
+            </span>
+          </div>
+          <div style={{ fontFamily: F.sans, fontSize: 15, fontWeight: 700, color: C.fg,
+            marginBottom: 6, lineHeight: 1.2 }}>
+            {featured.title}
+          </div>
+          <div style={{ fontFamily: F.sans, fontSize: 12, fontWeight: 300, color: C.mutedFg,
+            lineHeight: 1.55 }}>
+            {featured.excerpt}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginTop: 12 }}>
+            <span style={{ fontFamily: F.mono, fontSize: 8, color: C.mutedFg,
+              letterSpacing: "0.14em" }}>{featured.msgs} messages</span>
+            <Icon d={PATH.chevronRight} size={12} color={C.mutedFg} sw={1.5} />
+          </div>
+        </button>
+      </div>
+
+      {/* ── Recent list ── */}
+      <div style={{ padding: "0 16px 12px" }}>
+        <div style={{ fontFamily: F.mono, fontSize: 8, fontWeight: 300,
+          letterSpacing: "0.22em", textTransform: "uppercase", color: C.mutedFg, marginBottom: 10 }}>
+          Recent
+        </div>
+        <div style={{ border: `1px solid ${C.border}` }}>
+          {rest.map((s, i) => {
+            const on = active === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => setActive(on ? null : s.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10, width: "100%",
+                  padding: "11px 12px", textAlign: "left", cursor: "pointer", border: "none",
+                  borderBottom: i < rest.length - 1 ? `1px solid ${C.border}` : "none",
+                  backgroundColor: s.bg ?? (on ? C.secondary : C.bg),
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: F.sans, fontSize: 13, fontWeight: 600,
+                    color: C.fg, marginBottom: 3, whiteSpace: "nowrap",
+                    overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {s.title}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <Tag label={s.tag} />
+                    <span style={{ fontFamily: F.sans, fontSize: 11, fontWeight: 300,
+                      color: C.mutedFg }}>{s.msgs} msgs · {s.date}</span>
+                  </div>
+                </div>
+                <Icon d={PATH.chevronRight} size={12} color={C.mutedFg} sw={1.5} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
     </div>
   );
 }
