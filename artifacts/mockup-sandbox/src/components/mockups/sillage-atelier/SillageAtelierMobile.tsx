@@ -438,12 +438,7 @@ export default function SillageAtelierMobile() {
         >
           Sillage Lab Mobile
         </div>
-        <div
-          className="atelier-title-tag text-[#ffffff]"
-          style={{ color: C.mutedFg, borderColor: C.border }}
-        >
-          Design system
-        </div>
+
       </div>
       {/* Three screens */}
       <div className="atelier-phones">
