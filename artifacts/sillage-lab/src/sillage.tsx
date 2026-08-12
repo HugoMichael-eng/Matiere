@@ -208,7 +208,7 @@ function useCountUp(target: number, duration = 1100) {
   return count;
 }
 
-function MetricCard({ label, value, Icon, delay, testId }: { label: string; value: number; Icon: LucideIcon; delay: number; testId: string }) {
+function MetricCard({ label, value, Icon, delay, testId, href }: { label: string; value: number; Icon: LucideIcon; delay: number; testId: string; href: string }) {
   const count = useCountUp(value);
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
@@ -216,31 +216,37 @@ function MetricCard({ label, value, Icon, delay, testId }: { label: string; valu
   const glow = useMotionTemplate`radial-gradient(180px at ${mouseX}px ${mouseY}px, rgba(255,255,255,0.07), transparent 80%)`;
 
   return (
-    <motion.div
-      ref={cardRef}
-      data-testid={testId}
-      onMouseMove={e => {
-        const r = cardRef.current?.getBoundingClientRect();
-        if (!r) return;
-        mouseX.set(e.clientX - r.left);
-        mouseY.set(e.clientY - r.top);
-      }}
-      initial={{ opacity: 0, y: 20, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -5, transition: { duration: 0.16 } }}
-      className="group relative overflow-hidden bg-background p-6 text-foreground cursor-default"
-    >
-      {/* Cursor glow */}
-      <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: glow }} />
-      <div className="relative flex items-start justify-between">
-        <p className="max-w-[120px] text-[11px] leading-4 text-muted-foreground">{label}</p>
-        <motion.div whileHover={{ scale: 1.25, rotate: 8 }} transition={{ type: "spring", stiffness: 300, damping: 14 }}>
-          <Icon size={17} strokeWidth={1.6} className="text-muted-foreground transition-colors group-hover:text-foreground" />
-        </motion.div>
-      </div>
-      <p className="relative mt-5 font-display text-4xl">{count}</p>
-    </motion.div>
+    <Link href={href}>
+      <motion.div
+        ref={cardRef}
+        data-testid={testId}
+        onMouseMove={e => {
+          const r = cardRef.current?.getBoundingClientRect();
+          if (!r) return;
+          mouseX.set(e.clientX - r.left);
+          mouseY.set(e.clientY - r.top);
+        }}
+        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
+        whileHover={{ y: -3, transition: { duration: 0.16 } }}
+        whileTap={{ scale: 0.97 }}
+        className="group relative overflow-hidden bg-background p-6 text-foreground cursor-pointer"
+      >
+        {/* Cursor glow */}
+        <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: glow }} />
+        <div className="relative flex items-start justify-between">
+          <p className="max-w-[120px] text-[11px] leading-4 text-muted-foreground">{label}</p>
+          <motion.div whileHover={{ scale: 1.25, rotate: 8 }} transition={{ type: "spring", stiffness: 300, damping: 14 }}>
+            <Icon size={17} strokeWidth={1.6} className="text-muted-foreground transition-colors group-hover:text-foreground" />
+          </motion.div>
+        </div>
+        <p className="relative mt-5 font-display text-4xl">{count}</p>
+        <p className="relative mt-1 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+          View →
+        </p>
+      </motion.div>
+    </Link>
   );
 }
 
@@ -647,11 +653,11 @@ function Dashboard() {
   );
   if (summaryQuery.isError || !summary) return <Shell><ErrorState retry={() => summaryQuery.refetch()} /></Shell>;
 
-  const metrics: Array<[string, number, LucideIcon, string]> = [
-    ["Saved formulas", summary.formulaCount, BookOpen, "metric-0"],
-    ["Material library", summary.materialCount, Leaf, "metric-1"],
-    ["Needs a second look", summary.reviewCount, ShieldCheck, "metric-2"],
-    ["Allergen notes", summary.allergenCount, CircleAlert, "metric-3"],
+  const metrics: Array<[string, number, LucideIcon, string, string]> = [
+    ["Saved formulas", summary.formulaCount, BookOpen, "metric-0", "/formulas"],
+    ["Material library", summary.materialCount, Leaf, "metric-1", "/materials"],
+    ["Needs a second look", summary.reviewCount, ShieldCheck, "metric-2", "/formulas?status=resting"],
+    ["Allergen notes", summary.allergenCount, CircleAlert, "metric-3", "/formulas"],
   ];
 
   return (
@@ -671,8 +677,8 @@ function Dashboard() {
 
       {/* ── ANIMATED METRICS ──────────────────────────────── */}
       <div className="grid grid-cols-2 gap-px bg-border border-b border-border lg:grid-cols-4">
-        {metrics.map(([label, count, Icon, testId], i) => (
-          <MetricCard key={label} label={label} value={count} Icon={Icon} delay={0.07 * i} testId={testId} />
+        {metrics.map(([label, count, Icon, testId, href], i) => (
+          <MetricCard key={label} label={label} value={count} Icon={Icon} delay={0.07 * i} testId={testId} href={href} />
         ))}
       </div>
 
@@ -750,7 +756,9 @@ function EmptyState({ title, copy, href, label }: { title: string; copy: string;
 
 function Formulas() {
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<"all" | "draft" | "resting" | "approved">("all");
+  const rawSearch = useSearch();
+  const urlStatus = new URLSearchParams(rawSearch).get("status") as "draft" | "resting" | "approved" | null;
+  const [status, setStatus] = useState<"all" | "draft" | "resting" | "approved">(urlStatus ?? "all");
   const query = useListFormulas({ search: search || undefined, status: status === "all" ? undefined : status });
   const formulas = query.data ?? [];
   return <Shell><PageHeader eyebrow="Library · formulas" title="Formula library" description="The living record of what you’ve made, paused, and almost made." action={<Button href="/formulas/new" testId="button-library-new">New formula</Button>} />
