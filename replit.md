@@ -1,6 +1,6 @@
-# [Project name]
+# Sillage Lab
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Sillage Lab is a creative perfumery workspace for developing, storing, and safety-reviewing fragrance formulas with AI coaching.
 
 ## Run & Operate
 
@@ -22,23 +22,30 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/sillage-lab` — the user-facing React + Vite workspace and branded auth screens.
+- `artifacts/api-server/src/routes` — formula, material, dashboard, and AI coaching routes.
+- `lib/api-spec/openapi.yaml` — source of truth for the typed API contract.
+- `lib/db/src/schema` — Drizzle schema for owned formulas and shared raw materials.
+- `artifacts/sillage-lab/src/index.css` — Sillage Lab visual theme and typography tokens.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Formula records are scoped to the authenticated Clerk user via `ownerId`; raw materials are shared reference data.
+- Formula safety is computed server-side from the current material catalog, including allergen presence and IFRA percentage checks.
+- AI coaching uses Replit-managed OpenAI access and returns structured reply, suggestions, and cautions.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Perfumers can create and revise formulas, search their formula library, browse materials with allergen and IFRA context, review safety status, and ask an AI coach for more original directions.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Keep the product personal and creative without weakening safety language or encouraging users to treat AI as a replacement for current IFRA documentation.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Run `pnpm --filter @workspace/api-spec run codegen` after changing `lib/api-spec/openapi.yaml`.
+- Formula and material APIs require a Clerk session; the public root route remains accessible to signed-out visitors.
 
 ## Pointers
 

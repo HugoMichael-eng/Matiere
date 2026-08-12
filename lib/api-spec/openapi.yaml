@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+    description: Perfumery workspace overview
+  - name: formulas
+    description: Formula library and revisions
+  - name: materials
+    description: Raw material library and safety data
+  - name: coaching
+    description: AI creative coaching
 paths:
   /healthz:
     get:
@@ -24,7 +32,152 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get workspace summary
+      responses:
+        "200":
+          description: Summary of the current perfumery workspace
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /formulas:
+    get:
+      operationId: listFormulas
+      tags: [formulas]
+      summary: List formulas
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [draft, resting, approved, archived]
+      responses:
+        "200":
+          description: Formula list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Formula"
+    post:
+      operationId: createFormula
+      tags: [formulas]
+      summary: Create a formula
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FormulaInput"
+      responses:
+        "201":
+          description: Created formula
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Formula"
+  /formulas/{id}:
+    get:
+      operationId: getFormula
+      tags: [formulas]
+      summary: Get a formula
+      parameters:
+        - $ref: "#/components/parameters/FormulaId"
+      responses:
+        "200":
+          description: Formula detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Formula"
+        "404":
+          description: Formula not found
+    patch:
+      operationId: updateFormula
+      tags: [formulas]
+      summary: Update a formula
+      parameters:
+        - $ref: "#/components/parameters/FormulaId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FormulaUpdate"
+      responses:
+        "200":
+          description: Updated formula
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Formula"
+    delete:
+      operationId: deleteFormula
+      tags: [formulas]
+      summary: Delete a formula
+      parameters:
+        - $ref: "#/components/parameters/FormulaId"
+      responses:
+        "204":
+          description: Formula deleted
+  /materials:
+    get:
+      operationId: listMaterials
+      tags: [materials]
+      summary: List raw materials
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Material list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Material"
+  /coaching/messages:
+    post:
+      operationId: sendCoachingMessage
+      tags: [coaching]
+      summary: Ask the AI perfumery coach for guidance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoachingMessageInput"
+      responses:
+        "200":
+          description: Coaching response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoachingMessage"
 components:
+  parameters:
+    FormulaId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: number
+        minimum: 1
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +186,204 @@ components:
           type: string
       required:
         - status
+    FormulaIngredient:
+      type: object
+      required: [materialId, materialName, percentage, grams, role]
+      properties:
+        materialId:
+          type: number
+        materialName:
+          type: string
+        percentage:
+          type: number
+        grams:
+          type: number
+        role:
+          type: string
+          enum: [top, heart, base, modifier]
+        allergenFlags:
+          type: array
+          items:
+            type: string
+    FormulaIngredientInput:
+      type: object
+      required: [materialId, materialName, percentage, grams, role]
+      properties:
+        materialId:
+          type: number
+        materialName:
+          type: string
+        percentage:
+          type: number
+          minimum: 0
+        grams:
+          type: number
+          minimum: 0
+        role:
+          type: string
+          enum: [top, heart, base, modifier]
+        allergenFlags:
+          type: array
+          items:
+            type: string
+    Formula:
+      type: object
+      required: [id, name, brief, status, concentration, totalMl, version, ingredients, updatedAt, createdAt, safetyStatus, allergenCount, ifraStatus]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        brief:
+          type: string
+        status:
+          type: string
+          enum: [draft, resting, approved, archived]
+        concentration:
+          type: number
+        totalMl:
+          type: number
+        version:
+          type: number
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/FormulaIngredient"
+        safetyStatus:
+          type: string
+          enum: [clear, review, blocked]
+        allergenCount:
+          type: number
+        ifraStatus:
+          type: string
+          enum: [within_limit, review, exceeds_limit]
+        notes:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    FormulaInput:
+      type: object
+      required: [name, brief, status, concentration, totalMl, ingredients]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        brief:
+          type: string
+        status:
+          type: string
+          enum: [draft, resting, approved, archived]
+        concentration:
+          type: number
+          minimum: 0
+          maximum: 100
+        totalMl:
+          type: number
+          minimum: 0
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/FormulaIngredientInput"
+        notes:
+          type: string
+    FormulaUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        brief:
+          type: string
+        status:
+          type: string
+          enum: [draft, resting, approved, archived]
+        concentration:
+          type: number
+          minimum: 0
+          maximum: 100
+        totalMl:
+          type: number
+          minimum: 0
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/FormulaIngredientInput"
+        notes:
+          type: string
+    Material:
+      type: object
+      required: [id, name, family, origin, casNumber, allergens, ifraCategory, ifraLimit, usageNotes, inStock, safetyStatus]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        family:
+          type: string
+        origin:
+          type: string
+        casNumber:
+          type: ["string", "null"]
+        allergens:
+          type: array
+          items:
+            type: string
+        ifraCategory:
+          type: string
+        ifraLimit:
+          type: number
+        usageNotes:
+          type: string
+        inStock:
+          type: boolean
+        safetyStatus:
+          type: string
+          enum: [low, medium, high]
+    DashboardSummary:
+      type: object
+      required: [formulaCount, materialCount, reviewCount, allergenCount, recentFormulas, focusPrompt]
+      properties:
+        formulaCount:
+          type: number
+        materialCount:
+          type: number
+        reviewCount:
+          type: number
+        allergenCount:
+          type: number
+        recentFormulas:
+          type: array
+          items:
+            $ref: "#/components/schemas/Formula"
+        focusPrompt:
+          type: string
+    CoachingMessageInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 1
+        formulaId:
+          type: ["number", "null"]
+        formulaContext:
+          type: ["string", "null"]
+    CoachingMessage:
+      type: object
+      required: [reply, suggestions, cautions]
+      properties:
+        reply:
+          type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+        cautions:
+          type: array
+          items:
+            type: string
 

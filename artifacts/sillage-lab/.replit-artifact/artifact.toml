@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Sillage Lab"
+description = "A creative perfumery workspace for crafting, safely storing, and reviewing fragrance formulas. Perfumers can track materials, check allergen and IFRA risk, and get AI coaching that helps them make more original work."
+version = "1.0.0"
+id = "artifacts/sillage-lab"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22606
+
+[services.development]
+run = "pnpm --filter @workspace/sillage-lab run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sillage-lab", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/sillage-lab/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22606"
+BASE_PATH = "/"
