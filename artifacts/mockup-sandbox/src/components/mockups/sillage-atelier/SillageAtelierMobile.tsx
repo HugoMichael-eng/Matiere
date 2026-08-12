@@ -425,7 +425,7 @@ export default function SillageAtelierMobile() {
       {/* Label */}
       <div className="atelier-title-bar">
         <div
-          className="border border-t-[#ffffff] border-r-[#ffffff] border-b-[#ffffff] border-l-[#ffffff]"
+          className="border border-t-[#ffffff] border-r-[#ffffff] border-b-[#ffffff] border-l-[#ffffff] text-[18px]"
           style={{
             fontFamily: F.mono,
             fontSize: 9,
