@@ -1911,7 +1911,7 @@ function Landing() {
               transition={{ delay: 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               className="mt-6 max-w-3xl font-display text-[clamp(4rem,9vw,8.5rem)] leading-[.83] tracking-[-.045em]"
             >
-              Make the scent <em className="text-accent">s</em>
+              Where instinct meets <em className="text-accent">precision.</em>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 22 }}
