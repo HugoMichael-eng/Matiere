@@ -4,7 +4,7 @@ import { ClerkProvider, SignIn, SignUp, useAuth, useClerk, useUser } from "@cler
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { experimental__simple } from "@clerk/themes";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
+import { AnimatePresence, motion, useMotionTemplate, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import {
   ArrowUpRight, Beaker, BookOpen, ChevronDown, ChevronRight, CircleAlert,
   FlaskConical, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
@@ -109,13 +109,42 @@ function Skeleton({ className = "" }: { className?: string }) { return <div clas
 function ErrorState({ retry }: { retry: () => void }) { return <div className="border border-destructive/30 bg-destructive/5 p-8 text-center"><CircleAlert className="mx-auto text-destructive" /><p className="mt-3 font-display text-2xl">The studio is quiet.</p><p className="mt-1 text-sm text-muted-foreground">We couldn’t read your workspace just now.</p><div className="mt-4"><Button onClick={retry} variant="outline" testId="button-retry">Try again</Button></div></div>; }
 
 function FormulaRow({ formula }: { formula: Formula }) {
-  return <Link href={`/formulas/${formula.id}`} data-testid={`row-formula-${formula.id}`} className="group grid grid-cols-[1fr_auto] items-center gap-4 border-b border-border py-5 transition-colors hover:bg-secondary sm:grid-cols-[1.5fr_1fr_110px_110px_24px]">
-    <div className="min-w-0"><p className="truncate text-sm font-medium">{formula.name}</p><p className="mt-1 truncate text-xs text-muted-foreground">{formula.brief || "No brief yet"}</p></div>
-    <div className="hidden text-xs text-muted-foreground sm:block">{formula.ingredients?.length ?? 0} materials</div>
-    <div className="hidden sm:block"><StatusPill value={formula.status} /></div>
-    <div className="hidden text-right font-mono-ui text-[10px] text-muted-foreground sm:block">{new Date(formula.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</div>
-    <ChevronRight size={15} className="text-muted-foreground transition-transform group-hover:translate-x-1" />
-  </Link>;
+  return (
+    <Link href={`/formulas/${formula.id}`} data-testid={`row-formula-${formula.id}`}>
+      <motion.div
+        className="group relative grid grid-cols-[1fr_auto] items-center gap-4 border-b border-border py-5 overflow-hidden sm:grid-cols-[1.5fr_1fr_110px_110px_24px]"
+        whileHover="hovered" initial="idle"
+      >
+        {/* Sweep bar */}
+        <motion.div
+          aria-hidden
+          className="absolute inset-0 bg-secondary/70 origin-left"
+          variants={{ idle: { scaleX: 0 }, hovered: { scaleX: 1 } }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        />
+        <motion.div
+          className="relative min-w-0"
+          variants={{ idle: { x: 0 }, hovered: { x: 6 } }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <p className="truncate text-sm font-medium">{formula.name}</p>
+          <p className="mt-1 truncate text-xs text-muted-foreground">{formula.brief || "No brief yet"}</p>
+        </motion.div>
+        <div className="relative hidden text-xs text-muted-foreground sm:block">{formula.ingredients?.length ?? 0} materials</div>
+        <div className="relative hidden sm:block"><StatusPill value={formula.status} /></div>
+        <div className="relative hidden text-right font-mono-ui text-[10px] text-muted-foreground sm:block">
+          {new Date(formula.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+        </div>
+        <motion.div
+          className="relative"
+          variants={{ idle: { x: 0 }, hovered: { x: 4 } }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          <ChevronRight size={15} className="text-muted-foreground" />
+        </motion.div>
+      </motion.div>
+    </Link>
+  );
 }
 
 function useCountUp(target: number, duration = 1100) {
@@ -136,20 +165,329 @@ function useCountUp(target: number, duration = 1100) {
 
 function MetricCard({ label, value, Icon, delay, testId }: { label: string; value: number; Icon: LucideIcon; delay: number; testId: string }) {
   const count = useCountUp(value);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const glow = useMotionTemplate`radial-gradient(180px at ${mouseX}px ${mouseY}px, rgba(255,255,255,0.07), transparent 80%)`;
+
   return (
     <motion.div
+      ref={cardRef}
       data-testid={testId}
+      onMouseMove={e => {
+        const r = cardRef.current?.getBoundingClientRect();
+        if (!r) return;
+        mouseX.set(e.clientX - r.left);
+        mouseY.set(e.clientY - r.top);
+      }}
       initial={{ opacity: 0, y: 20, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -5, transition: { duration: 0.16 } }}
-      className="border border-border bg-card p-5 text-foreground cursor-default"
+      className="group relative overflow-hidden border border-border bg-card p-5 text-foreground cursor-default"
     >
-      <div className="flex items-start justify-between">
+      {/* Cursor glow */}
+      <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: glow }} />
+      <div className="relative flex items-start justify-between">
         <p className="max-w-[120px] text-[11px] leading-4 text-muted-foreground">{label}</p>
-        <Icon size={17} strokeWidth={1.6} className="text-muted-foreground" />
+        <motion.div whileHover={{ scale: 1.25, rotate: 8 }} transition={{ type: "spring", stiffness: 300, damping: 14 }}>
+          <Icon size={17} strokeWidth={1.6} className="text-muted-foreground transition-colors group-hover:text-foreground" />
+        </motion.div>
       </div>
-      <p className="mt-5 font-display text-4xl">{count}</p>
+      <p className="relative mt-5 font-display text-4xl">{count}</p>
+    </motion.div>
+  );
+}
+
+// ── Spotlight: cursor-glow + parallax layers ──────────────
+function SpotlightCard({ formula }: { formula: Formula }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const sx = useSpring(mx, { stiffness: 90, damping: 18 });
+  const sy = useSpring(my, { stiffness: 90, damping: 18 });
+
+  const titleX = useTransform(sx, [0, 1], [-12, 12]);
+  const titleY = useTransform(sy, [0, 1], [-6, 6]);
+  const statsX = useTransform(sx, [0, 1], [7, -7]);
+  const glowL = useTransform(sx, [0, 1], ["0%", "100%"]);
+  const glowT = useTransform(sy, [0, 1], ["0%", "100%"]);
+  const glowBg = useMotionTemplate`radial-gradient(420px circle at ${glowL} ${glowT}, rgba(255,255,255,0.055) 0%, transparent 65%)`;
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = cardRef.current?.getBoundingClientRect();
+    if (!r) return;
+    mx.set((e.clientX - r.left) / r.width);
+    my.set((e.clientY - r.top) / r.height);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      className="mb-6"
+    >
+      <Link href={`/formulas/${formula.id}`} data-testid="link-spotlight-formula">
+        <div
+          ref={cardRef}
+          onMouseMove={onMove}
+          onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
+          className="group relative overflow-hidden border border-border bg-card"
+        >
+          {/* Cursor glow layer */}
+          <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: glowBg }} />
+
+          <div className="flex flex-col gap-5 p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between">
+            {/* Left */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">
+                  Formula {String(formula.id).padStart(3, "0")} · most recent
+                </p>
+                <StatusPill value={formula.status} />
+                <StatusPill value={formula.ifraStatus} />
+              </div>
+              <motion.h2
+                style={{ x: titleX, y: titleY }}
+                className="mt-4 font-display text-[clamp(2.6rem,5.5vw,5.5rem)] leading-[.86] tracking-[-.03em] will-change-transform transition-colors duration-300 group-hover:text-accent"
+              >
+                {formula.name}
+              </motion.h2>
+              {formula.brief && (
+                <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground line-clamp-2">{formula.brief}</p>
+              )}
+            </div>
+
+            {/* Right: stats at opposite parallax depth */}
+            <motion.div
+              style={{ x: statsX }}
+              className="flex shrink-0 flex-wrap items-end gap-6 lg:pb-1 will-change-transform"
+            >
+              <div className="text-right">
+                <p className="font-display text-5xl">{formula.concentration}%</p>
+                <p className="mt-0.5 font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p>
+              </div>
+              <div className="border-l border-border pl-6">
+                <p className="font-display text-5xl">{formula.ingredients.length}</p>
+                <p className="mt-0.5 font-mono-ui text-[9px] uppercase text-muted-foreground">materials</p>
+              </div>
+              <motion.div
+                className="flex items-center gap-1.5 pb-1 font-mono-ui text-[10px] uppercase tracking-widest transition-colors group-hover:text-accent"
+                whileHover={{ x: 3 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                Continue <ArrowUpRight size={13} />
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* Ingredient strip — each cell lights up individually */}
+          {formula.ingredients.length > 0 && (
+            <div className="flex border-t border-border">
+              {formula.ingredients.slice(0, 6).map((ing, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+                  className={`flex-1 px-3 py-3 min-w-0 ${i > 0 ? "border-l border-border" : ""}`}
+                >
+                  <p className="truncate font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">{ing.materialName}</p>
+                  <p className="mt-0.5 font-mono-ui text-[9px] text-foreground">{ing.grams}g</p>
+                </motion.div>
+              ))}
+              {formula.ingredients.length > 6 && (
+                <div className="border-l border-border px-3 py-3">
+                  <p className="font-mono-ui text-[8px] text-muted-foreground">+{formula.ingredients.length - 6}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+// ── Stage pipeline: clickable, hover reveals "View →" ─────
+function StageTrack({ counts, total }: { counts: Record<"draft" | "resting" | "approved", number>; total: number }) {
+  const stages = (["draft", "resting", "approved"] as const);
+  const labels = { draft: "Draft", resting: "Resting", approved: "Approved" };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+      className="mb-6 grid grid-cols-3 border border-border bg-card overflow-hidden"
+    >
+      {stages.map((stage, i) => {
+        const count = counts[stage];
+        const pct = total > 0 ? (count / total) * 100 : 0;
+        return (
+          <Link key={stage} href={`/formulas?status=${stage}`} data-testid={`link-stage-${stage}`}>
+            <motion.div
+              className={`group relative p-5 cursor-pointer ${i < 2 ? "border-r border-border" : ""}`}
+              whileHover="hovered" initial="idle"
+            >
+              {/* Hover background */}
+              <motion.div
+                aria-hidden
+                className="absolute inset-0 bg-secondary/60"
+                variants={{ idle: { opacity: 0 }, hovered: { opacity: 1 } }}
+                transition={{ duration: 0.18 }}
+              />
+              <div className="relative">
+                <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">{labels[stage]}</p>
+                <motion.p
+                  className="mt-2 font-display text-4xl"
+                  variants={{ idle: { y: 0 }, hovered: { y: -3 } }}
+                  transition={{ type: "spring", stiffness: 360, damping: 18 }}
+                >
+                  {count}
+                </motion.p>
+                {/* Progress bar */}
+                <div className="mt-3 h-[2px] w-full overflow-hidden bg-border">
+                  <motion.div
+                    className="h-full bg-foreground"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 1, delay: 0.35 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                </div>
+                {/* "View →" reveals on hover */}
+                <motion.p
+                  className="mt-2 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground"
+                  variants={{ idle: { opacity: 0, y: 5 }, hovered: { opacity: 1, y: 0 } }}
+                  transition={{ duration: 0.16 }}
+                >
+                  View formulas →
+                </motion.p>
+              </div>
+              {/* Connector chevron */}
+              {i < 2 && (
+                <ChevronRight
+                  size={11}
+                  className="absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-[55%] bg-card text-border transition-colors group-hover:text-foreground/30"
+                />
+              )}
+            </motion.div>
+          </Link>
+        );
+      })}
+    </motion.div>
+  );
+}
+
+// ── Scent of the day: full-width hero with cursor glow + parallax ──
+function MaterialHero({ material }: { material: Material }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const sx = useSpring(mx, { stiffness: 90, damping: 18 });
+  const sy = useSpring(my, { stiffness: 90, damping: 18 });
+
+  const nameX = useTransform(sx, [0, 1], [-14, 14]);
+  const nameY = useTransform(sy, [0, 1], [-6, 6]);
+  const statsX = useTransform(sx, [0, 1], [8, -8]);
+  const glowL = useTransform(sx, [0, 1], ["0%", "100%"]);
+  const glowT = useTransform(sy, [0, 1], ["0%", "100%"]);
+  const glowBg = useMotionTemplate`radial-gradient(520px circle at ${glowL} ${glowT}, rgba(255,255,255,0.065) 0%, transparent 62%)`;
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = cardRef.current?.getBoundingClientRect();
+    if (!r) return;
+    mx.set((e.clientX - r.left) / r.width);
+    my.set((e.clientY - r.top) / r.height);
+  };
+
+  const stripItems = [
+    { label: "Family", value: material.family },
+    { label: "Origin", value: material.origin },
+    { label: "IFRA limit", value: `${material.ifraLimit}%` },
+    { label: "Stock", value: material.inStock ? "In stock" : "To source" },
+    { label: "Allergens", value: material.allergens.length > 0 ? material.allergens.length.toString() : "None flagged" },
+    ...(material.casNumber ? [{ label: "CAS", value: material.casNumber }] : []),
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+      className="mb-6"
+    >
+      <Link href="/materials" data-testid="link-material-hero">
+        <div
+          ref={cardRef}
+          onMouseMove={onMove}
+          onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
+          className="group relative overflow-hidden border border-border bg-card"
+        >
+          {/* Cursor glow */}
+          <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: glowBg }} />
+
+          {/* Main section */}
+          <div className="flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between">
+            {/* Left: name + meta + notes */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">Scent of the day</p>
+                <StatusPill value={material.safetyStatus} />
+              </div>
+              <motion.h2
+                style={{ x: nameX, y: nameY }}
+                className="mt-4 font-display text-[clamp(3rem,6.5vw,7.5rem)] leading-[.82] tracking-[-.03em] will-change-transform transition-colors duration-300 group-hover:text-accent"
+              >
+                {material.name}
+              </motion.h2>
+              <p className="mt-3 font-mono-ui text-[10px] uppercase tracking-widest text-muted-foreground">
+                {material.family} · {material.origin}
+              </p>
+              {material.usageNotes && (
+                <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground line-clamp-2">{material.usageNotes}</p>
+              )}
+            </div>
+
+            {/* Right: IFRA + allergen count at opposite parallax depth */}
+            <motion.div
+              style={{ x: statsX }}
+              className="flex shrink-0 flex-col gap-5 lg:items-end lg:pb-1 will-change-transform"
+            >
+              <div className="flex flex-wrap items-end gap-6">
+                <div className="text-right">
+                  <p className="font-display text-5xl">{material.ifraLimit}%</p>
+                  <p className="mt-0.5 font-mono-ui text-[9px] uppercase text-muted-foreground">IFRA limit</p>
+                </div>
+                <div className="border-l border-border pl-6 text-right">
+                  <p className="font-display text-5xl">{material.allergens.length}</p>
+                  <p className="mt-0.5 font-mono-ui text-[9px] uppercase text-muted-foreground">allergen{material.allergens.length !== 1 ? "s" : ""}</p>
+                </div>
+              </div>
+              <motion.div
+                className="flex items-center gap-1.5 font-mono-ui text-[10px] uppercase tracking-widest transition-colors group-hover:text-accent"
+                whileHover={{ x: 3 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                Browse library <ArrowUpRight size={13} />
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* Metadata strip */}
+          <div className="flex border-t border-border overflow-x-auto">
+            {stripItems.map(({ label, value }, i) => (
+              <motion.div
+                key={label}
+                whileHover={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+                className={`flex-1 min-w-[80px] px-4 py-3 ${i > 0 ? "border-l border-border" : ""}`}
+              >
+                <p className="whitespace-nowrap font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">{label}</p>
+                <p className="mt-0.5 truncate font-mono-ui text-[9px] text-foreground">{value}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </Link>
     </motion.div>
   );
 }
@@ -171,7 +509,6 @@ function Dashboard() {
 
   const weekday = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: "long" }), []);
 
-  // Stable-per-day material selection
   const materialOfDay = useMemo(() => {
     if (!materials.length) return null;
     const seed = new Date().getDate() + new Date().getMonth() * 31;
@@ -214,67 +551,12 @@ function Dashboard() {
         action={<Button href="/formulas/new" testId="button-new-formula">New formula</Button>}
       />
 
+      {/* ── SCENT OF THE DAY — leads the desk ────────────── */}
+      {materialOfDay && <MaterialHero material={materialOfDay} />}
+
       {/* ── FORMULA SPOTLIGHT ─────────────────────────────── */}
       {spotlight ? (
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-6"
-        >
-          <Link
-            href={`/formulas/${spotlight.id}`}
-            data-testid="link-spotlight-formula"
-            className="group block border border-border bg-card overflow-hidden"
-          >
-            <div className="flex flex-col gap-5 p-6 sm:p-8 lg:flex-row lg:items-end lg:justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-3">
-                  <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">
-                    Formula {String(spotlight.id).padStart(3, "0")} · most recent
-                  </p>
-                  <StatusPill value={spotlight.status} />
-                  <StatusPill value={spotlight.ifraStatus} />
-                </div>
-                <h2 className="mt-4 font-display text-[clamp(2.6rem,5.5vw,5.5rem)] leading-[.86] tracking-[-.03em] transition-colors duration-300 group-hover:text-accent">
-                  {spotlight.name}
-                </h2>
-                {spotlight.brief && (
-                  <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground line-clamp-2">{spotlight.brief}</p>
-                )}
-              </div>
-              <div className="flex shrink-0 flex-wrap items-end gap-6 lg:pb-1">
-                <div className="text-right">
-                  <p className="font-display text-5xl">{spotlight.concentration}%</p>
-                  <p className="mt-0.5 font-mono-ui text-[9px] uppercase text-muted-foreground">{spotlight.totalMl} ml batch</p>
-                </div>
-                <div className="border-l border-border pl-6">
-                  <p className="font-display text-5xl">{spotlight.ingredients.length}</p>
-                  <p className="mt-0.5 font-mono-ui text-[9px] uppercase text-muted-foreground">materials</p>
-                </div>
-                <div className="flex items-center gap-1.5 pb-1 font-mono-ui text-[10px] uppercase tracking-widest text-foreground transition-colors group-hover:text-accent">
-                  Continue <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </div>
-              </div>
-            </div>
-            {/* Ingredient strip */}
-            {spotlight.ingredients.length > 0 && (
-              <div className="flex border-t border-border">
-                {spotlight.ingredients.slice(0, 6).map((ing, i) => (
-                  <div key={i} className={`flex-1 px-3 py-2.5 min-w-0 ${i > 0 ? "border-l border-border" : ""}`}>
-                    <p className="truncate font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">{ing.materialName}</p>
-                    <p className="mt-0.5 font-mono-ui text-[9px] text-foreground">{ing.grams}g</p>
-                  </div>
-                ))}
-                {spotlight.ingredients.length > 6 && (
-                  <div className="border-l border-border px-3 py-2.5 text-muted-foreground">
-                    <p className="font-mono-ui text-[8px]">+{spotlight.ingredients.length - 6}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </Link>
-        </motion.div>
+        <SpotlightCard formula={spotlight} />
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
@@ -288,42 +570,7 @@ function Dashboard() {
       )}
 
       {/* ── STAGE PIPELINE ────────────────────────────────── */}
-      {stageTotal > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-6 grid grid-cols-3 border border-border bg-card"
-        >
-          {(["draft", "resting", "approved"] as const).map((stage, i) => {
-            const count = stageCounts[stage];
-            const pct = stageTotal > 0 ? count / stageTotal : 0;
-            const stageLabel = stage.charAt(0).toUpperCase() + stage.slice(1);
-            return (
-              <div key={stage} className={`relative p-5 ${i < 2 ? "border-r border-border" : ""}`}>
-                <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">{stageLabel}</p>
-                <p className="mt-2 font-display text-4xl">{count}</p>
-                {/* Progress fill */}
-                <div className="mt-3 h-[2px] w-full overflow-hidden bg-border">
-                  <motion.div
-                    className="h-full bg-foreground"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct * 100}%` }}
-                    transition={{ duration: 1, delay: 0.35 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  />
-                </div>
-                {/* Connector arrow */}
-                {i < 2 && (
-                  <ChevronRight
-                    size={11}
-                    className="absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-[55%] bg-card text-border"
-                  />
-                )}
-              </div>
-            );
-          })}
-        </motion.div>
-      )}
+      {stageTotal > 0 && <StageTrack counts={stageCounts} total={stageTotal} />}
 
       {/* ── ANIMATED METRICS ──────────────────────────────── */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -332,62 +579,35 @@ function Dashboard() {
         ))}
       </div>
 
-      {/* ── BOTTOM GRID ───────────────────────────────────── */}
-      <div className="grid gap-6 lg:grid-cols-[1.5fr_.8fr]">
-        <section className="border border-border bg-card p-6 sm:p-7">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">The notebook, recently</p>
-              <h2 className="mt-1 font-display text-3xl">Latest formulas</h2>
-            </div>
-            <Link href="/formulas" data-testid="link-view-all-formulas" className="text-[11px] uppercase tracking-widest text-foreground hover:underline">View all</Link>
+      {/* ── LATEST FORMULAS — full width ──────────────────── */}
+      <motion.section
+        className="border border-border bg-card p-6 sm:p-7"
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">The notebook, recently</p>
+            <h2 className="mt-1 font-display text-3xl">Latest formulas</h2>
           </div>
-          {summary.recentFormulas.length
-            ? summary.recentFormulas.map(formula => <FormulaRow key={formula.id} formula={formula} />)
-            : <EmptyState title="Your first formula is waiting." copy="Start with a feeling, a material, or a strange little question." href="/formulas/new" label="Open a fresh page" />}
-        </section>
-
-        {/* ── MATERIAL OF THE DAY ───────────────────────── */}
-        {materialOfDay ? (
-          <motion.section
-            initial={{ opacity: 0, x: 18 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="border border-border bg-card p-7"
-          >
-            <div className="flex items-start justify-between">
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Material of the day</p>
-              <StatusPill value={materialOfDay.safetyStatus} />
-            </div>
-            <h3 className="mt-6 font-display text-[2.1rem] leading-[.88]">{materialOfDay.name}</h3>
-            <p className="mt-1.5 font-mono-ui text-[10px] uppercase tracking-widest text-muted-foreground">
-              {materialOfDay.family} · {materialOfDay.origin}
-            </p>
-            <p className="mt-5 text-sm leading-6 text-muted-foreground line-clamp-4">{materialOfDay.usageNotes}</p>
-            <div className="mt-5 flex items-center justify-between border-t border-border pt-4 font-mono-ui text-[9px] uppercase tracking-[.1em] text-muted-foreground">
-              <span>IFRA {materialOfDay.ifraLimit}%</span>
-              <span>{materialOfDay.inStock ? "In stock" : "To source"}</span>
-            </div>
-            <div className="mt-5">
-              <Link href="/materials" data-testid="link-material-library" className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-widest text-foreground hover:underline">
-                Browse library <ArrowUpRight size={13} />
-              </Link>
-            </div>
-          </motion.section>
-        ) : (
-          <section className="border border-border bg-card p-7">
-            <Sparkles size={19} className="text-muted-foreground" />
-            <p className="mt-12 font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Creative focus</p>
-            <p className="mt-3 font-display text-[31px] leading-[1.02] text-accent" data-testid="text-focus-prompt">{summary.focusPrompt}</p>
-            <Link href="/coach" data-testid="link-open-coach" className="mt-8 inline-flex items-center gap-2 text-[11px] uppercase tracking-widest hover:underline">
-              Open creative lab <ArrowUpRight size={14} />
+          <motion.div whileHover={{ x: 2 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+            <Link href="/formulas" data-testid="link-view-all-formulas" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-widest text-foreground hover:underline">
+              View all <ArrowUpRight size={12} />
             </Link>
-          </section>
-        )}
-      </div>
+          </motion.div>
+        </div>
+        {summary.recentFormulas.length
+          ? summary.recentFormulas.map(formula => <FormulaRow key={formula.id} formula={formula} />)
+          : <EmptyState title="Your first formula is waiting." copy="Start with a feeling, a material, or a strange little question." href="/formulas/new" label="Open a fresh page" />}
+      </motion.section>
 
       {/* ── SHOP BANNER ───────────────────────────────────── */}
-      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-border bg-secondary/30 p-6 sm:p-7">
+      <motion.div
+        className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-border bg-secondary/30 p-6 sm:p-7"
+        whileHover={{ borderColor: "rgba(255,255,255,0.15)" }}
+        transition={{ duration: 0.2 }}
+      >
         <div>
           <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">Supplier sourcing</p>
           <h2 className="mt-2 font-display text-3xl">Stock the palette.</h2>
@@ -396,7 +616,7 @@ function Dashboard() {
         <div className="shrink-0">
           <Button href="/shop" testId="button-dashboard-shop">Browse shop</Button>
         </div>
-      </div>
+      </motion.div>
     </Shell>
   );
 }
