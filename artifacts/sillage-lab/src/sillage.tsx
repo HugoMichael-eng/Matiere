@@ -613,32 +613,25 @@ function QuickPrompt() {
   const [, setLocation] = useLocation();
   const qc = useQueryClient();
   const createConv = useCreateConversation();
-  const sendMsg = useSendConversationMessage();
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
     const title = message.trim().slice(0, 60);
+    const pendingMessage = message;
+    setMessage("");
     createConv.mutate(
       { data: { title } },
       {
         onSuccess: (conv) => {
-          sendMsg.mutate(
-            { conversationId: conv.id, data: { message } },
-            {
-              onSuccess: () => {
-                qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
-                setLocation(`/coach?conv=${conv.id}`);
-              },
-            },
-          );
-          setMessage("");
+          qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+          setLocation(`/coach?conv=${conv.id}&autoSend=${encodeURIComponent(pendingMessage)}`);
         },
       },
     );
   };
 
-  const isPending = createConv.isPending || sendMsg.isPending;
+  const isPending = createConv.isPending;
 
   return (
     <motion.div
@@ -1370,8 +1363,9 @@ function Coach() {
 
   const rawConvId = new URLSearchParams(search).get("conv");
   const convFromUrl = rawConvId && Number.isFinite(Number(rawConvId)) ? Number(rawConvId) : null;
+  const autoSendParam = new URLSearchParams(search).get("autoSend");
 
-  const buildContext = (f: typeof activeFormula): string | null => {
+  const buildContext = useCallback((f: typeof activeFormula): string | null => {
     if (!f) return null;
     return [
       `Formula: ${f.name}`,
@@ -1382,7 +1376,7 @@ function Coach() {
         : null,
       f.notes ? `Notes: ${f.notes}` : null,
     ].filter(Boolean).join("\n");
-  };
+  }, []);
 
   const qc = useQueryClient();
   const [selectedConvId, setSelectedConvId] = useState<number | null>(convFromUrl);
@@ -1400,6 +1394,35 @@ function Coach() {
 
   const conversations = convsQuery.data ?? [];
   const activeConv = convQuery.data;
+
+  // Auto-send the message from QuickPrompt once the conversation is ready
+  const autoSentRef = useRef(false);
+  useEffect(() => {
+    if (autoSentRef.current) return;
+    if (!autoSendParam || !selectedConvId || !activeConv) return;
+    autoSentRef.current = true;
+    const ctx = buildContext(activeFormula);
+    const convId = selectedConvId;
+    streamMsg.send(
+      convId,
+      { message: autoSendParam, formulaContext: ctx },
+      {
+        onUserMessage: (userMsg) => {
+          qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
+            if (!old) return old;
+            return { ...old, messages: [...old.messages, userMsg] };
+          });
+        },
+        onDone: (assistantMsg) => {
+          qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
+            if (!old) return old;
+            return { ...old, messages: [...old.messages, assistantMsg] };
+          });
+          qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+        },
+      },
+    );
+  }, [autoSendParam, selectedConvId, activeConv, activeFormula, streamMsg, qc, buildContext]);
 
   // Scroll messages to bottom on update
   const messagesEndRef = useRef<HTMLDivElement>(null);
