@@ -87,10 +87,53 @@ function Sidebar() {
 
 function MobileNav() {
   const [open, setOpen] = useState(false);
-  return <div className="flex items-center justify-between border-b border-border bg-background px-5 py-4 md:hidden">
-    <Logo /><button onClick={() => setOpen(!open)} data-testid="button-mobile-menu" className="p-2 text-muted-foreground hover:bg-secondary">{open ? <X size={19} /> : <Menu size={19} />}</button>
-    {open && <div className="absolute left-3 right-3 top-[62px] z-40 border border-border bg-card p-2 shadow-xl">{navItems.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setOpen(false)} data-testid={`link-mobile-${label.toLowerCase().replaceAll(" ", "-")}`} className="flex items-center gap-3 px-3 py-3 text-xs tracking-widest uppercase hover:bg-secondary"><Icon size={14} />{label}</Link>)}</div>}
-  </div>;
+  return (
+    <div className="relative flex items-center justify-between border-b border-border bg-background px-5 py-4 md:hidden">
+      <Logo />
+      <motion.button
+        onClick={() => setOpen(!open)}
+        data-testid="button-mobile-menu"
+        className="p-2 text-muted-foreground hover:bg-secondary"
+        animate={{ rotate: open ? 90 : 0 }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+      >
+        {open ? <X size={19} /> : <Menu size={19} />}
+      </motion.button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="mobile-menu"
+            initial={{ opacity: 0, y: -8, scaleY: 0.95 }}
+            animate={{ opacity: 1, y: 0, scaleY: 1 }}
+            exit={{ opacity: 0, y: -6, scaleY: 0.97 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformOrigin: "top" }}
+            className="absolute left-0 right-0 top-full z-40 border-b border-border bg-background shadow-lg"
+          >
+            {navItems.map(({ href, label, icon: Icon }, i) => (
+              <motion.div
+                key={href}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.06 + i * 0.04, duration: 0.18, ease: "easeOut" }}
+              >
+                <Link
+                  href={href}
+                  onClick={() => setOpen(false)}
+                  data-testid={`link-mobile-${label.toLowerCase().replaceAll(" ", "-")}`}
+                  className="flex items-center gap-3 border-t border-border px-5 py-4 text-xs uppercase tracking-widest hover:bg-secondary"
+                >
+                  <Icon size={14} />
+                  {label}
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 function Shell({ children }: { children: ReactNode }) {
