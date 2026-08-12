@@ -233,7 +233,7 @@ function SpotlightCard({ formula }: { formula: Formula }) {
           ref={cardRef}
           onMouseMove={onMove}
           onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
-          className="group relative overflow-hidden"
+          className="group relative overflow-hidden bg-secondary/20"
         >
           {/* Cursor glow layer */}
           <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: glowBg }} />
@@ -421,7 +421,7 @@ function MaterialHero({ material }: { material: Material }) {
           ref={cardRef}
           onMouseMove={onMove}
           onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
-          className="group relative overflow-hidden"
+          className="group relative overflow-hidden bg-secondary/20"
         >
           {/* Cursor glow */}
           <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: glowBg }} />
