@@ -1068,6 +1068,7 @@ function FormulaDetail() {
   const update = useUpdateFormula(); const remove = useDeleteFormula(); const qc = useQueryClient(); const [, setLocation] = useLocation();
   const formula = query.data;
   const [editing, setEditing] = useState(false);
+  const [safetyOpen, setSafetyOpen] = useState(false);
   const [name, setName] = useState(""); const [brief, setBrief] = useState(""); const [notes, setNotes] = useState(""); const [status, setStatus] = useState<"draft" | "resting" | "approved" | "archived">("draft");
   const [editConcentration, setEditConcentration] = useState(20); const [editTotalMl, setEditTotalMl] = useState(30);
   const [editIngredients, setEditIngredients] = useState<FormulaIngredientInput[]>([]);
@@ -1142,7 +1143,45 @@ function FormulaDetail() {
                   </div>
                 </div>
               </div>
-            )}</section><aside className="space-y-6"><div className="border border-border bg-secondary p-6 text-foreground"><ShieldCheck size={20} className="text-muted-foreground" /><p className="mt-5 font-display text-3xl">Safety, without the mood-kill.</p><p className="mt-3 text-sm leading-6 text-muted-foreground">Sillage keeps the guardrails visible so you can keep your attention on the shape of the scent.</p><div className="mt-6 space-y-2 border-t border-border pt-5 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div></div></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div>
+            )}</section><aside className="space-y-6"><button onClick={() => setSafetyOpen(v => !v)} className="w-full text-left border border-border bg-secondary p-6 text-foreground transition-colors hover:bg-secondary/80 active:bg-secondary/60">
+  <div className="flex items-start justify-between gap-3">
+    <ShieldCheck size={20} className="text-muted-foreground mt-0.5 shrink-0" />
+    <ChevronDown size={16} className={`mt-0.5 shrink-0 text-muted-foreground transition-transform duration-200 ${safetyOpen ? "rotate-180" : ""}`} />
+  </div>
+  <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula safety</p>
+  <p className="mt-2 font-display text-3xl leading-tight">Allergens &amp; IFRA compliance</p>
+  <div className="mt-5 space-y-2 border-t border-border pt-4 text-xs">
+    <div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div>
+    <div className="flex justify-between"><span className="text-muted-foreground">IFRA status</span><span>{formula.ifraStatus}</span></div>
+    <div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div>
+  </div>
+  <AnimatePresence>
+    {safetyOpen && (
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: "auto" }}
+        exit={{ opacity: 0, height: 0 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        className="overflow-hidden"
+      >
+        <div className="mt-4 border-t border-border pt-4 space-y-3">
+          {formula.ingredients.filter(i => (i.allergenFlags ?? []).length > 0).length === 0 ? (
+            <p className="text-xs text-muted-foreground">No allergen flags on any ingredient.</p>
+          ) : (
+            formula.ingredients
+              .filter(i => (i.allergenFlags ?? []).length > 0)
+              .map((item, i) => (
+                <div key={i} className="text-xs">
+                  <p className="font-medium">{item.materialName}</p>
+                  <p className="mt-0.5 text-muted-foreground">{(item.allergenFlags ?? []).join(", ")}</p>
+                </div>
+              ))
+          )}
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</button><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div>
 {events.length > 0 && (
   <div className="border border-border bg-card p-6">
     <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Change log</p>
