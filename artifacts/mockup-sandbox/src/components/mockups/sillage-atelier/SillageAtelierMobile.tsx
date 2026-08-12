@@ -11,18 +11,18 @@
 import React, { useState } from "react";
 import "./sillage-atelier.css";
 
-// ─── Editorial palette — warm linen · forest green · charcoal ─────────────────
+// ─── Steel palette — cool grey · deep navy · near-black ───────────────────────
 const C = {
-  bg:        "#F6F2EC",
-  card:      "#EDE8DF",
-  border:    "#D4CEC4",
-  fg:        "#1B1916",
-  mutedFg:   "#8A8278",
-  muted:     "#E4DED6",
-  secondary: "#DDD8CF",
-  accent:    "#2D4A3A",
-  accentFg:  "#F0EBE2",
-  input:     "#D4CEC4",
+  bg:        "#F2F4F7",
+  card:      "#E4E8ED",
+  border:    "#C8CDD6",
+  fg:        "#111827",
+  mutedFg:   "#6B7280",
+  muted:     "#E0E5EC",
+  secondary: "#D4DAE3",
+  accent:    "#1E3A5F",
+  accentFg:  "#EEF2F7",
+  input:     "#C8CDD6",
 };
 
 // ─── Typography (S1 design system) ───────────────────────────────────────────
