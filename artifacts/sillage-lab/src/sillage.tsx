@@ -71,6 +71,48 @@ const IFRA_CATEGORIES: { value: string; label: string }[] = [
   { value: "12",  label: "Cat 12 — Other (industrial / professional)" },
 ];
 
+function IfraCategoryPicker({ value, onChange, testId }: { value: string; onChange: (v: string) => void; testId?: string }) {
+  const [open, setOpen] = useState(false);
+  const selected = IFRA_CATEGORIES.find(c => c.value === value);
+  return (
+    <div className="mt-7">
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex w-full items-center justify-between gap-3"
+      >
+        <span className="text-xs font-medium">IFRA product category</span>
+        <span className="flex items-center gap-2 text-xs text-muted-foreground">
+          {selected ? selected.label : <span className="italic">Not set</span>}
+          <ChevronDown size={13} className={`shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        </span>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <select
+              autoFocus
+              value={value}
+              onChange={e => { onChange(e.target.value); setOpen(false); }}
+              data-testid={testId}
+              className="mt-3 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40"
+            >
+              <option value="">— Not set</option>
+              {IFRA_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 const navItems = [
   { href: "/dashboard", label: "Studio desk", icon: Gauge },
   { href: "/formulas", label: "Formula library", icon: BookOpen },
@@ -1081,7 +1123,7 @@ function NewFormula() {
   const qc = useQueryClient();
   const [name, setName] = useState(""); const [brief, setBrief] = useState(""); const [concentration, setConcentration] = useState(20); const [totalMl, setTotalMl] = useState(30); const [notes, setNotes] = useState(""); const [ifraCategory, setIfraCategory] = useState(""); const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>([]);
   const submit = (e: FormEvent) => { e.preventDefault(); create.mutate({ data: { name, brief, status: "draft", concentration, totalMl, notes, ifraCategory: ifraCategory || undefined, ingredients } }, { onSuccess: formula => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }); setLocation(`/formulas/${formula.id}`); } }); };
-  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." action={<Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>} /><form onSubmit={submit} className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span><textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><label className="mt-7 block text-xs font-medium">IFRA product category <span className="font-normal text-muted-foreground">(optional)</span><select value={ifraCategory} onChange={e => setIfraCategory(e.target.value)} data-testid="select-formula-ifra-category" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40"><option value="">— Not set</option>{IFRA_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></label><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it’s in the library.</p></div><Button type="submit" disabled={create.isPending || !name} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
+  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." action={<Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>} /><form onSubmit={submit} className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span><textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><IfraCategoryPicker value={ifraCategory} onChange={setIfraCategory} testId="select-formula-ifra-category" /><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it’s in the library.</p></div><Button type="submit" disabled={create.isPending || !name} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
 }
 
 function FormulaDetail() {
@@ -1145,12 +1187,7 @@ function FormulaDetail() {
                             <option value="archived">Archived</option>
                           </select>
                         </label>
-                        <label className="mt-7 block text-xs font-medium">IFRA product category
-                          <select value={editIfraCategory} onChange={e => setEditIfraCategory(e.target.value)} data-testid="select-edit-ifra-category" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40">
-                            <option value="">— Not set</option>
-                            {IFRA_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                          </select>
-                        </label>
+                        <IfraCategoryPicker value={editIfraCategory} onChange={setEditIfraCategory} testId="select-edit-ifra-category" />
                         <label className="mt-7 block text-xs font-medium">Notebook notes
                           <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
                         </label>
