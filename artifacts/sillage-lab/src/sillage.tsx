@@ -583,6 +583,7 @@ function Dashboard() {
   }, []);
 
   const weekday = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: "long" }), []);
+  const summary = summaryQuery.data;
   const activityQuery = useGetActivity({});
   const stageCounts = {
     draft: draftsQuery.data?.length ?? 0,
