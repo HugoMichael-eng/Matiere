@@ -263,7 +263,7 @@ function Dashboard() {
                 {spotlight.ingredients.slice(0, 6).map((ing, i) => (
                   <div key={i} className={`flex-1 px-3 py-2.5 min-w-0 ${i > 0 ? "border-l border-border" : ""}`}>
                     <p className="truncate font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">{ing.materialName}</p>
-                    <p className="mt-0.5 font-mono-ui text-[9px] text-foreground">{ing.percentage}%</p>
+                    <p className="mt-0.5 font-mono-ui text-[9px] text-foreground">{ing.grams}g</p>
                   </div>
                 ))}
                 {spotlight.ingredients.length > 6 && (
