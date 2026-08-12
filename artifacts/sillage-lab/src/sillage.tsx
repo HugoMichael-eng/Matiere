@@ -533,7 +533,7 @@ function QuickPrompt() {
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       className="border-b border-border py-8"
     >
-      <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Creative lab · coach</p>
+      <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Creative lab</p>
       <h2 className="mt-3 font-display text-4xl leading-tight">What are you circling?</h2>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">A difficult material, a flat drydown, a brief that won't settle. Start here.</p>
       <form onSubmit={submit} className="mt-6 flex items-center gap-0 border border-border bg-secondary/30">
@@ -1337,7 +1337,7 @@ function Coach() {
                 {activeConv?.messages.map(msg => (
                   <div key={msg.id} className={msg.role === "user" ? "pl-10" : "pr-10"}>
                     <p className="mb-1.5 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">
-                      {msg.role === "user" ? "You" : "Coach"} ·{" "}
+                      {msg.role === "user" ? "You" : "Lab"} ·{" "}
                       {new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
                     </p>
                     <div
@@ -1354,7 +1354,7 @@ function Coach() {
 
                 {sendMsg.isPending && (
                   <div className="pr-10">
-                    <p className="mb-1.5 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Coach · thinking…</p>
+                    <p className="mb-1.5 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Lab · thinking…</p>
                     <div className="border-l-2 border-accent py-2 pl-5">
                       <div className="flex gap-1.5">
                         {[0, 1, 2].map(i => (
@@ -1395,7 +1395,7 @@ function Coach() {
                 </form>
                 {sendMsg.isError && (
                   <p className="mt-2 text-xs text-destructive" data-testid="status-coach-error">
-                    The coach couldn't answer. Please try again.
+                    Something went wrong. Please try again.
                   </p>
                 )}
               </div>
@@ -1575,7 +1575,7 @@ function Landing() {
           <div className="mx-auto grid max-w-7xl gap-0 sm:grid-cols-3">
             {[
               { num: "01", label: "Notice", title: "Keep the brief close.", copy: "A home for the feeling before the formula starts to behave." },
-              { num: "02", label: "Wander", title: "Make room for odd.", copy: "A material library and a coach that help you take the less obvious turn." },
+              { num: "02", label: "Wander", title: "Make room for odd.", copy: "A material library and a creative lab that help you take the less obvious turn." },
               { num: "03", label: "Return", title: "Trust the record.", copy: "Safety context belongs beside the creative work, not in a separate room." },
             ].map(({ num, label, title, copy }, i) => (
               <motion.div
