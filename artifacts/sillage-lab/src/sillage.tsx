@@ -1285,6 +1285,7 @@ function useStreamMessage() {
     callbacks: {
       onUserMessage?: (msg: StreamMessage) => void;
       onDone?: (msg: StreamMessage) => void;
+      onError?: (err: string) => void;
     } = {},
   ) => {
     if (abortRef.current) abortRef.current.abort();
@@ -1324,25 +1325,33 @@ function useStreamMessage() {
         buffer = lines.pop() ?? "";
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
+          // Parse JSON in an isolated try so malformed lines are silently skipped,
+          // but valid events (including type:"error") are dispatched outside it so
+          // they can propagate to the outer catch and trigger onError / rollback.
+          let evt: { type: string; message?: StreamMessage; token?: string; error?: string } | null = null;
           try {
-            const evt = JSON.parse(line.slice(6));
-            if (evt.type === "user_message") {
-              callbacks.onUserMessage?.(evt.message as StreamMessage);
-            } else if (evt.type === "token") {
-              setStreamingContent(prev => (prev ?? "") + (evt.token as string));
-            } else if (evt.type === "done") {
-              callbacks.onDone?.(evt.message as StreamMessage);
-            } else if (evt.type === "error") {
-              throw new Error(evt.error as string);
-            }
+            evt = JSON.parse(line.slice(6));
           } catch {
             // ignore malformed lines
+            continue;
+          }
+          if (!evt) continue;
+          if (evt.type === "user_message") {
+            callbacks.onUserMessage?.(evt.message as StreamMessage);
+          } else if (evt.type === "token") {
+            setStreamingContent(prev => (prev ?? "") + (evt!.token as string));
+          } else if (evt.type === "done") {
+            callbacks.onDone?.(evt.message as StreamMessage);
+          } else if (evt.type === "error") {
+            throw new Error((evt.error as string) ?? "Server error");
           }
         }
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
-      setError((err instanceof Error ? err.message : null) ?? "Something went wrong");
+      const msg = (err instanceof Error ? err.message : null) ?? "Something went wrong";
+      callbacks.onError?.(msg);
+      setError(msg);
     } finally {
       setIsPending(false);
       setStreamingContent(null);
@@ -1403,14 +1412,33 @@ function Coach() {
     autoSentRef.current = true;
     const ctx = buildContext(activeFormula);
     const convId = selectedConvId;
+
+    // Optimistic update: show the user bubble immediately
+    const optimisticId = -Date.now();
+    const optimisticMsg: StreamMessage = {
+      id: optimisticId,
+      conversationId: convId,
+      role: "user",
+      content: autoSendParam,
+      createdAt: new Date().toISOString(),
+    };
+    qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
+      if (!old) return old;
+      return { ...old, messages: [...old.messages, optimisticMsg] };
+    });
+
+    let serverConfirmed = false;
+
     streamMsg.send(
       convId,
       { message: autoSendParam, formulaContext: ctx },
       {
         onUserMessage: (userMsg) => {
+          serverConfirmed = true;
+          // Swap the optimistic bubble for the server-confirmed message
           qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
             if (!old) return old;
-            return { ...old, messages: [...old.messages, userMsg] };
+            return { ...old, messages: old.messages.map(m => m.id === optimisticId ? userMsg : m) };
           });
         },
         onDone: (assistantMsg) => {
@@ -1419,6 +1447,14 @@ function Coach() {
             return { ...old, messages: [...old.messages, assistantMsg] };
           });
           qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+        },
+        onError: () => {
+          if (serverConfirmed) return; // message persisted — leave the bubble as-is
+          // Roll back the optimistic bubble (pure network/HTTP failure)
+          qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
+            if (!old) return old;
+            return { ...old, messages: old.messages.filter(m => m.id !== optimisticId) };
+          });
         },
       },
     );
@@ -1448,19 +1484,42 @@ function Coach() {
 
   const handleSend = (e: FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || !selectedConvId) return;
+    // Require activeConv to be loaded so the optimistic cache write always has a target
+    if (!message.trim() || !selectedConvId || !activeConv) return;
     const ctx = buildContext(activeFormula);
     const sentMessage = message;
     setMessage("");
     const convId = selectedConvId;
+
+    // Optimistic update: show the user bubble immediately, before the server confirms
+    const optimisticId = -Date.now();
+    const optimisticMsg: StreamMessage = {
+      id: optimisticId,
+      conversationId: convId,
+      role: "user",
+      content: sentMessage,
+      createdAt: new Date().toISOString(),
+    };
+    qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
+      if (!old) return old;
+      return { ...old, messages: [...old.messages, optimisticMsg] };
+    });
+
+    // Track whether the server has persisted and confirmed the user message.
+    // If it has, a later generation failure must NOT roll back the bubble (the
+    // message is in the DB) and must NOT restore the input (retrying would duplicate it).
+    let serverConfirmed = false;
+
     streamMsg.send(
       convId,
       { message: sentMessage, formulaContext: ctx },
       {
         onUserMessage: (userMsg) => {
+          serverConfirmed = true;
+          // Swap the optimistic bubble for the server-confirmed message
           qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
             if (!old) return old;
-            return { ...old, messages: [...old.messages, userMsg] };
+            return { ...old, messages: old.messages.map(m => m.id === optimisticId ? userMsg : m) };
           });
         },
         onDone: (assistantMsg) => {
@@ -1469,6 +1528,20 @@ function Coach() {
             return { ...old, messages: [...old.messages, assistantMsg] };
           });
           qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+        },
+        onError: () => {
+          if (serverConfirmed) {
+            // The user message is already persisted on the server — leave the bubble
+            // and do not restore the input (retrying would create a duplicate).
+            return;
+          }
+          // Pure network / HTTP failure before the server saved anything — roll back
+          // the optimistic bubble and let the user try again.
+          qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
+            if (!old) return old;
+            return { ...old, messages: old.messages.filter(m => m.id !== optimisticId) };
+          });
+          setMessage(sentMessage);
         },
       },
     );
@@ -1671,14 +1744,14 @@ function Coach() {
                   <input
                     value={message}
                     onChange={e => setMessage(e.target.value)}
-                    disabled={streamMsg.isPending}
+                    disabled={streamMsg.isPending || !activeConv}
                     data-testid="input-coach-message"
                     className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none"
                     placeholder={activeFormula ? `Ask about ${activeFormula.name}…` : "I'm working on…"}
                   />
                   <button
                     type="submit"
-                    disabled={streamMsg.isPending || !message.trim()}
+                    disabled={streamMsg.isPending || !message.trim() || !activeConv}
                     data-testid="button-send-coach"
                     className="grid size-9 shrink-0 place-items-center bg-primary text-primary-foreground disabled:opacity-40"
                   >
