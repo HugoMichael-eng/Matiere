@@ -13,7 +13,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Link, Redirect, Route, Switch, useLocation, useParams, useSearch, Router as WouterRouter } from "wouter";
 import {
-  getGetConversationQueryKey, getGetDashboardSummaryQueryKey, getGetFormulaQueryKey,
+  getGetConversationQueryKey, getGetDashboardSummaryQueryKey, getGetFormulaEventsQueryKey, getGetFormulaQueryKey,
   getListConversationsQueryKey, getListFormulasQueryKey,
   useCreateConversation, useCreateFormula, useDeleteConversation, useDeleteFormula,
   useGetActivity, useGetConversation, useGetDashboardSummary, useGetFormula,
@@ -1148,7 +1148,7 @@ function FormulaDetail() {
   };
   const save = () => update.mutate({ id, data: { name, brief, notes, status, concentration: editConcentration, totalMl: editTotalMl, ifraCategory: editIfraCategory || undefined, ingredients: editIngredients } }, { onSuccess: result => { qc.setQueryData(getGetFormulaQueryKey(id), result); qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setEditing(false); } });
   const destroy = () => { if (window.confirm("Delete this formula from the library?")) remove.mutate({ id }, { onSuccess: () => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setLocation("/formulas"); } }); };
-  const eventsQuery = useGetFormulaEvents(id, { query: { enabled: Number.isFinite(id) } });
+  const eventsQuery = useGetFormulaEvents(id, { query: { queryKey: getGetFormulaEventsQueryKey(id), enabled: Number.isFinite(id) } });
   const events = eventsQuery.data ?? [];
   if (query.isLoading) return <Shell><Skeleton className="h-72" /></Shell>;
   if (query.isError || !formula) return <Shell><ErrorState retry={() => query.refetch()} /></Shell>;
