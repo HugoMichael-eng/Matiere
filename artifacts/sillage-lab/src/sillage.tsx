@@ -4,7 +4,7 @@ import { ClerkProvider, SignIn, SignUp, useAuth, useClerk, useUser } from "@cler
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { experimental__simple } from "@clerk/themes";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import {
   ArrowUpRight, Beaker, BookOpen, ChevronDown, ChevronRight, CircleAlert,
   Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
@@ -305,7 +305,11 @@ function IngredientBuilder({
                 {/* Controls row */}
                 <div className="mt-2 grid grid-cols-[1fr_1fr_1fr_28px] gap-2">
                   <label className="block">
-                    <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Formula %</span>
+                    <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">
+                      Formula %{ingredient.percentage > 0 && (
+                        <span className="ml-2 text-foreground">{grams}g</span>
+                      )}
+                    </span>
                     <input
                       type="number" min="0" max="100" step="0.1"
                       value={ingredient.percentage}
@@ -372,9 +376,9 @@ function IngredientBuilder({
                         />
                       </div>
                       <div className="flex shrink-0 gap-3 font-mono-ui text-[9px] text-muted-foreground">
-                        <span title="Grams of solution to weigh"><strong className="text-foreground">{grams}g</strong> solution</span>
+                        <span title="Grams to weigh out"><strong className="text-foreground">{grams}g</strong> to weigh</span>
                         {dilution < 100 && (
-                          <span title="Pure aromatic compound in the solution">{activeGrams}g active</span>
+                          <span title={`${activeGrams}g is pure aromatic material; the rest is solvent`}>{activeGrams}g active aromatic</span>
                         )}
                         {concentration > 0 && (
                           <span title={`Contribution to finished ${concentration}% concentrate`}>{pctOfConc}% of conc.</span>
@@ -435,7 +439,7 @@ function NewFormula() {
   const qc = useQueryClient();
   const [name, setName] = useState(""); const [brief, setBrief] = useState(""); const [concentration, setConcentration] = useState(20); const [totalMl, setTotalMl] = useState(30); const [notes, setNotes] = useState(""); const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>([]);
   const submit = (e: FormEvent) => { e.preventDefault(); create.mutate({ data: { name, brief, status: "draft", concentration, totalMl, notes, ingredients } }, { onSuccess: formula => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }); setLocation(`/formulas/${formula.id}`); } }); };
-  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." action={<Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>} /><form onSubmit={submit} className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief<textarea required value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it’s in the library.</p></div><Button type="submit" disabled={create.isPending || !name || !brief} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
+  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." action={<Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>} /><form onSubmit={submit} className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span><textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it’s in the library.</p></div><Button type="submit" disabled={create.isPending || !name} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
 }
 
 function FormulaDetail() {
@@ -504,8 +508,188 @@ function Shop() {
   );
 }
 
+function FieldNoteCard() {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const rotateX = useSpring(useTransform(mouseY, [-160, 160], [7, -7]), { damping: 22, stiffness: 180 });
+  const rotateY = useSpring(useTransform(mouseX, [-160, 160], [-7, 7]), { damping: 22, stiffness: 180 });
+  return (
+    <motion.div
+      style={{ rotateX, rotateY, transformPerspective: 1100 }}
+      onMouseMove={e => { const r = e.currentTarget.getBoundingClientRect(); mouseX.set(e.clientX - r.left - r.width / 2); mouseY.set(e.clientY - r.top - r.height / 2); }}
+      onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
+      initial={{ opacity: 0, y: 36, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ delay: 0.22, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+      className="relative min-h-[420px] cursor-default lg:min-h-[540px]"
+    >
+      <div className="absolute inset-0 overflow-hidden border border-border bg-card p-8 text-foreground">
+        <div className="flex justify-between font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">
+          <span>Field note 014</span><span>03.14</span>
+        </div>
+        <div className="absolute bottom-10 left-8 right-8">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="font-display text-6xl leading-[.82]"
+          >
+            salt / iris<br /><em>old wood</em>
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.72, duration: 0.6 }}
+            className="mt-7 flex items-end justify-between"
+          >
+            <p className="max-w-[180px] text-sm leading-6 text-muted-foreground">A little mineral. A soft refusal. Something that stays after the room is empty.</p>
+            <div className="grid size-20 place-items-center border border-border font-mono-ui text-[9px] text-center uppercase leading-3">20%<br />eau de parfum</div>
+          </motion.div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function Landing() {
-  return <div className="min-h-[100dvh] overflow-hidden bg-background"><header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-10"><Logo /><div className="flex items-center gap-2"><Button href="/sign-in" variant="quiet" testId="link-landing-sign-in">Sign in</Button><Button href="/sign-up" testId="link-landing-sign-up">Open the lab</Button></div></header><main><section className="mx-auto grid max-w-7xl items-center gap-14 px-5 pb-20 pt-16 sm:px-10 sm:pt-24 lg:grid-cols-[1.05fr_.95fr] lg:pb-32"><div className="animate-fade-in"><p className="font-mono-ui text-[10px] uppercase tracking-[.24em] text-muted-foreground">A creative perfumery workspace</p><h1 className="mt-6 max-w-3xl font-display text-[clamp(4rem,9vw,8.5rem)] leading-[.83] tracking-[-.045em]">Make the scent <em className="text-accent">stranger.</em></h1><p className="mt-9 max-w-lg text-base leading-7 text-muted-foreground">Sillage Lab is a focused studio for independent perfumers: keep the instinct, keep the record, keep formula safety close enough to trust.</p><div className="mt-9 flex flex-wrap items-center gap-3"><Button href="/sign-up" testId="button-landing-start">Start making</Button><span className="font-mono-ui text-[10px] text-muted-foreground uppercase tracking-widest ml-4">No blank canvases required.</span></div></div><div className="relative min-h-[420px] animate-fade-in lg:min-h-[540px]" style={{ animationDelay: ".18s" }}><div className="absolute inset-0 overflow-hidden border border-border bg-card p-8 text-foreground"><div className="flex justify-between font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground"><span>Field note 014</span><span>03.14</span></div><div className="absolute bottom-10 left-8 right-8"><p className="font-display text-6xl leading-[.82]">salt / iris<br /><em>old wood</em></p><div className="mt-7 flex items-end justify-between"><p className="max-w-[180px] text-sm leading-6 text-muted-foreground">A little mineral. A soft refusal. Something that stays after the room is empty.</p><div className="grid size-20 place-items-center border border-border font-mono-ui text-[9px] text-center uppercase leading-3">20%<br />eau de parfum</div></div></div></div></div></section><section className="border-t border-border bg-background"><div className="mx-auto grid max-w-7xl gap-0 sm:grid-cols-3"><div className="border-b border-border p-8 sm:border-b-0 sm:border-r"><p className="font-mono-ui text-[10px] text-muted-foreground">01 / Notice</p><h2 className="mt-16 font-display text-3xl text-foreground">Keep the brief close.</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">A home for the feeling before the formula starts to behave.</p></div><div className="border-b border-border p-8 sm:border-b-0 sm:border-r"><p className="font-mono-ui text-[10px] text-muted-foreground">02 / Wander</p><h2 className="mt-16 font-display text-3xl text-foreground">Make room for odd.</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">A material library and a coach that help you take the less obvious turn.</p></div><div className="p-8"><p className="font-mono-ui text-[10px] text-muted-foreground">03 / Return</p><h2 className="mt-16 font-display text-3xl text-foreground">Trust the record.</h2><p className="mt-3 text-sm leading-6 text-muted-foreground">Safety context belongs beside the creative work, not in a separate room.</p></div></div></section><section className="mx-auto max-w-7xl px-5 py-24 sm:px-10 border-t border-border"><div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr]"><div><p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">A studio practice</p><h2 className="mt-5 font-display text-5xl leading-[.9]">Precision can feel personal.</h2></div><div className="grid gap-6 sm:grid-cols-2"><div className="border-l border-border pl-5"><p className="text-sm font-medium">Formula safety in the margin</p><p className="mt-2 text-sm leading-6 text-muted-foreground">Allergens and IFRA status stay visible at the exact moment a choice is made.</p></div><div className="border-l border-border pl-5"><p className="text-sm font-medium">A library that remembers</p><p className="mt-2 text-sm leading-6 text-muted-foreground">Hold on to drafts, resting experiments, and the formula that finally clicked.</p></div></div></div></section></main><footer className="border-t border-border px-5 py-8 sm:px-10"><div className="mx-auto flex max-w-7xl items-center justify-between text-[10px] text-muted-foreground"><span className="font-mono-ui uppercase tracking-[.14em]">Sillage Lab · for independent noses</span><span>Made for the long drydown.</span></div></footer></div>;
+  const { scrollY } = useScroll();
+  // Scroll-zoom: hero text grows as user scrolls down (cinematic push-in)
+  const heroScale = useTransform(scrollY, [0, 700], [1, 1.13]);
+  const heroOpacity = useTransform(scrollY, [0, 420], [1, 0]);
+  const heroY = useTransform(scrollY, [0, 700], [0, 110]);
+  // Card drifts upward at a different rate — creates depth separation
+  const cardY = useTransform(scrollY, [0, 700], [0, -70]);
+  const smoothCardY = useSpring(cardY, { damping: 16, stiffness: 80 });
+
+  return (
+    <div className="min-h-[100dvh] overflow-x-hidden bg-background">
+      <motion.header
+        initial={{ opacity: 0, y: -14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-10"
+      >
+        <Logo />
+        <div className="flex items-center gap-2">
+          <Button href="/sign-in" variant="quiet" testId="link-landing-sign-in">Sign in</Button>
+          <Button href="/sign-up" testId="link-landing-sign-up">Open the lab</Button>
+        </div>
+      </motion.header>
+
+      <main>
+        {/* Hero — scroll zoom layer */}
+        <section className="relative mx-auto grid max-w-7xl items-center gap-14 overflow-visible px-5 pb-20 pt-16 sm:px-10 sm:pt-24 lg:grid-cols-[1.05fr_.95fr] lg:pb-32">
+          <motion.div
+            style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
+            className="origin-bottom-left"
+          >
+            <motion.p
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              className="font-mono-ui text-[10px] uppercase tracking-[.24em] text-muted-foreground"
+            >
+              A creative perfumery workspace
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 36, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-6 max-w-3xl font-display text-[clamp(4rem,9vw,8.5rem)] leading-[.83] tracking-[-.045em]"
+            >
+              Make the scent <em className="text-accent">stranger.</em>
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 22 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.24, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-9 max-w-lg text-base leading-7 text-muted-foreground"
+            >
+              Sillage Lab is a focused studio for independent perfumers: keep the instinct, keep the record, keep formula safety close enough to trust.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.38, duration: 0.55 }}
+              className="mt-9 flex flex-wrap items-center gap-3"
+            >
+              <Button href="/sign-up" testId="button-landing-start">Start making</Button>
+              <span className="ml-4 font-mono-ui text-[10px] uppercase tracking-widest text-muted-foreground">No blank canvases required.</span>
+            </motion.div>
+          </motion.div>
+
+          {/* Parallax card — drifts at independent scroll speed */}
+          <motion.div style={{ y: smoothCardY }}>
+            <FieldNoteCard />
+          </motion.div>
+        </section>
+
+        {/* 01 / 02 / 03 — scroll-triggered zoom reveal */}
+        <section className="border-t border-border bg-background">
+          <div className="mx-auto grid max-w-7xl gap-0 sm:grid-cols-3">
+            {[
+              { num: "01", label: "Notice", title: "Keep the brief close.", copy: "A home for the feeling before the formula starts to behave." },
+              { num: "02", label: "Wander", title: "Make room for odd.", copy: "A material library and a coach that help you take the less obvious turn." },
+              { num: "03", label: "Return", title: "Trust the record.", copy: "Safety context belongs beside the creative work, not in a separate room." },
+            ].map(({ num, label, title, copy }, i) => (
+              <motion.div
+                key={num}
+                initial={{ opacity: 0, y: 52, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-70px" }}
+                transition={{ duration: 0.7, delay: i * 0.14, ease: [0.22, 1, 0.36, 1] }}
+                className={`border-b border-border p-8 sm:border-b-0 ${i < 2 ? "sm:border-r" : ""}`}
+              >
+                <p className="font-mono-ui text-[10px] text-muted-foreground">{num} / {label}</p>
+                <h2 className="mt-16 font-display text-3xl text-foreground">{title}</h2>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Precision — scroll-triggered slide + zoom */}
+        <section className="mx-auto max-w-7xl border-t border-border px-5 py-24 sm:px-10">
+          <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr]">
+            <motion.div
+              initial={{ opacity: 0, x: -32, scale: 0.97 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">A studio practice</p>
+              <h2 className="mt-5 font-display text-5xl leading-[.9]">Precision can feel personal.</h2>
+            </motion.div>
+            <div className="grid gap-6 sm:grid-cols-2">
+              {[
+                { title: "Formula safety in the margin", copy: "Allergens and IFRA status stay visible at the exact moment a choice is made." },
+                { title: "A library that remembers", copy: "Hold on to drafts, resting experiments, and the formula that finally clicked." },
+              ].map(({ title, copy }, i) => (
+                <motion.div
+                  key={title}
+                  initial={{ opacity: 0, y: 28, scale: 0.96 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.6, delay: i * 0.16, ease: [0.22, 1, 0.36, 1] }}
+                  className="border-l border-border pl-5"
+                >
+                  <p className="text-sm font-medium">{title}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-border px-5 py-8 sm:px-10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between text-[10px] text-muted-foreground">
+          <span className="font-mono-ui uppercase tracking-[.14em]">Sillage Lab · for independent noses</span>
+          <span>Made for the long drydown.</span>
+        </div>
+      </footer>
+    </div>
+  );
 }
 
 function Protected({ children }: { children: ReactNode }) {
