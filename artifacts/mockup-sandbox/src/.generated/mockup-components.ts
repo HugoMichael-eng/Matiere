@@ -2,6 +2,8 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/sillage-atelier/SillageAtelierMobile.tsx": () => import("../components/mockups/sillage-atelier/SillageAtelierMobile.tsx"),
+  "./components/mockups/sillage-atelier/SillageAtelierNoir.tsx": () => import("../components/mockups/sillage-atelier/SillageAtelierNoir.tsx"),
+  "./components/mockups/sillage-atelier/SillageWorkbenchMobile.tsx": () => import("../components/mockups/sillage-atelier/SillageWorkbenchMobile.tsx"),
   "./components/mockups/sillage-chat/ChatSplitPanelLayout.tsx": () => import("../components/mockups/sillage-chat/ChatSplitPanelLayout.tsx"),
   "./components/mockups/sillage-chat/ChatThreadedLayout.tsx": () => import("../components/mockups/sillage-chat/ChatThreadedLayout.tsx"),
   "./components/mockups/templates/SwissLearningApp-Q_1eba/App.tsx": () => import("../components/mockups/templates/SwissLearningApp-Q_1eba/App.tsx")
