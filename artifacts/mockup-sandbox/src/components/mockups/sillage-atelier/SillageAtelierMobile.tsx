@@ -417,18 +417,33 @@ function ChatScreen() {
   );
 }
 
-// ─── Root — three screens filling the full viewport ───────────────────────────
+// ─── Root — single screen, tab-switched ───────────────────────────────────────
+const TABS = ["Sign In", "Sessions", "Chat"] as const;
+type Tab = typeof TABS[number];
+
 export default function SillageAtelierMobile() {
+  const [tab, setTab] = useState<Tab>("Sessions");
+
   return (
     <div className="atelier-root">
-      <div className="atelier-screen" style={{ flex: 1, borderRight: `1px solid ${C.border}` }}>
-        <SignInScreen />
+      {/* Active screen fills all available space */}
+      <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        {tab === "Sign In"  && <SignInScreen />}
+        {tab === "Sessions" && <SessionsScreen />}
+        {tab === "Chat"     && <ChatScreen />}
       </div>
-      <div className="atelier-screen" style={{ flex: 1, borderRight: `1px solid ${C.border}` }}>
-        <SessionsScreen />
-      </div>
-      <div className="atelier-screen" style={{ flex: 1 }}>
-        <ChatScreen />
+
+      {/* Tab switcher */}
+      <div className="atelier-tab-bar">
+        {TABS.map((t) => (
+          <button
+            key={t}
+            className={`atelier-tab${tab === t ? " is-active" : ""}`}
+            onClick={() => setTab(t)}
+          >
+            {t}
+          </button>
+        ))}
       </div>
     </div>
   );

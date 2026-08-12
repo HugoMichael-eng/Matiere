@@ -19,12 +19,39 @@
 /* ─── Canvas ──────────────────────────────────────────────────────────────── */
 .atelier-root {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
   font-family: var(--sl-font-sans);
   background: var(--sl-bg);
+}
+
+.atelier-tab-bar {
+  display: flex;
+  border-top: 1px solid var(--sl-border);
+  flex-shrink: 0;
+}
+
+.atelier-tab {
+  flex: 1;
+  padding: 10px 4px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--sl-font-mono);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sl-muted-fg);
+  transition: color 0.15s;
+}
+
+.atelier-tab.is-active {
+  color: var(--sl-fg);
+  border-top: 2px solid var(--sl-fg);
+  margin-top: -1px;
 }
 
 /* ─── Title bar ───────────────────────────────────────────────────────────── */
