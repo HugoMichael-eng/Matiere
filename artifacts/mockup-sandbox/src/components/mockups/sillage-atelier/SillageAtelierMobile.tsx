@@ -326,7 +326,7 @@ function SessionsScreen() {
                   borderBottom: i < rest.length - 1 ? `1px solid ${C.border}` : "none",
                   backgroundColor: s.bg ?? (on ? C.secondary : C.bg),
                 }}
-                className="bg-[#fffafa]">
+                className="bg-[#ffebeb]">
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: F.sans, fontSize: 13, fontWeight: 600,
                     color: C.fg, marginBottom: 3, whiteSpace: "nowrap",
