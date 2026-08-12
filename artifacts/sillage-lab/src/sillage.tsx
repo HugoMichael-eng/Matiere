@@ -1160,13 +1160,7 @@ function FormulaDetail() {
                                       <div className="space-y-5">
                                         <div className="border border-border bg-card p-6 sm:p-7">
                                           <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p>
-                                          <label className="mt-5 block text-xs font-medium">Name
-                                            <input value={name} onChange={e => setName(e.target.value)} data-testid="input-edit-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" />
-                                          </label>
-                                          <label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span>
-                                            <textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-edit-brief" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" />
-                                          </label>
-                                          <div className="mt-7 grid grid-cols-2 gap-4">
+                                          <div className="mt-5 grid grid-cols-2 gap-4">
                                             <label className="text-xs font-medium">Concentration %
                                               <input type="number" min="0" max="100" value={editConcentration} onChange={e => setEditConcentration(Number(e.target.value))} data-testid="input-edit-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
                                             </label>
