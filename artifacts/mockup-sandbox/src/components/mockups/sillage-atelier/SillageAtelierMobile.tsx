@@ -236,7 +236,9 @@ function SessionsScreen() {
             letterSpacing: "0.22em", textTransform: "uppercase", color: C.mutedFg, marginBottom: 4 }}>
             Wed, Aug 12
           </div>
-          <div style={{ fontFamily: F.sans, fontSize: 20, fontWeight: 700, color: C.fg, lineHeight: 1.1 }}>
+          <div
+            style={{ fontFamily: F.sans, fontSize: 20, fontWeight: 700, color: C.fg, lineHeight: 1.1 }}
+            className="text-[17px]">
             Good morning.
           </div>
         </div>
