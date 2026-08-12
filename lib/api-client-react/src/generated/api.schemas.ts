@@ -24,6 +24,12 @@ export interface FormulaIngredient {
   materialName: string;
   percentage: number;
   grams: number;
+  /**
+     * Stock solution dilution percentage (100 = undiluted pure material)
+     * @minimum 0
+     * @maximum 100
+     */
+  dilution?: number;
   role: FormulaIngredientRole;
   allergenFlags?: string[];
 }
@@ -45,6 +51,12 @@ export interface FormulaIngredientInput {
   percentage: number;
   /** @minimum 0 */
   grams: number;
+  /**
+     * Stock solution dilution percentage (100 = undiluted pure material)
+     * @minimum 0
+     * @maximum 100
+     */
+  dilution?: number;
   role: FormulaIngredientInputRole;
   allergenFlags?: string[];
 }

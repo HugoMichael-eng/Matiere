@@ -198,6 +198,12 @@ components:
           type: number
         grams:
           type: number
+        dilution:
+          type: number
+          minimum: 0
+          maximum: 100
+          default: 100
+          description: Stock solution dilution percentage (100 = undiluted pure material)
         role:
           type: string
           enum: [top, heart, base, modifier]
@@ -219,6 +225,12 @@ components:
         grams:
           type: number
           minimum: 0
+        dilution:
+          type: number
+          minimum: 0
+          maximum: 100
+          default: 100
+          description: Stock solution dilution percentage (100 = undiluted pure material)
         role:
           type: string
           enum: [top, heart, base, modifier]

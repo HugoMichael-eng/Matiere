@@ -22,7 +22,8 @@ export function calculateSafety(
       continue;
     }
     for (const allergen of material.allergens ?? []) allergenNames.add(allergen);
-    if (ingredient.percentage > material.ifraLimit) exceedsIfra = true;
+    const effectivePct = ingredient.percentage * ((ingredient.dilution ?? 100) / 100);
+    if (effectivePct > material.ifraLimit) exceedsIfra = true;
   }
 
   return {

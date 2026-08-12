@@ -4,6 +4,7 @@ import { ClerkProvider, SignIn, SignUp, useAuth, useClerk, useUser } from "@cler
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { experimental__simple } from "@clerk/themes";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUpRight, Beaker, BookOpen, ChevronDown, ChevronRight, CircleAlert,
   Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
@@ -241,11 +242,30 @@ function MaterialCombobox({ materials, value, onChange, index }: {
   );
 }
 
-function IngredientBuilder({ ingredients, setIngredients }: { ingredients: FormulaIngredientInput[]; setIngredients: (next: FormulaIngredientInput[]) => void }) {
+function IngredientBuilder({
+  ingredients, setIngredients, totalMl, concentration,
+}: {
+  ingredients: FormulaIngredientInput[];
+  setIngredients: (next: FormulaIngredientInput[]) => void;
+  totalMl: number;
+  concentration: number;
+}) {
   const materialsQuery = useListMaterials();
   const materials = materialsQuery.data ?? [];
-  const add = () => setIngredients([...ingredients, { materialId: 0, materialName: "", percentage: 0, grams: 0, role: "heart" }]);
-  const update = (index: number, patch: Partial<FormulaIngredientInput>) => setIngredients(ingredients.map((item, i) => i === index ? { ...item, ...patch } : item));
+
+  const add = () => setIngredients([...ingredients, { materialId: 0, materialName: "", percentage: 0, grams: 0, dilution: 100, role: "heart" }]);
+
+  const update = (index: number, patch: Partial<FormulaIngredientInput>) => {
+    setIngredients(ingredients.map((item, i) => {
+      if (i !== index) return item;
+      const next = { ...item, ...patch };
+      next.grams = parseFloat(((next.percentage / 100) * totalMl).toFixed(3));
+      return next;
+    }));
+  };
+
+  const totalPct = Math.round(ingredients.reduce((s, ing) => s + (ing.percentage || 0), 0) * 10) / 10;
+
   return (
     <div className="border border-border bg-card p-6 sm:p-7">
       <div className="flex items-start justify-between">
@@ -256,50 +276,155 @@ function IngredientBuilder({ ingredients, setIngredients }: { ingredients: Formu
         <Button onClick={add} variant="outline" testId="button-add-ingredient">Add material</Button>
       </div>
       {materialsQuery.isLoading && <p className="mt-4 text-xs text-muted-foreground">Loading material library…</p>}
-      <div className="mt-5 space-y-3">
-        {ingredients.map((ingredient, index) => (
-          <div key={`${index}-${ingredient.materialId}`} className="grid gap-2 bg-secondary/60 p-3 sm:grid-cols-[1.8fr_.55fr_.65fr_28px]">
-            <MaterialCombobox
-              materials={materials}
-              value={{ materialId: ingredient.materialId, materialName: ingredient.materialName }}
-              onChange={(materialId, materialName) => update(index, { materialId, materialName })}
-              index={index}
-            />
-            <input
-              type="number" min="0" max="100" step="0.1"
-              value={ingredient.percentage}
-              onChange={e => update(index, { percentage: Number(e.target.value) })}
-              data-testid={`input-ingredient-percentage-${index}`}
-              className="border border-border bg-card px-3 py-2 text-xs outline-none focus:border-foreground/40"
-              placeholder="%"
-            />
-            <select
-              value={ingredient.role}
-              onChange={e => update(index, { role: e.target.value as FormulaIngredientInput["role"] })}
-              data-testid={`select-ingredient-role-${index}`}
-              className="border border-border bg-card px-3 py-2 text-xs outline-none focus:border-foreground/40"
-            >
-              <option value="top">Top</option>
-              <option value="heart">Heart</option>
-              <option value="base">Base</option>
-              <option value="modifier">Modifier</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => setIngredients(ingredients.filter((_, i) => i !== index))}
-              data-testid={`button-remove-ingredient-${index}`}
-              className="grid place-items-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            >
-              <Minus size={15} />
-            </button>
-          </div>
-        ))}
+
+      <div className="mt-5 space-y-2">
+        <AnimatePresence initial={false}>
+          {ingredients.map((ingredient, index) => {
+            const dilution = ingredient.dilution ?? 100;
+            const grams = parseFloat(((ingredient.percentage / 100) * totalMl).toFixed(3));
+            const activeGrams = parseFloat((grams * dilution / 100).toFixed(3));
+            const pctOfConc = Math.round(ingredient.percentage * concentration / 100 * 10) / 10;
+
+            return (
+              <motion.div
+                key={`${index}`}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 16, transition: { duration: 0.14 } }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                className="bg-secondary/60 p-4"
+              >
+                {/* Material search */}
+                <MaterialCombobox
+                  materials={materials}
+                  value={{ materialId: ingredient.materialId, materialName: ingredient.materialName }}
+                  onChange={(materialId, materialName) => update(index, { materialId, materialName })}
+                  index={index}
+                />
+
+                {/* Controls row */}
+                <div className="mt-2 grid grid-cols-[1fr_1fr_1fr_28px] gap-2">
+                  <label className="block">
+                    <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Formula %</span>
+                    <input
+                      type="number" min="0" max="100" step="0.1"
+                      value={ingredient.percentage}
+                      onChange={e => update(index, { percentage: Number(e.target.value) })}
+                      data-testid={`input-ingredient-percentage-${index}`}
+                      className="mt-1 w-full border border-border bg-card px-2 py-2 text-xs outline-none transition-colors focus:border-foreground/40"
+                      placeholder="0"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Dilution %</span>
+                    <input
+                      type="number" min="0" max="100" step="1"
+                      value={ingredient.dilution ?? 100}
+                      onChange={e => update(index, { dilution: Number(e.target.value) })}
+                      data-testid={`input-ingredient-dilution-${index}`}
+                      className="mt-1 w-full border border-border bg-card px-2 py-2 text-xs outline-none transition-colors focus:border-foreground/40"
+                      placeholder="100"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Role</span>
+                    <select
+                      value={ingredient.role}
+                      onChange={e => update(index, { role: e.target.value as FormulaIngredientInput["role"] })}
+                      data-testid={`select-ingredient-role-${index}`}
+                      className="mt-1 w-full border border-border bg-card px-2 py-2 text-xs outline-none transition-colors focus:border-foreground/40"
+                    >
+                      <option value="top">Top</option>
+                      <option value="heart">Heart</option>
+                      <option value="base">Base</option>
+                      <option value="modifier">Modifier</option>
+                    </select>
+                  </label>
+                  <div className="flex items-end">
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setIngredients(ingredients.filter((_, i) => i !== index))}
+                      data-testid={`button-remove-ingredient-${index}`}
+                      className="mb-0.5 grid h-[30px] w-full place-items-center text-muted-foreground transition-colors hover:text-destructive"
+                    >
+                      <Minus size={14} />
+                    </motion.button>
+                  </div>
+                </div>
+
+                {/* Weight / quantity row */}
+                {ingredient.percentage > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="mt-3 overflow-hidden"
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Progress bar */}
+                      <div className="h-[2px] flex-1 overflow-hidden bg-border">
+                        <motion.div
+                          className="h-full bg-accent"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(ingredient.percentage, 100)}%` }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                        />
+                      </div>
+                      <div className="flex shrink-0 gap-3 font-mono-ui text-[9px] text-muted-foreground">
+                        <span title="Grams of solution to weigh"><strong className="text-foreground">{grams}g</strong> solution</span>
+                        {dilution < 100 && (
+                          <span title="Pure aromatic compound in the solution">{activeGrams}g active</span>
+                        )}
+                        {concentration > 0 && (
+                          <span title={`Contribution to finished ${concentration}% concentrate`}>{pctOfConc}% of conc.</span>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+
         {!ingredients.length && (
-          <div className="border border-border p-8 text-center text-xs text-muted-foreground">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="border border-border p-8 text-center text-xs text-muted-foreground"
+          >
             No materials yet. Add the first thread.
-          </div>
+          </motion.div>
         )}
       </div>
+
+      {/* Running total */}
+      {ingredients.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-4 flex items-center justify-between border-t border-border pt-4"
+        >
+          <div className="flex items-center gap-2">
+            <div className="h-[3px] w-24 overflow-hidden bg-border">
+              <motion.div
+                className={`h-full ${totalPct > 100 ? "bg-destructive" : totalPct === 100 ? "bg-accent" : "bg-foreground"}`}
+                animate={{ width: `${Math.min(totalPct, 100)}%` }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              />
+            </div>
+            <span className={`font-mono-ui text-[10px] ${totalPct > 100 ? "text-destructive" : totalPct === 100 ? "text-accent" : "text-muted-foreground"}`}>
+              {totalPct}% of formula
+            </span>
+          </div>
+          {totalPct > 100 && <span className="font-mono-ui text-[9px] text-destructive">Exceeds 100%</span>}
+          {totalPct === 100 && <span className="font-mono-ui text-[9px] text-accent">Palette complete</span>}
+          {totalPct > 0 && totalPct < 100 && (
+            <span className="font-mono-ui text-[9px] text-muted-foreground">{Math.round((100 - totalPct) * 10) / 10}% remaining</span>
+          )}
+        </motion.div>
+      )}
     </div>
   );
 }
@@ -310,7 +435,7 @@ function NewFormula() {
   const qc = useQueryClient();
   const [name, setName] = useState(""); const [brief, setBrief] = useState(""); const [concentration, setConcentration] = useState(20); const [totalMl, setTotalMl] = useState(30); const [notes, setNotes] = useState(""); const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>([]);
   const submit = (e: FormEvent) => { e.preventDefault(); create.mutate({ data: { name, brief, status: "draft", concentration, totalMl, notes, ingredients } }, { onSuccess: formula => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }); setLocation(`/formulas/${formula.id}`); } }); };
-  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." action={<Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>} /><form onSubmit={submit} className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief<textarea required value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it’s in the library.</p></div><Button type="submit" disabled={create.isPending || !name || !brief} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
+  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." action={<Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>} /><form onSubmit={submit} className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief<textarea required value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it’s in the library.</p></div><Button type="submit" disabled={create.isPending || !name || !brief} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
 }
 
 function FormulaDetail() {

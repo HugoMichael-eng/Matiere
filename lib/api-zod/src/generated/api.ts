@@ -20,6 +20,12 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary Get workspace summary
  */
+export const getDashboardSummaryResponseRecentFormulasItemIngredientsItemDilutionDefault = 100;
+export const getDashboardSummaryResponseRecentFormulasItemIngredientsItemDilutionMin = 0;
+export const getDashboardSummaryResponseRecentFormulasItemIngredientsItemDilutionMax = 100;
+
+
+
 export const GetDashboardSummaryResponse = zod.object({
   "formulaCount": zod.number(),
   "materialCount": zod.number(),
@@ -38,6 +44,7 @@ export const GetDashboardSummaryResponse = zod.object({
   "materialName": zod.string(),
   "percentage": zod.number(),
   "grams": zod.number(),
+  "dilution": zod.number().min(getDashboardSummaryResponseRecentFormulasItemIngredientsItemDilutionMin).max(getDashboardSummaryResponseRecentFormulasItemIngredientsItemDilutionMax).default(getDashboardSummaryResponseRecentFormulasItemIngredientsItemDilutionDefault).describe('Stock solution dilution percentage (100 = undiluted pure material)'),
   "role": zod.enum(['top', 'heart', 'base', 'modifier']),
   "allergenFlags": zod.array(zod.string()).optional()
 })),
@@ -60,6 +67,12 @@ export const ListFormulasQueryParams = zod.object({
   "status": zod.enum(['draft', 'resting', 'approved', 'archived']).optional()
 })
 
+export const listFormulasResponseIngredientsItemDilutionDefault = 100;
+export const listFormulasResponseIngredientsItemDilutionMin = 0;
+export const listFormulasResponseIngredientsItemDilutionMax = 100;
+
+
+
 export const ListFormulasResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -73,6 +86,7 @@ export const ListFormulasResponseItem = zod.object({
   "materialName": zod.string(),
   "percentage": zod.number(),
   "grams": zod.number(),
+  "dilution": zod.number().min(listFormulasResponseIngredientsItemDilutionMin).max(listFormulasResponseIngredientsItemDilutionMax).default(listFormulasResponseIngredientsItemDilutionDefault).describe('Stock solution dilution percentage (100 = undiluted pure material)'),
   "role": zod.enum(['top', 'heart', 'base', 'modifier']),
   "allergenFlags": zod.array(zod.string()).optional()
 })),
@@ -99,6 +113,10 @@ export const createFormulaBodyIngredientsItemPercentageMin = 0;
 
 export const createFormulaBodyIngredientsItemGramsMin = 0;
 
+export const createFormulaBodyIngredientsItemDilutionDefault = 100;
+export const createFormulaBodyIngredientsItemDilutionMin = 0;
+export const createFormulaBodyIngredientsItemDilutionMax = 100;
+
 
 
 export const CreateFormulaBody = zod.object({
@@ -112,11 +130,18 @@ export const CreateFormulaBody = zod.object({
   "materialName": zod.string(),
   "percentage": zod.number().min(createFormulaBodyIngredientsItemPercentageMin),
   "grams": zod.number().min(createFormulaBodyIngredientsItemGramsMin),
+  "dilution": zod.number().min(createFormulaBodyIngredientsItemDilutionMin).max(createFormulaBodyIngredientsItemDilutionMax).default(createFormulaBodyIngredientsItemDilutionDefault).describe('Stock solution dilution percentage (100 = undiluted pure material)'),
   "role": zod.enum(['top', 'heart', 'base', 'modifier']),
   "allergenFlags": zod.array(zod.string()).optional()
 })),
   "notes": zod.string().optional()
 })
+
+export const createFormulaResponseIngredientsItemDilutionDefault = 100;
+export const createFormulaResponseIngredientsItemDilutionMin = 0;
+export const createFormulaResponseIngredientsItemDilutionMax = 100;
+
+
 
 export const CreateFormulaResponse = zod.object({
   "id": zod.number(),
@@ -131,6 +156,7 @@ export const CreateFormulaResponse = zod.object({
   "materialName": zod.string(),
   "percentage": zod.number(),
   "grams": zod.number(),
+  "dilution": zod.number().min(createFormulaResponseIngredientsItemDilutionMin).max(createFormulaResponseIngredientsItemDilutionMax).default(createFormulaResponseIngredientsItemDilutionDefault).describe('Stock solution dilution percentage (100 = undiluted pure material)'),
   "role": zod.enum(['top', 'heart', 'base', 'modifier']),
   "allergenFlags": zod.array(zod.string()).optional()
 })),
@@ -153,6 +179,12 @@ export const GetFormulaParams = zod.object({
   "id": zod.coerce.number().min(1)
 })
 
+export const getFormulaResponseIngredientsItemDilutionDefault = 100;
+export const getFormulaResponseIngredientsItemDilutionMin = 0;
+export const getFormulaResponseIngredientsItemDilutionMax = 100;
+
+
+
 export const GetFormulaResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
@@ -166,6 +198,7 @@ export const GetFormulaResponse = zod.object({
   "materialName": zod.string(),
   "percentage": zod.number(),
   "grams": zod.number(),
+  "dilution": zod.number().min(getFormulaResponseIngredientsItemDilutionMin).max(getFormulaResponseIngredientsItemDilutionMax).default(getFormulaResponseIngredientsItemDilutionDefault).describe('Stock solution dilution percentage (100 = undiluted pure material)'),
   "role": zod.enum(['top', 'heart', 'base', 'modifier']),
   "allergenFlags": zod.array(zod.string()).optional()
 })),
@@ -198,6 +231,10 @@ export const updateFormulaBodyIngredientsItemPercentageMin = 0;
 
 export const updateFormulaBodyIngredientsItemGramsMin = 0;
 
+export const updateFormulaBodyIngredientsItemDilutionDefault = 100;
+export const updateFormulaBodyIngredientsItemDilutionMin = 0;
+export const updateFormulaBodyIngredientsItemDilutionMax = 100;
+
 
 
 export const UpdateFormulaBody = zod.object({
@@ -211,11 +248,18 @@ export const UpdateFormulaBody = zod.object({
   "materialName": zod.string(),
   "percentage": zod.number().min(updateFormulaBodyIngredientsItemPercentageMin),
   "grams": zod.number().min(updateFormulaBodyIngredientsItemGramsMin),
+  "dilution": zod.number().min(updateFormulaBodyIngredientsItemDilutionMin).max(updateFormulaBodyIngredientsItemDilutionMax).default(updateFormulaBodyIngredientsItemDilutionDefault).describe('Stock solution dilution percentage (100 = undiluted pure material)'),
   "role": zod.enum(['top', 'heart', 'base', 'modifier']),
   "allergenFlags": zod.array(zod.string()).optional()
 })).optional(),
   "notes": zod.string().optional()
 })
+
+export const updateFormulaResponseIngredientsItemDilutionDefault = 100;
+export const updateFormulaResponseIngredientsItemDilutionMin = 0;
+export const updateFormulaResponseIngredientsItemDilutionMax = 100;
+
+
 
 export const UpdateFormulaResponse = zod.object({
   "id": zod.number(),
@@ -230,6 +274,7 @@ export const UpdateFormulaResponse = zod.object({
   "materialName": zod.string(),
   "percentage": zod.number(),
   "grams": zod.number(),
+  "dilution": zod.number().min(updateFormulaResponseIngredientsItemDilutionMin).max(updateFormulaResponseIngredientsItemDilutionMax).default(updateFormulaResponseIngredientsItemDilutionDefault).describe('Stock solution dilution percentage (100 = undiluted pure material)'),
   "role": zod.enum(['top', 'heart', 'base', 'modifier']),
   "allergenFlags": zod.array(zod.string()).optional()
 })),
