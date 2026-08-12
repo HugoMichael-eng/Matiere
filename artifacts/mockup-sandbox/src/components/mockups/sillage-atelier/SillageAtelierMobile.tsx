@@ -561,6 +561,257 @@ function ChatScreen() {
   );
 }
 
+// ─── SCREEN — Formulas ────────────────────────────────────────────────────────
+type Role = "top" | "heart" | "base" | "modifier";
+type Ingredient = { name: string; role: Role; pct: number; grams: number; dilution?: number };
+type FormulaData = {
+  id: number; name: string; brief: string;
+  status: "Draft" | "Resting" | "Approved";
+  concentration: number; totalMl: number;
+  updated: string; ingredients: Ingredient[];
+  notes: string;
+};
+
+const FORMULAS: FormulaData[] = [
+  {
+    id: 1, name: "Iris No. 4", brief: "Powdery iris over a woody vetiver base",
+    status: "Draft", concentration: 20, totalMl: 30, updated: "Today",
+    notes: "Heart still dominates too early. Consider stepping bergamot to 25% and reducing orris to let the vetiver read at drydown.",
+    ingredients: [
+      { name: "Bergamot",       role: "top",      pct: 22, grams: 6.6 },
+      { name: "Iris Pallida",   role: "heart",    pct: 32, grams: 9.6, dilution: 10 },
+      { name: "Orris Concrete", role: "heart",    pct: 10, grams: 3.0, dilution: 50 },
+      { name: "Vetiver Haiti",  role: "base",     pct: 18, grams: 5.4 },
+      { name: "Sandalwood",     role: "base",     pct: 8,  grams: 2.4 },
+      { name: "Ambrette Seed",  role: "modifier", pct: 10, grams: 3.0, dilution: 10 },
+    ],
+  },
+  {
+    id: 2, name: "Chypre No. 7", brief: "Mossy oak, Bulgarian rose, bergamot accord",
+    status: "Resting", concentration: 18, totalMl: 50, updated: "Mon",
+    notes: "Resting 72h. Oakmoss and labdanum are integrating — reassess base balance after rest.",
+    ingredients: [
+      { name: "Bergamot",   role: "top",      pct: 25, grams: 12.5 },
+      { name: "Neroli",     role: "top",      pct: 10, grams: 5.0 },
+      { name: "Rose Abs.",  role: "heart",    pct: 20, grams: 10.0, dilution: 50 },
+      { name: "Oakmoss",    role: "base",     pct: 15, grams: 7.5,  dilution: 10 },
+      { name: "Labdanum",   role: "base",     pct: 18, grams: 9.0 },
+      { name: "Patchouli",  role: "modifier", pct: 12, grams: 6.0 },
+    ],
+  },
+  {
+    id: 3, name: "Musc Blanc", brief: "Clean musk, aldehydes, soft cashmere powder",
+    status: "Approved", concentration: 15, totalMl: 100, updated: "Aug 8",
+    notes: "Approved for batch. IFRA category 4 compliant. No allergen flags.",
+    ingredients: [
+      { name: "Aldehyde C-12",        role: "top",      pct: 8,  grams: 8.0 },
+      { name: "Cashmeran",            role: "heart",    pct: 22, grams: 22.0 },
+      { name: "Habanolide",           role: "base",     pct: 35, grams: 35.0 },
+      { name: "Galaxolide",           role: "base",     pct: 20, grams: 20.0 },
+      { name: "Ethylene Brassylate",  role: "modifier", pct: 15, grams: 15.0 },
+    ],
+  },
+];
+
+const STATUS_COLORS: Record<string, string> = {
+  Draft: "#D4CEC4", Resting: "#C8D4CE", Approved: "#C4D4C0",
+};
+const ROLE_ORDER: Role[] = ["top", "heart", "base", "modifier"];
+
+function FormulasScreen() {
+  const [filter, setFilter] = useState<"All" | "Draft" | "Resting" | "Approved">("All");
+  const [selected, setSelected] = useState<FormulaData | null>(null);
+
+  const filters = ["All", "Draft", "Resting", "Approved"] as const;
+  const visible = filter === "All" ? FORMULAS : FORMULAS.filter(f => f.status === filter);
+
+  if (selected) {
+    const byRole = ROLE_ORDER.map(role => ({
+      role,
+      items: selected.ingredients.filter(i => i.role === role),
+    })).filter(g => g.items.length > 0);
+
+    return (
+      <div className="atelier-screen" style={{ overflowY: "auto" }}>
+        {/* Header */}
+        <div style={{ padding: "14px 16px 12px", borderBottom: `1px solid ${C.border}`,
+          display: "flex", alignItems: "center", gap: 10 }}>
+          <button onClick={() => setSelected(null)} style={{ background: "none", border: "none",
+            cursor: "pointer", padding: 0, display: "flex" }}>
+            <Icon d={PATH.arrowLeft} size={18} color={C.fg} sw={1.5} />
+          </button>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: F.sans, fontSize: 15, fontWeight: 700, color: C.fg }}>
+              {selected.name}
+            </div>
+            <div style={{ fontFamily: F.sans, fontSize: 11, fontWeight: 300, color: C.mutedFg, marginTop: 1 }}>
+              {selected.brief}
+            </div>
+          </div>
+          <span style={{ fontFamily: F.mono, fontSize: 7.5, letterSpacing: "0.14em",
+            textTransform: "uppercase", padding: "3px 7px",
+            background: STATUS_COLORS[selected.status], color: C.fg }}>
+            {selected.status}
+          </span>
+        </div>
+
+        {/* Meta strip */}
+        <div style={{ display: "flex", borderBottom: `1px solid ${C.border}` }}>
+          {[
+            { label: "Concentration", value: `${selected.concentration}%` },
+            { label: "Batch",         value: `${selected.totalMl} ml` },
+            { label: "Materials",     value: `${selected.ingredients.length}` },
+          ].map((m, i) => (
+            <div key={m.label} style={{ flex: 1, padding: "10px 0", textAlign: "center",
+              borderRight: i < 2 ? `1px solid ${C.border}` : "none" }}>
+              <div style={{ fontFamily: F.sans, fontSize: 17, fontWeight: 700, color: C.fg, lineHeight: 1 }}>
+                {m.value}
+              </div>
+              <div style={{ fontFamily: F.mono, fontSize: 7, letterSpacing: "0.16em",
+                textTransform: "uppercase", color: C.mutedFg, marginTop: 4 }}>
+                {m.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Ingredient map */}
+        <div style={{ padding: "12px 16px 0" }}>
+          <div style={{ fontFamily: F.mono, fontSize: 7.5, letterSpacing: "0.22em",
+            textTransform: "uppercase", color: C.mutedFg, marginBottom: 10 }}>
+            Ingredient Map
+          </div>
+          {byRole.map(({ role, items }) => (
+            <div key={role} style={{ marginBottom: 14 }}>
+              <div style={{ fontFamily: F.mono, fontSize: 7, letterSpacing: "0.18em",
+                textTransform: "uppercase", color: C.mutedFg, marginBottom: 6,
+                paddingBottom: 4, borderBottom: `1px solid ${C.border}` }}>
+                {role}
+              </div>
+              {items.map(ing => (
+                <div key={ing.name} style={{ marginBottom: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between",
+                    alignItems: "baseline", marginBottom: 4 }}>
+                    <div style={{ fontFamily: F.sans, fontSize: 12, fontWeight: 500, color: C.fg }}>
+                      {ing.name}
+                      {ing.dilution && (
+                        <span style={{ fontFamily: F.mono, fontSize: 8, color: C.mutedFg,
+                          marginLeft: 5 }}>{ing.dilution}% dil.</span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <span style={{ fontFamily: F.mono, fontSize: 9, color: C.fg,
+                        fontWeight: 500 }}>{ing.pct}%</span>
+                      <span style={{ fontFamily: F.mono, fontSize: 9, color: C.mutedFg }}>
+                        {ing.grams}g
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ height: 3, background: C.muted, position: "relative" }}>
+                    <div style={{ position: "absolute", left: 0, top: 0, height: "100%",
+                      width: `${ing.pct}%`, background: C.accent }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Notes */}
+        <div style={{ margin: "4px 16px 16px", padding: "12px", background: C.card,
+          border: `1px solid ${C.border}` }}>
+          <div style={{ fontFamily: F.mono, fontSize: 7.5, letterSpacing: "0.22em",
+            textTransform: "uppercase", color: C.mutedFg, marginBottom: 8 }}>
+            Notebook
+          </div>
+          <div style={{ fontFamily: F.sans, fontSize: 12, fontWeight: 300, color: C.fg,
+            lineHeight: 1.6 }}>
+            {selected.notes}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="atelier-screen" style={{ overflowY: "auto" }}>
+      {/* Header */}
+      <div style={{ padding: "18px 16px 14px", borderBottom: `1px solid ${C.border}`,
+        display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontFamily: F.sans, fontSize: 20, fontWeight: 700, color: C.fg }}>
+          Formulas
+        </div>
+        <button className="atelier-icon-btn" style={{ backgroundColor: C.accent }}>
+          <Icon d={PATH.plus} size={16} color={C.accentFg} sw={2} />
+        </button>
+      </div>
+
+      {/* Filter tabs */}
+      <div style={{ display: "flex", borderBottom: `1px solid ${C.border}` }}>
+        {filters.map(f => (
+          <button key={f} onClick={() => setFilter(f)} style={{
+            flex: 1, padding: "9px 4px", border: "none", cursor: "pointer",
+            background: "transparent",
+            fontFamily: F.mono, fontSize: 7.5, letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: filter === f ? C.fg : C.mutedFg,
+            borderBottom: filter === f ? `2px solid ${C.fg}` : "2px solid transparent",
+            marginBottom: -1,
+          }}>
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* Formula list */}
+      <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+        {visible.map(f => (
+          <button key={f.id} onClick={() => setSelected(f)} style={{
+            textAlign: "left", border: `1px solid ${C.border}`,
+            background: C.bg, padding: "13px 14px", cursor: "pointer", width: "100%",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between",
+              alignItems: "flex-start", marginBottom: 6 }}>
+              <div style={{ fontFamily: F.sans, fontSize: 14, fontWeight: 700, color: C.fg }}>
+                {f.name}
+              </div>
+              <span style={{ fontFamily: F.mono, fontSize: 7, letterSpacing: "0.14em",
+                textTransform: "uppercase", padding: "2px 6px",
+                background: STATUS_COLORS[f.status], color: C.fg, flexShrink: 0 }}>
+                {f.status}
+              </span>
+            </div>
+            <div style={{ fontFamily: F.sans, fontSize: 11, fontWeight: 300,
+              color: C.mutedFg, marginBottom: 10, lineHeight: 1.4 }}>
+              {f.brief}
+            </div>
+            {/* Ingredient proportion bar */}
+            <div style={{ display: "flex", height: 4, gap: 1, marginBottom: 8 }}>
+              {f.ingredients.map(ing => (
+                <div key={ing.name} style={{ flex: ing.pct, height: "100%",
+                  background: ing.role === "top" ? "#A8B8B0"
+                    : ing.role === "heart" ? C.accent
+                    : ing.role === "base" ? "#4A3A2D"
+                    : C.border }} />
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", gap: 10 }}>
+                <span style={{ fontFamily: F.mono, fontSize: 8, color: C.mutedFg,
+                  letterSpacing: "0.1em" }}>{f.concentration}% conc.</span>
+                <span style={{ fontFamily: F.mono, fontSize: 8, color: C.mutedFg,
+                  letterSpacing: "0.1em" }}>{f.ingredients.length} materials</span>
+              </div>
+              <span style={{ fontFamily: F.mono, fontSize: 8, color: C.mutedFg,
+                letterSpacing: "0.1em" }}>{f.updated}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Root — single screen, tab-switched ───────────────────────────────────────
 // ─── Tab icon paths ───────────────────────────────────────────────────────────
 const TAB_ICONS: Record<string, string> = {
@@ -582,7 +833,7 @@ export default function SillageAtelierMobile() {
       {/* Active screen fills all available space */}
       <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
         {tab === "Sessions"  && <SessionsScreen />}
-        {tab === "Formulas"  && <PlaceholderScreen label="Formulas" />}
+        {tab === "Formulas"  && <FormulasScreen />}
         {tab === "Shop"      && <PlaceholderScreen label="Shop" />}
         {tab === "Lab"       && <PlaceholderScreen label="Lab" />}
       </div>
