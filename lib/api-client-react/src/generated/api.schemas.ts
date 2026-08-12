@@ -206,6 +206,61 @@ export interface CoachingMessage {
   cautions: string[];
 }
 
+export type ConversationMessageRole = typeof ConversationMessageRole[keyof typeof ConversationMessageRole];
+
+
+export const ConversationMessageRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export interface ConversationMessage {
+  id: number;
+  conversationId: number;
+  role: ConversationMessageRole;
+  content: string;
+  createdAt: string;
+}
+
+export interface Conversation {
+  id: number;
+  ownerId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
+}
+
+export interface ConversationDetail {
+  id: number;
+  ownerId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: ConversationMessage[];
+}
+
+export interface CreateConversationInput {
+  /** @minLength 1 */
+  title: string;
+}
+
+export interface SendConversationMessageInput {
+  /** @minLength 1 */
+  message: string;
+  /** @nullable */
+  formulaContext?: string | null;
+}
+
+export interface FormulaEvent {
+  id: number;
+  formulaId: number;
+  formulaName: string;
+  type: string;
+  summary: string;
+  createdAt: string;
+}
+
 export type ListFormulasParams = {
 search?: string;
 status?: ListFormulasStatus;
@@ -223,5 +278,9 @@ export const ListFormulasStatus = {
 
 export type ListMaterialsParams = {
 search?: string;
+};
+
+export type GetActivityParams = {
+limit?: number;
 };
 

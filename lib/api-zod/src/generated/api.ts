@@ -342,3 +342,155 @@ export const SendCoachingMessageResponse = zod.object({
 })
 
 
+/**
+ * @summary List coaching conversations
+ */
+export const ListConversationsResponseItem = zod.object({
+  "id": zod.number(),
+  "ownerId": zod.string(),
+  "title": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "messageCount": zod.number()
+})
+export const ListConversationsResponse = zod.array(ListConversationsResponseItem)
+
+
+/**
+ * @summary Create a new coaching conversation
+ */
+
+
+
+export const CreateConversationBody = zod.object({
+  "title": zod.string().min(1)
+})
+
+export const CreateConversationResponse = zod.object({
+  "id": zod.number(),
+  "ownerId": zod.string(),
+  "title": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "messages": zod.array(zod.object({
+  "id": zod.number(),
+  "conversationId": zod.number(),
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Get conversation with full message history
+ */
+
+
+
+export const GetConversationParams = zod.object({
+  "conversationId": zod.coerce.number().min(1)
+})
+
+export const GetConversationResponse = zod.object({
+  "id": zod.number(),
+  "ownerId": zod.string(),
+  "title": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "messages": zod.array(zod.object({
+  "id": zod.number(),
+  "conversationId": zod.number(),
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Delete a conversation
+ */
+
+
+
+export const DeleteConversationParams = zod.object({
+  "conversationId": zod.coerce.number().min(1)
+})
+
+export const DeleteConversationResponse = zod.void()
+
+
+/**
+ * @summary Send a message and get an AI response
+ */
+
+
+
+export const SendConversationMessageParams = zod.object({
+  "conversationId": zod.coerce.number().min(1)
+})
+
+
+
+
+export const SendConversationMessageBody = zod.object({
+  "message": zod.string().min(1),
+  "formulaContext": zod.string().nullish()
+})
+
+export const SendConversationMessageResponse = zod.object({
+  "id": zod.number(),
+  "ownerId": zod.string(),
+  "title": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "messages": zod.array(zod.object({
+  "id": zod.number(),
+  "conversationId": zod.number(),
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Get formula change log
+ */
+
+
+
+export const GetFormulaEventsParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const GetFormulaEventsResponseItem = zod.object({
+  "id": zod.number(),
+  "formulaId": zod.number(),
+  "formulaName": zod.string(),
+  "type": zod.string(),
+  "summary": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const GetFormulaEventsResponse = zod.array(GetFormulaEventsResponseItem)
+
+
+/**
+ * @summary Activity feed across all formulas
+ */
+export const GetActivityQueryParams = zod.object({
+  "limit": zod.coerce.number().optional()
+})
+
+export const GetActivityResponseItem = zod.object({
+  "id": zod.number(),
+  "formulaId": zod.number(),
+  "formulaName": zod.string(),
+  "type": zod.string(),
+  "summary": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const GetActivityResponse = zod.array(GetActivityResponseItem)
+
+

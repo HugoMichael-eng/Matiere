@@ -4,6 +4,8 @@ import dashboardRouter from "./dashboard";
 import formulasRouter from "./formulas";
 import materialsRouter from "./materials";
 import coachingRouter from "./coaching";
+import conversationsRouter from "./conversations";
+import activityRouter from "./activity";
 
 const router: IRouter = Router();
 
@@ -12,5 +14,7 @@ router.use(dashboardRouter);
 router.use(formulasRouter);
 router.use(materialsRouter);
 router.use(coachingRouter);
+router.use(conversationsRouter);
+router.use(activityRouter);
 
 export default router;

@@ -8,8 +8,14 @@
 
 export * from './coachingMessage';
 export * from './coachingMessageInput';
+export * from './conversation';
+export * from './conversationDetail';
+export * from './conversationMessage';
+export * from './conversationMessageRole';
+export * from './createConversationInput';
 export * from './dashboardSummary';
 export * from './formula';
+export * from './formulaEvent';
 export * from './formulaIfraStatus';
 export * from './formulaIngredient';
 export * from './formulaIngredientInput';
@@ -21,9 +27,11 @@ export * from './formulaSafetyStatus';
 export * from './formulaStatus';
 export * from './formulaUpdate';
 export * from './formulaUpdateStatus';
+export * from './getActivityParams';
 export * from './healthStatus';
 export * from './listFormulasParams';
 export * from './listFormulasStatus';
 export * from './listMaterialsParams';
 export * from './material';
 export * from './materialSafetyStatus';
+export * from './sendConversationMessageInput';

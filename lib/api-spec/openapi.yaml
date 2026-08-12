@@ -169,10 +169,129 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CoachingMessage"
+  /conversations:
+    get:
+      operationId: listConversations
+      tags: [coaching]
+      summary: List coaching conversations
+      responses:
+        "200":
+          description: Conversation list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createConversation
+      tags: [coaching]
+      summary: Create a new coaching conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetail"
+  /conversations/{conversationId}:
+    get:
+      operationId: getConversation
+      tags: [coaching]
+      summary: Get conversation with full message history
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "200":
+          description: Conversation detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetail"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteConversation
+      tags: [coaching]
+      summary: Delete a conversation
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "204":
+          description: Deleted
+  /conversations/{conversationId}/messages:
+    post:
+      operationId: sendConversationMessage
+      tags: [coaching]
+      summary: Send a message and get an AI response
+      parameters:
+        - $ref: "#/components/parameters/ConversationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendConversationMessageInput"
+      responses:
+        "200":
+          description: Updated conversation with new messages appended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetail"
+  /formulas/{id}/events:
+    get:
+      operationId: getFormulaEvents
+      tags: [formulas]
+      summary: Get formula change log
+      parameters:
+        - $ref: "#/components/parameters/FormulaId"
+      responses:
+        "200":
+          description: Formula events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FormulaEvent"
+  /activity:
+    get:
+      operationId: getActivity
+      tags: [dashboard]
+      summary: Activity feed across all formulas
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FormulaEvent"
 components:
   parameters:
     FormulaId:
       name: id
+      in: path
+      required: true
+      schema:
+        type: number
+        minimum: 1
+    ConversationId:
+      name: conversationId
       in: path
       required: true
       schema:
@@ -398,4 +517,91 @@ components:
           type: array
           items:
             type: string
+    ConversationMessage:
+      type: object
+      required: [id, conversationId, role, content, createdAt]
+      properties:
+        id:
+          type: number
+        conversationId:
+          type: number
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    Conversation:
+      type: object
+      required: [id, ownerId, title, createdAt, updatedAt, messageCount]
+      properties:
+        id:
+          type: number
+        ownerId:
+          type: string
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        messageCount:
+          type: number
+    ConversationDetail:
+      type: object
+      required: [id, ownerId, title, createdAt, updatedAt, messages]
+      properties:
+        id:
+          type: number
+        ownerId:
+          type: string
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConversationMessage"
+    CreateConversationInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+    SendConversationMessageInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 1
+        formulaContext:
+          type: ["string", "null"]
+    FormulaEvent:
+      type: object
+      required: [id, formulaId, formulaName, type, summary, createdAt]
+      properties:
+        id:
+          type: number
+        formulaId:
+          type: number
+        formulaName:
+          type: string
+        type:
+          type: string
+        summary:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
 

@@ -13,10 +13,12 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Link, Redirect, Route, Switch, useLocation, useParams, useSearch, Router as WouterRouter } from "wouter";
 import {
-  getGetDashboardSummaryQueryKey, getGetFormulaQueryKey,
-  getListFormulasQueryKey, useCreateFormula, useDeleteFormula,
-  useGetDashboardSummary, useGetFormula, useListFormulas, useListMaterials,
-  useSendCoachingMessage, useUpdateFormula,
+  getGetConversationQueryKey, getGetDashboardSummaryQueryKey, getGetFormulaQueryKey,
+  getListConversationsQueryKey, getListFormulasQueryKey,
+  useCreateConversation, useCreateFormula, useDeleteConversation, useDeleteFormula,
+  useGetActivity, useGetConversation, useGetDashboardSummary, useGetFormula,
+  useGetFormulaEvents, useListConversations, useListFormulas, useListMaterials,
+  useSendConversationMessage, useUpdateFormula,
 } from "@workspace/api-client-react";
 import type { Formula, FormulaIngredientInput, Material } from "@workspace/api-client-react";
 
@@ -492,15 +494,88 @@ function MaterialHero({ material }: { material: Material }) {
   );
 }
 
+function QuickPrompt() {
+  const [message, setMessage] = useState("");
+  const [, setLocation] = useLocation();
+  const qc = useQueryClient();
+  const createConv = useCreateConversation();
+  const sendMsg = useSendConversationMessage();
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+    const title = message.trim().slice(0, 60);
+    createConv.mutate(
+      { data: { title } },
+      {
+        onSuccess: (conv) => {
+          sendMsg.mutate(
+            { conversationId: conv.id, data: { message } },
+            {
+              onSuccess: () => {
+                qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+                setLocation(`/coach?conv=${conv.id}`);
+              },
+            },
+          );
+          setMessage("");
+        },
+      },
+    );
+  };
+
+  const isPending = createConv.isPending || sendMsg.isPending;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      className="border-b border-border py-8"
+    >
+      <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Creative lab · coach</p>
+      <h2 className="mt-3 font-display text-4xl leading-tight">What are you circling?</h2>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">A difficult material, a flat drydown, a brief that won't settle. Start here.</p>
+      <form onSubmit={submit} className="mt-6 flex items-center gap-0 border border-border bg-secondary/30">
+        <input
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          disabled={isPending}
+          data-testid="input-quick-prompt"
+          className="min-w-0 flex-1 bg-transparent px-4 py-4 text-sm outline-none placeholder:text-muted-foreground/60"
+          placeholder="I'm trying to make something that feels like…"
+        />
+        <button
+          type="submit"
+          disabled={isPending || !message.trim()}
+          data-testid="button-quick-prompt-send"
+          className="grid h-[52px] w-14 shrink-0 place-items-center bg-primary text-primary-foreground disabled:opacity-40"
+        >
+          {isPending
+            ? <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+            : <Send size={15} />}
+        </button>
+      </form>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {["How do I make a clean musk less obvious?", "The opening is too linear.", "I want warmth without sweetness."].map(prompt => (
+          <button
+            key={prompt}
+            onClick={() => setMessage(prompt)}
+            className="border border-border bg-secondary/20 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 function Dashboard() {
   const summaryQuery = useGetDashboardSummary();
-  const materialsQuery = useListMaterials({});
   const draftsQuery = useListFormulas({ status: "draft" });
   const restingQuery = useListFormulas({ status: "resting" });
   const approvedQuery = useListFormulas({ status: "approved" });
-
-  const summary = summaryQuery.data;
-  const materials = materialsQuery.data ?? [];
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -508,13 +583,7 @@ function Dashboard() {
   }, []);
 
   const weekday = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: "long" }), []);
-
-  const materialOfDay = useMemo(() => {
-    if (!materials.length) return null;
-    const seed = new Date().getDate() + new Date().getMonth() * 31;
-    return materials[seed % materials.length];
-  }, [materials]);
-
+  const activityQuery = useGetActivity({});
   const stageCounts = {
     draft: draftsQuery.data?.length ?? 0,
     resting: restingQuery.data?.length ?? 0,
@@ -534,7 +603,6 @@ function Dashboard() {
   );
   if (summaryQuery.isError || !summary) return <Shell><ErrorState retry={() => summaryQuery.refetch()} /></Shell>;
 
-  const spotlight = summary.recentFormulas[0];
   const metrics: Array<[string, number, LucideIcon, string]> = [
     ["Saved formulas", summary.formulaCount, BookOpen, "metric-0"],
     ["Material library", summary.materialCount, Leaf, "metric-1"],
@@ -551,23 +619,8 @@ function Dashboard() {
         action={<Button href="/formulas/new" testId="button-new-formula">New formula</Button>}
       />
 
-      {/* ── SCENT OF THE DAY — leads the desk ────────────── */}
-      {materialOfDay && <MaterialHero material={materialOfDay} />}
-
-      {/* ── FORMULA SPOTLIGHT ─────────────────────────────── */}
-      {spotlight ? (
-        <SpotlightCard formula={spotlight} />
-      ) : (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-6 border border-dashed border-border p-8 text-center"
-        >
-          <p className="font-display text-3xl">The first formula is still blank.</p>
-          <p className="mt-2 text-sm text-muted-foreground">Start with something that makes you curious.</p>
-          <div className="mt-6"><Button href="/formulas/new" testId="button-spotlight-new">Open a fresh page</Button></div>
-        </motion.div>
-      )}
+      {/* ── QUICK PROMPT ──────────────────────────────────── */}
+      <QuickPrompt />
 
       {/* ── STAGE PIPELINE ────────────────────────────────── */}
       {stageTotal > 0 && <StageTrack counts={stageCounts} total={stageTotal} />}
@@ -617,6 +670,32 @@ function Dashboard() {
           <Button href="/shop" testId="button-dashboard-shop">Browse shop</Button>
         </div>
       </motion.div>
+
+      {/* ── ACTIVITY FEED ─────────────────────────────────── */}
+      {(activityQuery.data?.length ?? 0) > 0 && (
+        <div className="py-7">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Recent activity</p>
+              <h2 className="mt-1 font-display text-3xl">Studio log</h2>
+            </div>
+          </div>
+          <div className="border border-border">
+            {activityQuery.data!.slice(0, 10).map((ev, i) => (
+              <div
+                key={ev.id}
+                className={`grid grid-cols-[100px_1fr_auto] items-center gap-4 px-5 py-3.5 ${i > 0 ? "border-t border-border" : ""}`}
+              >
+                <p className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">
+                  {new Date(ev.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                </p>
+                <p className="text-xs text-foreground">{ev.summary}</p>
+                <p className="font-mono-ui text-[8px] text-muted-foreground truncate max-w-[140px]">{ev.formulaName}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </Shell>
   );
 }
@@ -949,6 +1028,8 @@ function FormulaDetail() {
   };
   const save = () => update.mutate({ id, data: { name, brief, notes, status, concentration: editConcentration, totalMl: editTotalMl, ingredients: editIngredients } }, { onSuccess: result => { qc.setQueryData(getGetFormulaQueryKey(id), result); qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setEditing(false); } });
   const destroy = () => { if (window.confirm("Delete this formula from the library?")) remove.mutate({ id }, { onSuccess: () => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setLocation("/formulas"); } }); };
+  const eventsQuery = useGetFormulaEvents(id, { query: { enabled: Number.isFinite(id) } });
+  const events = eventsQuery.data ?? [];
   if (query.isLoading) return <Shell><Skeleton className="h-72" /></Shell>;
   if (query.isError || !formula) return <Shell><ErrorState retry={() => query.refetch()} /></Shell>;
   return <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex gap-2"><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><div className="flex items-center gap-3 pt-1"><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p><button onClick={begin} data-testid="button-edit-inline" className="border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:bg-secondary">Edit</button></div></div><div className="mt-5 space-y-1">{formula.ingredients.map((item, i) => <div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className="grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t border-border py-4"><div><p className="text-sm font-medium">{item.materialName}</p><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>)}</div></div>{editing && (
@@ -1009,7 +1090,21 @@ function FormulaDetail() {
                   </div>
                 </div>
               </div>
-            )}</section><aside className="space-y-6"><div className="border border-border bg-secondary p-6 text-foreground"><ShieldCheck size={20} className="text-muted-foreground" /><p className="mt-5 font-display text-3xl">Safety, without the mood-kill.</p><p className="mt-3 text-sm leading-6 text-muted-foreground">Sillage keeps the guardrails visible so you can keep your attention on the shape of the scent.</p><div className="mt-6 space-y-2 border-t border-border pt-5 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div></div></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div></aside></div></Shell>;
+            )}</section><aside className="space-y-6"><div className="border border-border bg-secondary p-6 text-foreground"><ShieldCheck size={20} className="text-muted-foreground" /><p className="mt-5 font-display text-3xl">Safety, without the mood-kill.</p><p className="mt-3 text-sm leading-6 text-muted-foreground">Sillage keeps the guardrails visible so you can keep your attention on the shape of the scent.</p><div className="mt-6 space-y-2 border-t border-border pt-5 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div></div></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div>
+{events.length > 0 && (
+  <div className="border border-border bg-card p-6">
+    <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Change log</p>
+    <div className="mt-4 space-y-0">
+      {events.slice(0, 8).map((ev, i) => (
+        <div key={ev.id} className={`flex items-start gap-3 py-3 ${i > 0 ? 'border-t border-border' : ''}`}>
+          <div className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground shrink-0 w-16">{new Date(ev.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
+          <p className="text-xs leading-5 text-muted-foreground">{ev.summary}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+</aside></div></Shell>;
 }
 
 function Coach() {
@@ -1021,32 +1116,87 @@ function Coach() {
   });
   const activeFormula = formulaQuery.data ?? null;
 
+  const rawConvId = new URLSearchParams(search).get("conv");
+  const convFromUrl = rawConvId && Number.isFinite(Number(rawConvId)) ? Number(rawConvId) : null;
+
   const buildContext = (f: typeof activeFormula): string | null => {
     if (!f) return null;
-    const lines = [
+    return [
       `Formula: ${f.name}`,
       f.brief ? `Brief: ${f.brief}` : null,
-      `Concentration: ${f.concentration}% EDP`,
-      `Batch size: ${f.totalMl}ml`,
+      `Concentration: ${f.concentration}% EDP · ${f.totalMl}ml batch`,
       f.ingredients.length
         ? `Ingredients: ${f.ingredients.map(i => `${i.materialName} ${i.percentage}% (${i.role})`).join(", ")}`
         : null,
       f.notes ? `Notes: ${f.notes}` : null,
-    ].filter(Boolean);
-    return lines.join("\n");
+    ].filter(Boolean).join("\n");
   };
 
+  const qc = useQueryClient();
+  const [selectedConvId, setSelectedConvId] = useState<number | null>(convFromUrl);
+  const [newTitle, setNewTitle] = useState("");
+  const [creatingNew, setCreatingNew] = useState(false);
   const [message, setMessage] = useState("");
-  const [reply, setReply] = useState<{ reply: string; suggestions: string[]; cautions: string[] } | null>(null);
-  const send = useSendCoachingMessage();
 
-  const submit = (e: FormEvent) => {
+  const convsQuery = useListConversations();
+  const convQuery = useGetConversation(selectedConvId ?? 0, {
+    query: { enabled: !!selectedConvId, queryKey: getGetConversationQueryKey(selectedConvId ?? 0) },
+  });
+  const createConv = useCreateConversation();
+  const sendMsg = useSendConversationMessage();
+  const deleteConv = useDeleteConversation();
+
+  const conversations = convsQuery.data ?? [];
+  const activeConv = convQuery.data;
+
+  // Scroll messages to bottom on update
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activeConv?.messages.length, sendMsg.isPending]);
+
+  const handleCreate = (e: FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    const title = newTitle.trim() || "New session";
+    createConv.mutate(
+      { data: { title } },
+      {
+        onSuccess: (conv) => {
+          qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+          setSelectedConvId(conv.id);
+          setCreatingNew(false);
+          setNewTitle("");
+        },
+      },
+    );
+  };
+
+  const handleSend = (e: FormEvent) => {
+    e.preventDefault();
+    if (!message.trim() || !selectedConvId) return;
     const ctx = buildContext(activeFormula);
-    send.mutate(
-      { data: { message, formulaId: formulaId ?? null, formulaContext: ctx } },
-      { onSuccess: result => { setReply(result); setMessage(""); } },
+    sendMsg.mutate(
+      { conversationId: selectedConvId, data: { message, formulaContext: ctx } },
+      {
+        onSuccess: (conv) => {
+          qc.setQueryData(getGetConversationQueryKey(selectedConvId), conv);
+          qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+          setMessage("");
+        },
+      },
+    );
+  };
+
+  const handleDelete = (convId: number) => {
+    if (!window.confirm("Delete this session?")) return;
+    deleteConv.mutate(
+      { conversationId: convId },
+      {
+        onSuccess: () => {
+          qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+          if (selectedConvId === convId) setSelectedConvId(null);
+        },
+      },
     );
   };
 
@@ -1055,132 +1205,202 @@ function Coach() {
       <PageHeader
         eyebrow="Studio companion · creative lab"
         title="Ask better questions."
-        description="A thoughtful second nose for when the next move is just out of reach."
+        description="Persistent coaching sessions — pick up a thread, or start a new one."
       />
-      <div className="grid gap-6 lg:grid-cols-[1fr_.7fr]">
-        <section className="min-h-[520px] border border-border bg-card p-6 sm:p-8">
-          <div className="flex items-center justify-between gap-3 border-b border-border pb-5">
-            <div className="flex items-center gap-3">
-              <div className="grid size-10 place-items-center bg-secondary text-foreground"><Sparkles size={19} /></div>
-              <div>
-                <p className="text-sm font-medium">Creative lab</p>
-                <p className="text-xs text-muted-foreground">Creative direction, with a safety-aware eye</p>
-              </div>
-            </div>
-            {activeFormula && (
-              <Link href={`/formulas/${activeFormula.id}`} className="flex items-center gap-1.5 border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground" data-testid="link-active-formula">
-                <FlaskConical size={10} />
-                {activeFormula.name}
-              </Link>
-            )}
-            {formulaId && formulaQuery.isLoading && (
-              <span className="font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground">Loading formula…</span>
-            )}
+
+      <div className="grid min-h-[600px] border-t border-border lg:grid-cols-[260px_1fr]">
+        {/* ── Session list (left) ── */}
+        <div className="border-b border-border lg:border-b-0 lg:border-r lg:border-border">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Sessions</p>
+            <button
+              onClick={() => setCreatingNew(v => !v)}
+              data-testid="button-new-session"
+              className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:text-accent"
+            >
+              + New
+            </button>
           </div>
 
-          {activeFormula && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 border border-border bg-secondary/40 px-4 py-3"
-            >
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Active formula context</p>
-              <p className="mt-1 text-sm font-medium">{activeFormula.name}</p>
-              {activeFormula.brief && <p className="mt-0.5 text-xs text-muted-foreground">{activeFormula.brief}</p>}
-              <p className="mt-1.5 font-mono-ui text-[9px] text-muted-foreground">
-                {activeFormula.concentration}% · {activeFormula.totalMl}ml · {activeFormula.ingredients.length} ingredients
-              </p>
-            </motion.div>
+          {creatingNew && (
+            <form onSubmit={handleCreate} className="border-b border-border p-4">
+              <input
+                autoFocus
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                placeholder="Session title…"
+                data-testid="input-session-title"
+                className="w-full border-b border-border bg-transparent pb-2 text-sm outline-none placeholder:text-muted-foreground/50"
+              />
+              <div className="mt-3 flex gap-2">
+                <Button type="submit" disabled={createConv.isPending} testId="button-create-conv">
+                  {createConv.isPending ? "Creating…" : "Create"}
+                </Button>
+                <Button onClick={() => { setCreatingNew(false); setNewTitle(""); }} variant="quiet" testId="button-cancel-create">Cancel</Button>
+              </div>
+            </form>
           )}
 
-          {reply ? (
-            <div className="animate-fade-in pt-8">
-              <p className="font-display text-4xl leading-tight text-accent">{reply.reply}</p>
-              {reply.suggestions.length > 0 && (
-                <div className="mt-8">
-                  <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Try this next</p>
-                  <ul className="mt-3 space-y-2">
-                    {reply.suggestions.map((suggestion, i) => (
-                      <li key={i} data-testid={`text-coach-suggestion-${i}`} className="flex gap-2 border border-border bg-card p-4 text-sm leading-5">
-                        <span className="font-mono-ui text-muted-foreground">0{i + 1}</span>{suggestion}
-                      </li>
-                    ))}
-                  </ul>
+          {convsQuery.isLoading && (
+            <div className="space-y-2 p-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          )}
+
+          {!convsQuery.isLoading && conversations.length === 0 && (
+            <p className="p-5 text-xs text-muted-foreground">No sessions yet.</p>
+          )}
+
+          <nav>
+            {conversations.map(conv => (
+              <button
+                key={conv.id}
+                onClick={() => setSelectedConvId(conv.id)}
+                className={`group w-full border-b border-border px-4 py-3 text-left transition-colors ${
+                  selectedConvId === conv.id ? "bg-secondary/40" : "hover:bg-secondary/20"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className="truncate text-sm font-medium">{conv.title}</p>
+                  <button
+                    onClick={e => { e.stopPropagation(); handleDelete(conv.id); }}
+                    className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                  >
+                    <X size={11} />
+                  </button>
                 </div>
-              )}
-              {reply.cautions.length > 0 && (
-                <div className="mt-6 border border-border bg-card p-4 text-xs leading-5">
-                  <p className="font-medium">Keep in mind</p>
-                  {reply.cautions.map((caution, i) => <p key={i} className="mt-1 text-muted-foreground">{caution}</p>)}
-                </div>
-              )}
-              <button onClick={() => setReply(null)} data-testid="button-new-coach-question" className="mt-7 text-[11px] uppercase tracking-widest text-foreground hover:underline">
-                Ask another question
+                <p className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground">
+                  {conv.messageCount ?? 0} messages · {new Date(conv.updatedAt).toLocaleDateString()}
+                </p>
               </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* ── Conversation view (right) ── */}
+        <div className="flex flex-col">
+          {!selectedConvId ? (
+            <div className="flex flex-1 flex-col items-center justify-center p-12 text-center">
+              <div className="mb-5 grid size-16 place-items-center border border-dashed border-border text-muted-foreground">
+                <MessageCircle size={22} strokeWidth={1.3} />
+              </div>
+              <p className="font-display text-3xl">
+                {conversations.length ? "Select a session." : "Start your first session."}
+              </p>
+              <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+                {conversations.length
+                  ? "Choose a session on the left, or start a new one."
+                  : "Click «+ New» to open your first coaching conversation."}
+              </p>
+              {activeFormula && (
+                <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground">
+                  Formula context ready: {activeFormula.name}
+                </p>
+              )}
             </div>
           ) : (
-            <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
-              <div className="mb-6 grid size-20 place-items-center border border-dashed border-border bg-secondary text-muted-foreground">
-                <MessageCircle size={26} strokeWidth={1.3} />
-              </div>
-              <p className="font-display text-3xl">What are you circling?</p>
-              <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
-                {activeFormula
-                  ? `The lab knows about ${activeFormula.name}. Ask about its structure, a material choice, or what to try next.`
-                  : "A difficult material, a flat drydown, a brief that won't settle. Bring the unfinished thought."}
-              </p>
-            </div>
-          )}
+            <>
+              {/* Formula badge */}
+              {activeFormula && (
+                <div className="flex items-center gap-2 border-b border-border px-6 py-2.5">
+                  <FlaskConical size={10} className="text-muted-foreground" />
+                  <p className="font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground">
+                    Context: {activeFormula.name} · {activeFormula.concentration}% · {activeFormula.ingredients.length} materials
+                  </p>
+                  <Link
+                    href={`/formulas/${activeFormula.id}`}
+                    data-testid="link-active-formula"
+                    className="ml-auto font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground hover:text-foreground"
+                  >
+                    View ↗
+                  </Link>
+                </div>
+              )}
 
-          <form onSubmit={submit} className="mt-8 flex items-center gap-2 border border-border bg-secondary/45 p-2">
-            <input
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              disabled={send.isPending}
-              data-testid="input-coach-message"
-              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none focus:border-foreground/40"
-              placeholder={activeFormula ? `Ask about ${activeFormula.name}…` : "I'm trying to make…"}
-            />
-            <button type="submit" disabled={send.isPending || !message.trim()} data-testid="button-send-coach" className="grid size-10 shrink-0 place-items-center bg-primary text-primary-foreground disabled:opacity-40">
-              {send.isPending ? <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" /> : <Send size={15} />}
-            </button>
-          </form>
-          {send.isError && <p className="mt-2 text-xs text-destructive" data-testid="status-coach-error">The coach couldn't answer. Please try again.</p>}
-        </section>
+              {/* Messages */}
+              <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6" style={{ minHeight: 320, maxHeight: 540 }}>
+                {convQuery.isLoading && <Skeleton className="h-20 w-full" />}
 
-        <aside className="space-y-5">
-          <div className="border border-border bg-card p-7 text-foreground">
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Good prompts have texture</p>
-            <h2 className="mt-3 font-display text-4xl leading-none">Start with a sensation, not a solution.</h2>
-            <div className="mt-8 space-y-3">
-              {["How do I make a clean musk feel less obvious?", "The opening is beautiful but disappears too fast.", "I want warmth without sweetness."].map((prompt, i) => (
-                <button key={prompt} onClick={() => setMessage(prompt)} data-testid={`button-prompt-${i}`} className="w-full border border-border bg-secondary/40 p-4 text-left text-sm leading-5 transition-colors hover:bg-secondary">
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </div>
-          {activeFormula && (
-            <div className="border border-border bg-card p-6">
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula</p>
-              <h3 className="mt-2 font-display text-2xl">{activeFormula.name}</h3>
-              <div className="mt-4 space-y-1">
-                {activeFormula.ingredients.slice(0, 6).map((ing, i) => (
-                  <div key={i} className="flex items-center justify-between py-1 border-t border-border text-xs text-muted-foreground">
-                    <span>{ing.materialName}</span>
-                    <span className="font-mono-ui">{ing.percentage}%</span>
+                {activeConv?.messages.length === 0 && !convQuery.isLoading && (
+                  <div className="py-10 text-center">
+                    <p className="font-display text-2xl">What are you circling?</p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {activeFormula
+                        ? `The lab knows about ${activeFormula.name}. Ask about its structure, a material, or what to try next.`
+                        : "A difficult material, a flat drydown, a brief that won't settle. Bring the unfinished thought."}
+                    </p>
+                  </div>
+                )}
+
+                {activeConv?.messages.map(msg => (
+                  <div key={msg.id} className={msg.role === "user" ? "pl-10" : "pr-10"}>
+                    <p className="mb-1.5 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">
+                      {msg.role === "user" ? "You" : "Coach"} ·{" "}
+                      {new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                    <div
+                      className={
+                        msg.role === "user"
+                          ? "border border-border bg-secondary/30 p-4 text-sm leading-6"
+                          : "border-l-2 border-accent pl-5 text-sm leading-7 text-foreground"
+                      }
+                    >
+                      {msg.content}
+                    </div>
                   </div>
                 ))}
-                {activeFormula.ingredients.length > 6 && (
-                  <p className="pt-2 font-mono-ui text-[9px] text-muted-foreground">+{activeFormula.ingredients.length - 6} more</p>
+
+                {sendMsg.isPending && (
+                  <div className="pr-10">
+                    <p className="mb-1.5 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Coach · thinking…</p>
+                    <div className="border-l-2 border-accent py-2 pl-5">
+                      <div className="flex gap-1.5">
+                        {[0, 1, 2].map(i => (
+                          <span
+                            key={i}
+                            className="size-1.5 rounded-full bg-accent/60 animate-pulse"
+                            style={{ animationDelay: `${i * 150}ms` }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input bar */}
+              <div className="border-t border-border p-4">
+                <form onSubmit={handleSend} className="flex items-center gap-2 border border-border bg-secondary/30 p-2">
+                  <input
+                    value={message}
+                    onChange={e => setMessage(e.target.value)}
+                    disabled={sendMsg.isPending}
+                    data-testid="input-coach-message"
+                    className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none"
+                    placeholder={activeFormula ? `Ask about ${activeFormula.name}…` : "I'm working on…"}
+                  />
+                  <button
+                    type="submit"
+                    disabled={sendMsg.isPending || !message.trim()}
+                    data-testid="button-send-coach"
+                    className="grid size-9 shrink-0 place-items-center bg-primary text-primary-foreground disabled:opacity-40"
+                  >
+                    {sendMsg.isPending
+                      ? <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                      : <Send size={14} />}
+                  </button>
+                </form>
+                {sendMsg.isError && (
+                  <p className="mt-2 text-xs text-destructive" data-testid="status-coach-error">
+                    The coach couldn't answer. Please try again.
+                  </p>
                 )}
               </div>
-              <div className="mt-5">
-                <Button href={`/formulas/${activeFormula.id}`} variant="outline" testId="link-back-to-formula">Back to formula</Button>
-              </div>
-            </div>
+            </>
           )}
-        </aside>
+        </div>
       </div>
     </Shell>
   );
