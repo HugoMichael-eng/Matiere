@@ -187,8 +187,8 @@ function SignInScreen() {
 // ─── SCREEN 2 — Sessions ──────────────────────────────────────────────────────
 const SESSIONS = [
   { id: 1, title: "Iris & Vetiver Structure",  msgs: 12, date: "Today",     tag: "Structure",  excerpt: "Try orris concrete at 1–2% to bridge vetiver and iris heart.", bg: "#ffebeb" },
-  { id: 2, title: "Civet Dosage Experiment",    msgs: 7,  date: "Yesterday", tag: "Materials",  excerpt: "Keep civet below 0.3% — character reads animalic beyond that.", bg: undefined },
-  { id: 3, title: "Chypre Accord Balance",      msgs: 23, date: "Mon",       tag: "Accord",     excerpt: "Labdanum is your missing anchor in the base.", bg: "#bdbdbd" },
+  { id: 2, title: "Civet Dosage Experiment",    msgs: 7,  date: "Yesterday", tag: "Materials",  excerpt: "Keep civet below 0.3% — character reads animalic beyond that.", bg: "#fff5f5" },
+  { id: 3, title: "Chypre Accord Balance",      msgs: 23, date: "Mon",       tag: "Accord",     excerpt: "Labdanum is your missing anchor in the base.", bg: "#fff5f5" },
   { id: 4, title: "Top Note Volatility Study",  msgs: 4,  date: "Aug 10",    tag: "Evaluation", excerpt: "Bergamot opens too fast — consider a small ethanol dilution.", bg: undefined },
 ];
 
@@ -223,7 +223,6 @@ function SessionsScreen() {
 
   return (
     <div className="atelier-screen" style={{ overflowY: "auto" }}>
-
       {/* ── Header ── */}
       <div style={{
         padding: "18px 16px 14px",
@@ -250,7 +249,6 @@ function SessionsScreen() {
           </button>
         </div>
       </div>
-
       {/* ── Stats strip ── */}
       <div style={{
         display: "flex",
@@ -273,7 +271,6 @@ function SessionsScreen() {
           </div>
         ))}
       </div>
-
       {/* ── Pinned / featured session ── */}
       <div style={{ padding: "12px 16px 0" }}>
         <div style={{ fontFamily: F.mono, fontSize: 8, fontWeight: 300,
@@ -287,7 +284,7 @@ function SessionsScreen() {
             border: `1px solid ${C.border}`, padding: "14px 14px 16px", cursor: "pointer",
             marginBottom: 16,
           }}
-        >
+          className="bg-[#fff5f5]">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
             <Tag label={featured.tag} />
             <span style={{ fontFamily: F.mono, fontSize: 8, color: C.mutedFg, letterSpacing: "0.1em" }}>
@@ -310,7 +307,6 @@ function SessionsScreen() {
           </div>
         </button>
       </div>
-
       {/* ── Recent list ── */}
       <div style={{ padding: "0 16px 12px" }}>
         <div style={{ fontFamily: F.mono, fontSize: 8, fontWeight: 300,
@@ -349,7 +345,6 @@ function SessionsScreen() {
           })}
         </div>
       </div>
-
     </div>
   );
 }
