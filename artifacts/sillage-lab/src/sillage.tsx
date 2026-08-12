@@ -1147,121 +1147,121 @@ function FormulaDetail() {
   if (query.isError || !formula) return <Shell><ErrorState retry={() => query.refetch()} /></Shell>;
   return (
     <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex gap-2"><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><div className="flex items-center gap-3 pt-1"><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p><button onClick={begin} data-testid="button-edit-inline" className="border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:bg-secondary">Edit</button></div></div><div className="mt-5 space-y-1">{formula.ingredients.map((item, i) => <div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className="grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t border-border py-4"><div><p className="text-sm font-medium">{item.materialName}</p><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>)}</div></div>{editing && (
-                        <div className="fixed inset-0 z-40 overflow-y-auto bg-background">
-                          <div className="mx-auto max-w-5xl px-5 pb-20 pt-6 sm:px-10">
-                            <div className="mb-8 flex items-center justify-between">
-                              <div>
-                                <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Editing · formula {String(formula.id).padStart(3, "0")}</p>
-                                <h2 className="mt-1 font-display text-4xl">Stay curious.</h2>
-                              </div>
-                              <button onClick={() => setEditing(false)} data-testid="button-close-edit" className="grid size-9 place-items-center border border-border bg-card hover:bg-secondary"><X size={16} /></button>
-                            </div>
-                            <div className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
-                              <div className="space-y-5">
-                                <div className="border border-border bg-card p-6 sm:p-7">
-                                  <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p>
-                                  <label className="mt-5 block text-xs font-medium">Name
-                                    <input value={name} onChange={e => setName(e.target.value)} data-testid="input-edit-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" />
-                                  </label>
-                                  <label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span>
-                                    <textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-edit-brief" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" />
-                                  </label>
-                                  <div className="mt-7 grid grid-cols-2 gap-4">
-                                    <label className="text-xs font-medium">Concentration %
-                                      <input type="number" min="0" max="100" value={editConcentration} onChange={e => setEditConcentration(Number(e.target.value))} data-testid="input-edit-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
-                                    </label>
-                                    <label className="text-xs font-medium">Batch size ml
-                                      <input type="number" min="0" value={editTotalMl} onChange={e => setEditTotalMl(Number(e.target.value))} data-testid="input-edit-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
-                                    </label>
-                                  </div>
-                                  <label className="mt-7 block text-xs font-medium">Stage
-                                    <select value={status} onChange={e => setStatus(e.target.value as typeof status)} data-testid="select-edit-status" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40">
-                                      <option value="draft">Draft</option>
-                                      <option value="resting">Resting</option>
-                                      <option value="approved">Approved</option>
-                                      <option value="archived">Archived</option>
-                                    </select>
-                                  </label>
-                                  <IfraCategoryPicker value={editIfraCategory} onChange={setEditIfraCategory} testId="select-edit-ifra-category" />
-                                  <label className="mt-7 block text-xs font-medium">Notebook notes
-                                    <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
-                                  </label>
+                          <div className="fixed inset-0 z-40 overflow-y-auto bg-background">
+                            <div className="mx-auto max-w-5xl px-5 pb-20 pt-6 sm:px-10">
+                              <div className="mb-8 flex items-center justify-between">
+                                <div>
+                                  <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Editing · formula {String(formula.id).padStart(3, "0")}</p>
+                                  <h2 className="mt-1 font-display text-4xl">Stay curious.</h2>
                                 </div>
+                                <button onClick={() => setEditing(false)} data-testid="button-close-edit" className="grid size-9 place-items-center border border-border bg-card hover:bg-secondary"><X size={16} /></button>
                               </div>
-                              <div className="space-y-5">
-                                <IngredientBuilder ingredients={editIngredients} setIngredients={setEditIngredients} totalMl={editTotalMl} concentration={editConcentration} />
-                                <div className="flex items-center justify-between border border-border bg-card p-5">
-                                  <div>
-                                    <p className="font-display text-2xl">Save the revision.</p>
-                                    <p className="mt-1 text-xs text-muted-foreground">All changes replace the current version.</p>
-                                  </div>
-                                  <div className="flex gap-2">
-                                    <Button onClick={() => setEditing(false)} variant="quiet" testId="button-cancel-edit">Cancel</Button>
-                                    <Button onClick={save} disabled={update.isPending || !name} testId="button-update-formula">{update.isPending ? "Saving…" : "Save changes"}</Button>
+                              <div className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
+                                <div className="space-y-5">
+                                  <div className="border border-border bg-card p-6 sm:p-7">
+                                    <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p>
+                                    <label className="mt-5 block text-xs font-medium">Name
+                                      <input value={name} onChange={e => setName(e.target.value)} data-testid="input-edit-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" />
+                                    </label>
+                                    <label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span>
+                                      <textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-edit-brief" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" />
+                                    </label>
+                                    <div className="mt-7 grid grid-cols-2 gap-4">
+                                      <label className="text-xs font-medium">Concentration %
+                                        <input type="number" min="0" max="100" value={editConcentration} onChange={e => setEditConcentration(Number(e.target.value))} data-testid="input-edit-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+                                      </label>
+                                      <label className="text-xs font-medium">Batch size ml
+                                        <input type="number" min="0" value={editTotalMl} onChange={e => setEditTotalMl(Number(e.target.value))} data-testid="input-edit-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+                                      </label>
+                                    </div>
+                                    <label className="mt-7 block text-xs font-medium">Stage
+                                      <select value={status} onChange={e => setStatus(e.target.value as typeof status)} data-testid="select-edit-status" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40">
+                                        <option value="draft">Draft</option>
+                                        <option value="resting">Resting</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="archived">Archived</option>
+                                      </select>
+                                    </label>
+                                    <IfraCategoryPicker value={editIfraCategory} onChange={setEditIfraCategory} testId="select-edit-ifra-category" />
+                                    <label className="mt-7 block text-xs font-medium">Notebook notes
+                                      <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
+                                    </label>
                                   </div>
                                 </div>
-                                {update.isError && <p className="text-sm text-destructive" data-testid="status-update-error">Couldn't save. Try again.</p>}
+                                <div className="space-y-5">
+                                  <IngredientBuilder ingredients={editIngredients} setIngredients={setEditIngredients} totalMl={editTotalMl} concentration={editConcentration} />
+                                  <div className="flex items-center justify-between border border-border bg-card p-5">
+                                    <div>
+                                      <p className="font-display text-2xl">Save the revision.</p>
+                                      <p className="mt-1 text-xs text-muted-foreground">All changes replace the current version.</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button onClick={() => setEditing(false)} variant="quiet" testId="button-cancel-edit">Cancel</Button>
+                                      <Button onClick={save} disabled={update.isPending || !name} testId="button-update-formula">{update.isPending ? "Saving…" : "Save changes"}</Button>
+                                    </div>
+                                  </div>
+                                  {update.isError && <p className="text-sm text-destructive" data-testid="status-update-error">Couldn't save. Try again.</p>}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      )}</section><aside className="space-y-6"><button onClick={() => setSafetyOpen(v => !v)} className="w-full text-left border border-border bg-secondary p-6 text-foreground transition-colors hover:bg-secondary/80 active:bg-secondary/60">
-            <div className="flex items-start justify-between gap-3">
-              <ShieldCheck size={20} className="text-muted-foreground mt-0.5 shrink-0" />
-              <ChevronDown size={16} className={`mt-0.5 shrink-0 text-muted-foreground transition-transform duration-200 ${safetyOpen ? "rotate-180" : ""}`} />
-            </div>
-            <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula safety</p>
-            <p className="mt-2 font-display text-3xl leading-tight">Allergens &amp; IFRA compliance</p>
-            <div className="mt-5 space-y-2 border-t border-border pt-4 text-xs">
-              {formula.ifraCategory
-                ? <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="text-right">{IFRA_CATEGORIES.find(c => c.value === formula.ifraCategory)?.label ?? `Cat ${formula.ifraCategory}`}</span></div>
-                : <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="italic text-muted-foreground">Not set</span></div>
-              }
-              <div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">IFRA status</span><span>{formula.ifraStatus.replace(/_/g, " ")}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div>
-            </div>
-            <AnimatePresence>
-              {safetyOpen && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-4 border-t border-border pt-4 space-y-3">
-                    {formula.ingredients.filter(i => (i.allergenFlags ?? []).length > 0).length === 0 ? (
-                      <p className="text-xs text-muted-foreground">No allergen flags on any ingredient.</p>
-                    ) : (
-                      formula.ingredients
-                        .filter(i => (i.allergenFlags ?? []).length > 0)
-                        .map((item, i) => (
-                          <div key={i} className="text-xs">
-                            <p className="font-medium">{item.materialName}</p>
-                            <p className="mt-0.5 text-muted-foreground">{(item.allergenFlags ?? []).join(", ")}</p>
-                          </div>
-                        ))
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </button><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div>
-          {events.length > 0 && (
-            <div className="border border-border bg-card p-6">
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Change log</p>
-              <div className="mt-4 space-y-0">
-                {events.slice(0, 8).map((ev, i) => (
-                  <div key={ev.id} className={`flex items-start gap-3 py-3 ${i > 0 ? 'border-t border-border' : ''}`}>
-                    <div className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground shrink-0 w-16">{new Date(ev.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
-                    <p className="text-xs leading-5 text-muted-foreground">{ev.summary}</p>
-                  </div>
-                ))}
+                        )}</section><aside className="space-y-6"><button onClick={() => setSafetyOpen(v => !v)} className="w-full text-left border border-border bg-secondary p-6 text-foreground transition-colors hover:bg-secondary/80 active:bg-secondary/60">
+              <div className="flex items-start justify-between gap-3">
+                <ShieldCheck size={20} className="text-muted-foreground mt-0.5 shrink-0" />
+                <ChevronDown size={16} className={`mt-0.5 shrink-0 text-muted-foreground transition-transform duration-200 ${safetyOpen ? "rotate-180" : ""}`} />
               </div>
-            </div>
-          )}
-          </aside></div></Shell>
+              <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula safety</p>
+              <p className="mt-2 font-display text-3xl leading-tight">Allergens &amp; IFRA compliance</p>
+              <div className="mt-5 space-y-2 border-t border-border pt-4 text-xs">
+                {formula.ifraCategory
+                  ? <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="text-right">{IFRA_CATEGORIES.find(c => c.value === formula.ifraCategory)?.label ?? `Cat ${formula.ifraCategory}`}</span></div>
+                  : <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="italic text-muted-foreground">Not set</span></div>
+                }
+                <div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">IFRA status</span><span>{formula.ifraStatus.replace(/_/g, " ")}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div>
+              </div>
+              <AnimatePresence>
+                {safetyOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-4 border-t border-border pt-4 space-y-3">
+                      {formula.ingredients.filter(i => (i.allergenFlags ?? []).length > 0).length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No allergen flags on any ingredient.</p>
+                      ) : (
+                        formula.ingredients
+                          .filter(i => (i.allergenFlags ?? []).length > 0)
+                          .map((item, i) => (
+                            <div key={i} className="text-xs">
+                              <p className="font-medium">{item.materialName}</p>
+                              <p className="mt-0.5 text-muted-foreground">{(item.allergenFlags ?? []).join(", ")}</p>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div>
+            {events.length > 0 && (
+              <div className="border border-border bg-card p-6">
+                <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Change log</p>
+                <div className="mt-4 space-y-0">
+                  {events.slice(0, 8).map((ev, i) => (
+                    <div key={ev.id} className={`flex items-start gap-3 py-3 ${i > 0 ? 'border-t border-border' : ''}`}>
+                      <div className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground shrink-0 w-16">{new Date(ev.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
+                      <p className="text-xs leading-5 text-muted-foreground">{ev.summary}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            </aside></div></Shell>
   );
 }
 
@@ -1838,7 +1838,7 @@ function FieldNoteCard() {
       transition={{ delay: 0.22, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
       className="relative min-h-[420px] cursor-default lg:min-h-[540px]"
     >
-      <div className="absolute inset-0 overflow-hidden border border-border p-8 text-foreground bg-[#f2f2f2a8]">
+      <div className="absolute inset-0 overflow-hidden border border-border p-8 text-foreground bg-[#f2f2f2]">
         <div className="flex justify-between font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">
           <span>Field note 014</span><span>03.14</span>
         </div>
@@ -1952,7 +1952,7 @@ function Landing() {
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: "-70px" }}
                 transition={{ duration: 0.7, delay: i * 0.14, ease: [0.22, 1, 0.36, 1] }}
-                className={`border-b border-border p-8 sm:border-b-0 ${i < 2 ? "sm:border-r" : ""}`}
+                className="border-b border-border p-8 sm:border-b-0 sm:border-r bg-[color:var(--color-border)]"
               >
                 <p className="font-mono-ui text-[10px] text-muted-foreground">{num} / {label}</p>
                 <h2 className="mt-16 font-display text-3xl text-foreground">{title}</h2>
