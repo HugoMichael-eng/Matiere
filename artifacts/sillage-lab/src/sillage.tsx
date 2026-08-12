@@ -21,6 +21,7 @@ import {
   useSendConversationMessage, useUpdateFormula,
 } from "@workspace/api-client-react";
 import type { Formula, FormulaIngredientInput, Material } from "@workspace/api-client-react";
+import { MarkdownMessage } from "./components/MarkdownMessage";
 
 const queryClient = new QueryClient();
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -1508,7 +1509,11 @@ function Coach() {
                           : "border-l-2 border-accent pl-5 text-sm leading-7 text-foreground"
                       }
                     >
-                      {msg.content}
+                      {msg.role === "user" ? (
+                        msg.content
+                      ) : (
+                        <MarkdownMessage content={msg.content} />
+                      )}
                     </div>
                   </div>
                 ))}
