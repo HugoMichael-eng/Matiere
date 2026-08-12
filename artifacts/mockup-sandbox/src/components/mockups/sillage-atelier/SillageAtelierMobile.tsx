@@ -417,39 +417,18 @@ function ChatScreen() {
   );
 }
 
-// ─── Root ─────────────────────────────────────────────────────────────────────
+// ─── Root — three screens filling the full viewport ───────────────────────────
 export default function SillageAtelierMobile() {
   return (
     <div className="atelier-root">
-      {/* Label */}
-      <div className="atelier-title-bar">
-        <div
-          className="border border-t-[#ffffff] border-r-[#ffffff] border-b-[#ffffff] border-l-[#ffffff] text-[18px]"
-          style={{
-            fontFamily: F.mono,
-            fontSize: 9,
-            fontWeight: 400,
-            letterSpacing: "0.28em",
-            textTransform: "uppercase",
-            color: C.mutedFg,
-            padding: "3px 8px",
-          }}
-        >
-          Sillage Lab Mobile
-        </div>
-
+      <div className="atelier-screen" style={{ flex: 1, borderRight: `1px solid ${C.border}` }}>
+        <SignInScreen />
       </div>
-      {/* Three screens */}
-      <div className="atelier-phones">
-        <Phone label="Sign In">
-          <SignInScreen />
-        </Phone>
-        <Phone label="Sessions">
-          <SessionsScreen />
-        </Phone>
-        <Phone label="Conversation">
-          <ChatScreen />
-        </Phone>
+      <div className="atelier-screen" style={{ flex: 1, borderRight: `1px solid ${C.border}` }}>
+        <SessionsScreen />
+      </div>
+      <div className="atelier-screen" style={{ flex: 1 }}>
+        <ChatScreen />
       </div>
     </div>
   );
