@@ -422,10 +422,10 @@ function ChatScreen() {
 export default function SillageAtelierMobile() {
   return (
     <div className="atelier-root">
-
       {/* Label */}
       <div className="atelier-title-bar">
         <div
+          className="border border-t-[#ffffff] border-r-[#ffffff] border-b-[#ffffff] border-l-[#ffffff]"
           style={{
             fontFamily: F.mono,
             fontSize: 9,
@@ -433,18 +433,18 @@ export default function SillageAtelierMobile() {
             letterSpacing: "0.28em",
             textTransform: "uppercase",
             color: C.mutedFg,
+            padding: "3px 8px",
           }}
         >
           Sillage Lab Mobile
         </div>
         <div
-          className="atelier-title-tag"
+          className="atelier-title-tag text-[#ffffff]"
           style={{ color: C.mutedFg, borderColor: C.border }}
         >
           Design system
         </div>
       </div>
-
       {/* Three screens */}
       <div className="atelier-phones">
         <Phone label="Sign In">
@@ -457,7 +457,6 @@ export default function SillageAtelierMobile() {
           <ChatScreen />
         </Phone>
       </div>
-
     </div>
   );
 }
