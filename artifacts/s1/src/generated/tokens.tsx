@@ -79,8 +79,8 @@ export const tokens = {
       "sans-serif"
     ],
     "serif": [
-      "Bodoni Moda",
-      "serif"
+      "Jost",
+      "sans-serif"
     ],
     "mono": [
       "DM Mono",

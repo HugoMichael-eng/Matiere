@@ -9,12 +9,13 @@ description: S1 token palette, font choices, and how it's wired into Sillage Lab
 - Artifact: `artifacts/s1`, previewPath `/s1/`
 - Design language: industrial cool-lab — CDG × Acne Studio × Arpa Studios
 
-## Fonts
-- **Serif (display)**: Bodoni Moda — extreme stroke contrast, editorial, ultra-luxury
-- **Sans (UI copy)**: Jost — geometric grotesque, Futura PT free stand-in; Futura PT is commercial/not on Google Fonts
+## Fonts (current)
+- **All type roles (display, UI, body)**: Jost — single-typeface system. Both `--app-font-serif` and `--app-font-sans` resolve to Jost.
 - **Mono (lab data)**: DM Mono
 
-**Why:** User requested Futura PT + an editorial serif. Futura PT has no Google Fonts version; Jost was chosen as the closest loadable match. If user provides `.woff2` files, they can be embedded in `scripts/theme-template.css`.
+**History:** Bodoni Moda (user rejected — too fashion-magazine) → DM Serif Display (user rejected) → Jost everywhere (current). Single-typeface sans system by user choice.
+
+**Why Jost:** Futura PT is commercial with no Google Fonts version; Jost is the closest loadable geometric grotesque. If user provides `.woff2` files for Futura PT they can be wired in via `scripts/theme-template.css`.
 
 ## Core Palette (light / dark)
 - Background: `#F2F1EF` / `#0C0D0F` — concrete beige-grey / deep cool black

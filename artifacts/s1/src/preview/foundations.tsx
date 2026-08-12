@@ -177,7 +177,7 @@ export function FontsPage() {
             Editorial serif — Bodoni Moda
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Display, headings, formula names, hero text. Extreme stroke contrast. Ultra-luxury.
+            Display, headings, formula names, hero text. Clean modern serif. Understated luxury.
           </p>
         </div>
         <p className="text-5xl font-bold font-serif leading-tight">Sillage Lab</p>

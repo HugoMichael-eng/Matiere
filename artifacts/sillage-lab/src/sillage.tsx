@@ -92,11 +92,11 @@ function MobileNav() {
 }
 
 function Shell({ children }: { children: ReactNode }) {
-  return <div className="flex min-h-[100dvh] bg-background animate-fade-in"><Sidebar /><div className="min-w-0 flex-1"><MobileNav /><main className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 lg:px-12 lg:py-11">{children}</main></div></div>;
+  return <div className="flex min-h-[100dvh] bg-background animate-fade-in"><Sidebar /><div className="min-w-0 flex-1"><MobileNav /><main className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">{children}</main></div></div>;
 }
 
 function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; title: string; description?: string; action?: ReactNode }) {
-  return <header className="mb-9 flex flex-col justify-between gap-5 border-b border-border pb-7 sm:flex-row sm:items-end"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.3em] text-muted-foreground">{eyebrow}</p><h1 className="mt-2 font-display text-5xl tracking-[-0.03em] leading-[.85] text-foreground sm:text-6xl" data-testid={`heading-${title.toLowerCase().replaceAll(" ", "-")}`}>{title}</h1>{description && <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">{description}</p>}</div>{action}</header>;
+  return <header className="mb-0 flex flex-col justify-between gap-4 border-b border-border pt-8 pb-6 sm:flex-row sm:items-end"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.3em] text-muted-foreground">{eyebrow}</p><h1 className="mt-2 font-display text-5xl tracking-[-0.03em] leading-[.85] text-foreground sm:text-6xl" data-testid={`heading-${title.toLowerCase().replaceAll(" ", "-")}`}>{title}</h1>{description && <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">{description}</p>}</div>{action}</header>;
 }
 
 function StatusPill({ value }: { value: string }) {
@@ -184,7 +184,7 @@ function MetricCard({ label, value, Icon, delay, testId }: { label: string; valu
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -5, transition: { duration: 0.16 } }}
-      className="group relative overflow-hidden border border-border bg-card p-5 text-foreground cursor-default"
+      className="group relative overflow-hidden bg-background p-6 text-foreground cursor-default"
     >
       {/* Cursor glow */}
       <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: glow }} />
@@ -226,14 +226,14 @@ function SpotlightCard({ formula }: { formula: Formula }) {
       initial={{ opacity: 0, y: 28 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      className="mb-6"
+      className="border-b border-border"
     >
       <Link href={`/formulas/${formula.id}`} data-testid="link-spotlight-formula">
         <div
           ref={cardRef}
           onMouseMove={onMove}
           onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
-          className="group relative overflow-hidden border border-border bg-card"
+          className="group relative overflow-hidden"
         >
           {/* Cursor glow layer */}
           <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: glowBg }} />
@@ -318,7 +318,7 @@ function StageTrack({ counts, total }: { counts: Record<"draft" | "resting" | "a
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-      className="mb-6 grid grid-cols-3 border border-border bg-card overflow-hidden"
+      className="grid grid-cols-3 border-b border-border overflow-hidden"
     >
       {stages.map((stage, i) => {
         const count = counts[stage];
@@ -326,7 +326,7 @@ function StageTrack({ counts, total }: { counts: Record<"draft" | "resting" | "a
         return (
           <Link key={stage} href={`/formulas?status=${stage}`} data-testid={`link-stage-${stage}`}>
             <motion.div
-              className={`group relative p-5 cursor-pointer ${i < 2 ? "border-r border-border" : ""}`}
+              className={`group relative px-6 py-7 cursor-pointer ${i < 2 ? "border-r border-border" : ""}`}
               whileHover="hovered" initial="idle"
             >
               {/* Hover background */}
@@ -414,14 +414,14 @@ function MaterialHero({ material }: { material: Material }) {
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-      className="mb-6"
+      className="border-b border-border"
     >
       <Link href="/materials" data-testid="link-material-hero">
         <div
           ref={cardRef}
           onMouseMove={onMove}
           onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
-          className="group relative overflow-hidden border border-border bg-card"
+          className="group relative overflow-hidden"
         >
           {/* Cursor glow */}
           <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: glowBg }} />
@@ -573,7 +573,7 @@ function Dashboard() {
       {stageTotal > 0 && <StageTrack counts={stageCounts} total={stageTotal} />}
 
       {/* ── ANIMATED METRICS ──────────────────────────────── */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-px bg-border border-b border-border lg:grid-cols-4">
         {metrics.map(([label, count, Icon, testId], i) => (
           <MetricCard key={label} label={label} value={count} Icon={Icon} delay={0.07 * i} testId={testId} />
         ))}
@@ -581,7 +581,7 @@ function Dashboard() {
 
       {/* ── LATEST FORMULAS — full width ──────────────────── */}
       <motion.section
-        className="border border-border bg-card p-6 sm:p-7"
+        className="border-b border-border py-7"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
@@ -604,7 +604,7 @@ function Dashboard() {
 
       {/* ── SHOP BANNER ───────────────────────────────────── */}
       <motion.div
-        className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-border bg-secondary/30 p-6 sm:p-7"
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border py-7"
         whileHover={{ borderColor: "rgba(255,255,255,0.15)" }}
         transition={{ duration: 0.2 }}
       >
