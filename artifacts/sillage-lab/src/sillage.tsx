@@ -7,11 +7,11 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import {
   ArrowUpRight, Beaker, BookOpen, ChevronDown, ChevronRight, CircleAlert,
-  Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
+  FlaskConical, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
   Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, X, ShoppingBag
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Link, Redirect, Route, Switch, useLocation, useParams, Router as WouterRouter } from "wouter";
+import { Link, Redirect, Route, Switch, useLocation, useParams, useSearch, Router as WouterRouter } from "wouter";
 import {
   getGetDashboardSummaryQueryKey, getGetFormulaQueryKey,
   getListFormulasQueryKey, useCreateFormula, useDeleteFormula,
@@ -452,13 +452,181 @@ function FormulaDetail() {
   const destroy = () => { if (window.confirm("Delete this formula from the library?")) remove.mutate({ id }, { onSuccess: () => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setLocation("/formulas"); } }); };
   if (query.isLoading) return <Shell><Skeleton className="h-72" /></Shell>;
   if (query.isError || !formula) return <Shell><ErrorState retry={() => query.refetch()} /></Shell>;
-  return <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex gap-2"><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-end justify-between"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p></div><div className="mt-5 space-y-1">{formula.ingredients.map((item, i) => <div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className="grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t border-border py-4"><div><p className="text-sm font-medium">{item.materialName}</p><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>)}</div></div>{editing && <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 p-4 backdrop-blur-sm"><div className="w-full max-w-lg border border-border bg-card p-6 shadow-2xl sm:p-8"><div className="flex items-start justify-between"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Edit formula</p><h2 className="mt-1 font-display text-3xl">Stay curious.</h2></div><button onClick={() => setEditing(false)} data-testid="button-close-edit"><X size={18} /></button></div><label className="mt-7 block text-xs font-medium">Name<input value={name} onChange={e => setName(e.target.value)} data-testid="input-edit-name" className="mt-2 w-full border border-border bg-secondary/45 px-4 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="mt-4 block text-xs font-medium">Brief<textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-edit-brief" className="mt-2 min-h-24 w-full border border-border bg-secondary/45 p-4 text-sm outline-none focus:border-foreground/40" /></label><label className="mt-4 block text-xs font-medium">Notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full border border-border bg-secondary/45 p-4 text-sm outline-none focus:border-foreground/40" /></label><div className="mt-6 flex justify-end gap-2"><Button onClick={() => setEditing(false)} variant="quiet" testId="button-cancel-edit">Cancel</Button><Button onClick={save} disabled={update.isPending} testId="button-update-formula">{update.isPending ? "Updating..." : "Save changes"}</Button></div></div></div>}</section><aside className="space-y-6"><div className="border border-border bg-secondary p-6 text-foreground"><ShieldCheck size={20} className="text-muted-foreground" /><p className="mt-5 font-display text-3xl">Safety, without the mood-kill.</p><p className="mt-3 text-sm leading-6 text-muted-foreground">Sillage keeps the guardrails visible so you can keep your attention on the shape of the scent.</p><div className="mt-6 space-y-2 border-t border-border pt-5 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div></div></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div></aside></div></Shell>;
+  return <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex gap-2"><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-end justify-between"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p></div><div className="mt-5 space-y-1">{formula.ingredients.map((item, i) => <div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className="grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t border-border py-4"><div><p className="text-sm font-medium">{item.materialName}</p><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>)}</div></div>{editing && <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 p-4 backdrop-blur-sm"><div className="w-full max-w-lg border border-border bg-card p-6 shadow-2xl sm:p-8"><div className="flex items-start justify-between"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Edit formula</p><h2 className="mt-1 font-display text-3xl">Stay curious.</h2></div><button onClick={() => setEditing(false)} data-testid="button-close-edit"><X size={18} /></button></div><label className="mt-7 block text-xs font-medium">Name<input value={name} onChange={e => setName(e.target.value)} data-testid="input-edit-name" className="mt-2 w-full border border-border bg-secondary/45 px-4 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="mt-4 block text-xs font-medium">Brief<textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-edit-brief" className="mt-2 min-h-24 w-full border border-border bg-secondary/45 p-4 text-sm outline-none focus:border-foreground/40" /></label><label className="mt-4 block text-xs font-medium">Notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full border border-border bg-secondary/45 p-4 text-sm outline-none focus:border-foreground/40" /></label><div className="mt-6 flex justify-end gap-2"><Button onClick={() => setEditing(false)} variant="quiet" testId="button-cancel-edit">Cancel</Button><Button onClick={save} disabled={update.isPending} testId="button-update-formula">{update.isPending ? "Updating..." : "Save changes"}</Button></div></div></div>}</section><aside className="space-y-6"><div className="border border-border bg-secondary p-6 text-foreground"><ShieldCheck size={20} className="text-muted-foreground" /><p className="mt-5 font-display text-3xl">Safety, without the mood-kill.</p><p className="mt-3 text-sm leading-6 text-muted-foreground">Sillage keeps the guardrails visible so you can keep your attention on the shape of the scent.</p><div className="mt-6 space-y-2 border-t border-border pt-5 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div><div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div></div></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div></aside></div></Shell>;
 }
 
 function Coach() {
-  const [message, setMessage] = useState(""); const [reply, setReply] = useState<{ reply: string; suggestions: string[]; cautions: string[] } | null>(null); const send = useSendCoachingMessage();
-  const submit = (e: FormEvent) => { e.preventDefault(); if (!message.trim()) return; send.mutate({ data: { message, formulaId: null, formulaContext: null } }, { onSuccess: result => { setReply(result); setMessage(""); } }); };
-  return <Shell><PageHeader eyebrow="Studio companion · creative lab" title="Ask better questions." description="A thoughtful second nose for when the next move is just out of reach." /><div className="grid gap-6 lg:grid-cols-[1fr_.7fr]"><section className="min-h-[520px] border border-border bg-card p-6 sm:p-8"><div className="flex items-center gap-3 border-b border-border pb-5"><div className="grid size-10 place-items-center bg-secondary text-foreground"><Sparkles size={19} /></div><div><p className="text-sm font-medium">Creative lab</p><p className="text-xs text-muted-foreground">Creative direction, with a safety-aware eye</p></div></div>{reply ? <div className="animate-fade-in pt-8"><p className="font-display text-4xl leading-tight text-accent">{reply.reply}</p>{reply.suggestions.length > 0 && <div className="mt-8"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Try this next</p><ul className="mt-3 space-y-2">{reply.suggestions.map((suggestion, i) => <li key={i} data-testid={`text-coach-suggestion-${i}`} className="flex gap-2 border border-border bg-card p-4 text-sm leading-5"><span className="font-mono-ui text-muted-foreground">0{i + 1}</span>{suggestion}</li>)}</ul></div>}{reply.cautions.length > 0 && <div className="mt-6 border border-border bg-card p-4 text-xs leading-5"><p className="font-medium">Keep in mind</p>{reply.cautions.map((caution, i) => <p key={i} className="text-muted-foreground mt-1">{caution}</p>)}</div>}<button onClick={() => setReply(null)} data-testid="button-new-coach-question" className="mt-7 text-[11px] uppercase tracking-widest text-foreground hover:underline">Ask another question</button></div> : <div className="flex min-h-[340px] flex-col items-center justify-center text-center"><div className="mb-6 grid size-20 place-items-center border border-dashed border-border bg-secondary text-muted-foreground"><MessageCircle size={26} strokeWidth={1.3} /></div><p className="font-display text-3xl">What are you circling?</p><p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">A difficult material, a flat drydown, a brief that won’t settle. Bring the unfinished thought.</p></div>}<form onSubmit={submit} className="mt-8 flex items-center gap-2 border border-border bg-secondary/45 p-2"><input value={message} onChange={e => setMessage(e.target.value)} disabled={send.isPending} data-testid="input-coach-message" className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none focus:border-foreground/40" placeholder="I’m trying to make..." /><button type="submit" disabled={send.isPending || !message.trim()} data-testid="button-send-coach" className="grid size-10 shrink-0 place-items-center bg-primary text-primary-foreground disabled:opacity-40">{send.isPending ? <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" /> : <Send size={15} />}</button></form>{send.isError && <p className="mt-2 text-xs text-destructive" data-testid="status-coach-error">The coach couldn’t answer. Please try again.</p>}</section><aside className="border border-border bg-card p-7 text-foreground"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Good prompts have texture</p><h2 className="mt-3 font-display text-4xl leading-none">Start with a sensation, not a solution.</h2><div className="mt-8 space-y-3">{["How do I make a clean musk feel less obvious?", "The opening is beautiful but disappears too fast.", "I want warmth without sweetness."].map((prompt, i) => <button key={prompt} onClick={() => setMessage(prompt)} data-testid={`button-prompt-${i}`} className="w-full border border-border bg-secondary/40 p-4 text-left text-sm leading-5 transition-colors hover:bg-secondary">{prompt}</button>)}</div></aside></div></Shell>;
+  const search = useSearch();
+  const rawFormulaId = new URLSearchParams(search).get("formula");
+  const formulaId = rawFormulaId ? Number(rawFormulaId) : null;
+  const formulaQuery = useGetFormula(formulaId ?? 0, {
+    query: { enabled: !!formulaId && Number.isFinite(formulaId), queryKey: getGetFormulaQueryKey(formulaId ?? 0) },
+  });
+  const activeFormula = formulaQuery.data ?? null;
+
+  const buildContext = (f: typeof activeFormula): string | null => {
+    if (!f) return null;
+    const lines = [
+      `Formula: ${f.name}`,
+      f.brief ? `Brief: ${f.brief}` : null,
+      `Concentration: ${f.concentration}% EDP`,
+      `Batch size: ${f.totalMl}ml`,
+      f.ingredients.length
+        ? `Ingredients: ${f.ingredients.map(i => `${i.materialName} ${i.percentage}% (${i.role})`).join(", ")}`
+        : null,
+      f.notes ? `Notes: ${f.notes}` : null,
+    ].filter(Boolean);
+    return lines.join("\n");
+  };
+
+  const [message, setMessage] = useState("");
+  const [reply, setReply] = useState<{ reply: string; suggestions: string[]; cautions: string[] } | null>(null);
+  const send = useSendCoachingMessage();
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+    const ctx = buildContext(activeFormula);
+    send.mutate(
+      { data: { message, formulaId: formulaId ?? null, formulaContext: ctx } },
+      { onSuccess: result => { setReply(result); setMessage(""); } },
+    );
+  };
+
+  return (
+    <Shell>
+      <PageHeader
+        eyebrow="Studio companion · creative lab"
+        title="Ask better questions."
+        description="A thoughtful second nose for when the next move is just out of reach."
+      />
+      <div className="grid gap-6 lg:grid-cols-[1fr_.7fr]">
+        <section className="min-h-[520px] border border-border bg-card p-6 sm:p-8">
+          <div className="flex items-center justify-between gap-3 border-b border-border pb-5">
+            <div className="flex items-center gap-3">
+              <div className="grid size-10 place-items-center bg-secondary text-foreground"><Sparkles size={19} /></div>
+              <div>
+                <p className="text-sm font-medium">Creative lab</p>
+                <p className="text-xs text-muted-foreground">Creative direction, with a safety-aware eye</p>
+              </div>
+            </div>
+            {activeFormula && (
+              <Link href={`/formulas/${activeFormula.id}`} className="flex items-center gap-1.5 border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground" data-testid="link-active-formula">
+                <FlaskConical size={10} />
+                {activeFormula.name}
+              </Link>
+            )}
+            {formulaId && formulaQuery.isLoading && (
+              <span className="font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground">Loading formula…</span>
+            )}
+          </div>
+
+          {activeFormula && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 border border-border bg-secondary/40 px-4 py-3"
+            >
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Active formula context</p>
+              <p className="mt-1 text-sm font-medium">{activeFormula.name}</p>
+              {activeFormula.brief && <p className="mt-0.5 text-xs text-muted-foreground">{activeFormula.brief}</p>}
+              <p className="mt-1.5 font-mono-ui text-[9px] text-muted-foreground">
+                {activeFormula.concentration}% · {activeFormula.totalMl}ml · {activeFormula.ingredients.length} ingredients
+              </p>
+            </motion.div>
+          )}
+
+          {reply ? (
+            <div className="animate-fade-in pt-8">
+              <p className="font-display text-4xl leading-tight text-accent">{reply.reply}</p>
+              {reply.suggestions.length > 0 && (
+                <div className="mt-8">
+                  <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Try this next</p>
+                  <ul className="mt-3 space-y-2">
+                    {reply.suggestions.map((suggestion, i) => (
+                      <li key={i} data-testid={`text-coach-suggestion-${i}`} className="flex gap-2 border border-border bg-card p-4 text-sm leading-5">
+                        <span className="font-mono-ui text-muted-foreground">0{i + 1}</span>{suggestion}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {reply.cautions.length > 0 && (
+                <div className="mt-6 border border-border bg-card p-4 text-xs leading-5">
+                  <p className="font-medium">Keep in mind</p>
+                  {reply.cautions.map((caution, i) => <p key={i} className="mt-1 text-muted-foreground">{caution}</p>)}
+                </div>
+              )}
+              <button onClick={() => setReply(null)} data-testid="button-new-coach-question" className="mt-7 text-[11px] uppercase tracking-widest text-foreground hover:underline">
+                Ask another question
+              </button>
+            </div>
+          ) : (
+            <div className="flex min-h-[280px] flex-col items-center justify-center text-center">
+              <div className="mb-6 grid size-20 place-items-center border border-dashed border-border bg-secondary text-muted-foreground">
+                <MessageCircle size={26} strokeWidth={1.3} />
+              </div>
+              <p className="font-display text-3xl">What are you circling?</p>
+              <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+                {activeFormula
+                  ? `The lab knows about ${activeFormula.name}. Ask about its structure, a material choice, or what to try next.`
+                  : "A difficult material, a flat drydown, a brief that won't settle. Bring the unfinished thought."}
+              </p>
+            </div>
+          )}
+
+          <form onSubmit={submit} className="mt-8 flex items-center gap-2 border border-border bg-secondary/45 p-2">
+            <input
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              disabled={send.isPending}
+              data-testid="input-coach-message"
+              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none focus:border-foreground/40"
+              placeholder={activeFormula ? `Ask about ${activeFormula.name}…` : "I'm trying to make…"}
+            />
+            <button type="submit" disabled={send.isPending || !message.trim()} data-testid="button-send-coach" className="grid size-10 shrink-0 place-items-center bg-primary text-primary-foreground disabled:opacity-40">
+              {send.isPending ? <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" /> : <Send size={15} />}
+            </button>
+          </form>
+          {send.isError && <p className="mt-2 text-xs text-destructive" data-testid="status-coach-error">The coach couldn't answer. Please try again.</p>}
+        </section>
+
+        <aside className="space-y-5">
+          <div className="border border-border bg-card p-7 text-foreground">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Good prompts have texture</p>
+            <h2 className="mt-3 font-display text-4xl leading-none">Start with a sensation, not a solution.</h2>
+            <div className="mt-8 space-y-3">
+              {["How do I make a clean musk feel less obvious?", "The opening is beautiful but disappears too fast.", "I want warmth without sweetness."].map((prompt, i) => (
+                <button key={prompt} onClick={() => setMessage(prompt)} data-testid={`button-prompt-${i}`} className="w-full border border-border bg-secondary/40 p-4 text-left text-sm leading-5 transition-colors hover:bg-secondary">
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+          {activeFormula && (
+            <div className="border border-border bg-card p-6">
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula</p>
+              <h3 className="mt-2 font-display text-2xl">{activeFormula.name}</h3>
+              <div className="mt-4 space-y-1">
+                {activeFormula.ingredients.slice(0, 6).map((ing, i) => (
+                  <div key={i} className="flex items-center justify-between py-1 border-t border-border text-xs text-muted-foreground">
+                    <span>{ing.materialName}</span>
+                    <span className="font-mono-ui">{ing.percentage}%</span>
+                  </div>
+                ))}
+                {activeFormula.ingredients.length > 6 && (
+                  <p className="pt-2 font-mono-ui text-[9px] text-muted-foreground">+{activeFormula.ingredients.length - 6} more</p>
+                )}
+              </div>
+              <div className="mt-5">
+                <Button href={`/formulas/${activeFormula.id}`} variant="outline" testId="link-back-to-formula">Back to formula</Button>
+              </div>
+            </div>
+          )}
+        </aside>
+      </div>
+    </Shell>
+  );
 }
 
 function Shop() {
