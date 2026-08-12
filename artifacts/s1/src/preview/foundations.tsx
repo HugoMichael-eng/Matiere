@@ -27,8 +27,8 @@ const SUPPORTING_SWATCHES = [
 ] as const;
 
 const TYPE_SCALE = [
-  { label: 'Display', className: 'text-4xl font-bold' },
-  { label: 'Heading', className: 'text-2xl font-semibold' },
+  { label: 'Display', className: 'text-4xl font-bold font-serif' },
+  { label: 'Heading', className: 'text-2xl font-semibold font-serif' },
   { label: 'Body', className: 'text-base' },
   { label: 'Label', className: 'text-sm font-medium' },
   { label: 'Caption', className: 'text-sm text-muted-foreground' },
@@ -169,29 +169,74 @@ export function ColorsPage() {
 
 export function FontsPage() {
   return (
-    <div className="space-y-8 rounded-xl border bg-card p-6 text-card-foreground">
-      <section>
-        <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Font family
-        </h2>
-        <p className="mt-4 text-4xl font-bold">The quick brown fox</p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The token font family is applied across this entire preview.
-        </p>
+    <div className="space-y-6 text-card-foreground">
+      {/* Bodoni Moda — editorial serif */}
+      <section className="rounded-xl border bg-card p-6 space-y-4">
+        <div>
+          <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Editorial serif — Bodoni Moda
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Display, headings, formula names, hero text. Extreme stroke contrast. Ultra-luxury.
+          </p>
+        </div>
+        <p className="text-5xl font-bold font-serif leading-tight">Sillage Lab</p>
+        <p className="text-3xl font-serif italic">Oud Satin, No. 12</p>
+        <p className="text-2xl font-serif font-medium">Bergamote · Rose · Ambrette</p>
+        <div className="border-t pt-4 space-y-3">
+          {[
+            { label: 'Display', className: 'text-4xl font-bold font-serif' },
+            { label: 'Heading', className: 'text-2xl font-semibold font-serif' },
+          ].map((entry) => (
+            <div key={entry.label} className="grid gap-2 sm:grid-cols-[88px_1fr]">
+              <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {entry.label}
+              </span>
+              <p className={entry.className}>Structure yields to scent.</p>
+            </div>
+          ))}
+        </div>
       </section>
 
-      <section className="space-y-4 border-t pt-6">
-        <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Type scale
-        </h2>
-        {TYPE_SCALE.map((entry) => (
-          <div key={entry.label} className="grid gap-2 sm:grid-cols-[88px_1fr]">
-            <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {entry.label}
-            </span>
-            <p className={entry.className}>Build products people understand.</p>
-          </div>
-        ))}
+      {/* Jost — geometric grotesque (Futura PT stand-in) */}
+      <section className="rounded-xl border bg-card p-6 space-y-4">
+        <div>
+          <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Geometric grotesque — Jost
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            UI copy, labels, navigation, inputs. Futura PT stand-in — geometric precision, Chanel-coded.
+          </p>
+        </div>
+        <p className="text-2xl font-sans font-light tracking-widest uppercase">Formula Editor</p>
+        <div className="border-t pt-4 space-y-3">
+          {[
+            { label: 'Body', className: 'text-base' },
+            { label: 'Label', className: 'text-sm font-medium' },
+            { label: 'Caption', className: 'text-sm text-muted-foreground' },
+          ].map((entry) => (
+            <div key={entry.label} className="grid gap-2 sm:grid-cols-[88px_1fr]">
+              <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {entry.label}
+              </span>
+              <p className={entry.className}>Raw material. Measured. Precise.</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* DM Mono — lab mono */}
+      <section className="rounded-xl border bg-card p-6 space-y-3">
+        <div>
+          <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Lab mono — DM Mono
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            CAS numbers, IFRA limits, formula data, percentage readouts.
+          </p>
+        </div>
+        <p className="font-mono text-lg">CAS 120-51-4 · IFRA 0.02% · 14.50g</p>
+        <p className="font-mono text-sm text-muted-foreground">Benzyl Benzoate · Floral · Fixative</p>
       </section>
     </div>
   );
