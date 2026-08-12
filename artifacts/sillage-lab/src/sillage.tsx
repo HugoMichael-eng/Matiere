@@ -520,7 +520,13 @@ function IngredientBuilder({
     setIngredients(ingredients.map((item, i) => {
       if (i !== index) return item;
       const next = { ...item, ...patch };
-      next.grams = parseFloat(((next.percentage / 100) * totalMl).toFixed(3));
+      if ("grams" in patch) {
+        // grams is the primary input — derive percentage from it
+        next.percentage = totalMl > 0 ? parseFloat(((next.grams / totalMl) * 100).toFixed(4)) : 0;
+      } else {
+        // percentage changed (e.g. programmatic) — keep grams in sync
+        next.grams = parseFloat(((next.percentage / 100) * totalMl).toFixed(3));
+      }
       return next;
     }));
   };
@@ -542,7 +548,7 @@ function IngredientBuilder({
         <AnimatePresence initial={false}>
           {ingredients.map((ingredient, index) => {
             const dilution = ingredient.dilution ?? 100;
-            const grams = parseFloat(((ingredient.percentage / 100) * totalMl).toFixed(3));
+            const grams = ingredient.grams;
             const activeGrams = parseFloat((grams * dilution / 100).toFixed(3));
             const pctOfConc = Math.round(ingredient.percentage * concentration / 100 * 10) / 10;
 
@@ -567,14 +573,14 @@ function IngredientBuilder({
                 <div className="mt-2 grid grid-cols-[1fr_1fr_1fr_28px] gap-2">
                   <label className="block">
                     <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">
-                      Formula %{ingredient.percentage > 0 && (
-                        <span className="ml-2 text-foreground">{grams}g</span>
+                      Grams{ingredient.grams > 0 && (
+                        <span className="ml-2 text-foreground">{ingredient.percentage}%</span>
                       )}
                     </span>
                     <input
-                      type="number" min="0" max="100" step="0.1"
-                      value={ingredient.percentage}
-                      onChange={e => update(index, { percentage: Number(e.target.value) })}
+                      type="number" min="0" step="0.001"
+                      value={ingredient.grams}
+                      onChange={e => update(index, { grams: Number(e.target.value) })}
                       data-testid={`input-ingredient-percentage-${index}`}
                       className="mt-1 w-full border border-border bg-card px-2 py-2 text-xs outline-none transition-colors focus:border-foreground/40"
                       placeholder="0"
@@ -620,14 +626,14 @@ function IngredientBuilder({
                 </div>
 
                 {/* Weight / quantity row */}
-                {ingredient.percentage > 0 && (
+                {grams > 0 && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     className="mt-3 overflow-hidden"
                   >
                     <div className="flex items-center gap-3">
-                      {/* Progress bar */}
+                      {/* Progress bar — width driven by % of formula */}
                       <div className="h-[2px] flex-1 overflow-hidden bg-border">
                         <motion.div
                           className="h-full bg-accent"
@@ -637,9 +643,11 @@ function IngredientBuilder({
                         />
                       </div>
                       <div className="flex shrink-0 gap-3 font-mono-ui text-[9px] text-muted-foreground">
-                        <span title="Grams to weigh out"><strong className="text-foreground">{grams}g</strong> to weigh</span>
+                        <span title="Share of the formula by weight">
+                          <strong className="text-foreground">{ingredient.percentage}%</strong> of formula
+                        </span>
                         {dilution < 100 && (
-                          <span title={`${activeGrams}g is pure aromatic material; the rest is solvent`}>{activeGrams}g active aromatic</span>
+                          <span title={`${activeGrams}g is pure aromatic material; the rest is solvent`}>{activeGrams}g active</span>
                         )}
                         {concentration > 0 && (
                           <span title={`Contribution to finished ${concentration}% concentrate`}>{pctOfConc}% of conc.</span>
