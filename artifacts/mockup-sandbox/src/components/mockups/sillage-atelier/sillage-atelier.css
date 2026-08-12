@@ -1,243 +1,180 @@
-/* ================================================================
-   Sillage Atelier — Warm Atelier vibe variant CSS
-   ================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap');
 
-/* Root layout */
+/* ─── S1 design system tokens (dark mode) ─────────────────────────────────── */
+:root {
+  --sl-bg:         hsl(220, 11.1%, 5.3%);
+  --sl-card:       hsl(216, 11.1%, 8.8%);
+  --sl-border:     hsl(220, 11.7%, 15.1%);
+  --sl-fg:         hsl(225, 18.2%, 91.4%);
+  --sl-muted-fg:   hsl(221, 15.5%, 59.6%);
+  --sl-muted:      hsl(227, 26.7%, 19.8%);
+  --sl-secondary:  hsl(226, 30.2%, 16.9%);
+  --sl-accent:     hsl(46, 83.8%, 61.4%);
+  --sl-accent-fg:  hsl(220, 11.1%, 5.3%);
+  --sl-input:      hsl(220, 11.7%, 15.1%);
+  --sl-font-sans:  'Jost', system-ui, sans-serif;
+  --sl-font-mono:  'DM Mono', 'Courier New', monospace;
+}
+
+/* ─── Canvas ──────────────────────────────────────────────────────────────── */
 .atelier-root {
-  position: relative;
-  min-height: 100dvh;
-  width: 100%;
-  background: #F5EFE4;
+  min-height: 100vh;
+  background: hsl(220, 11.1%, 3.5%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 28px 20px 36px;
-  box-sizing: border-box;
-  overflow: hidden;
+  padding: 48px 32px 56px;
+  gap: 36px;
+  font-family: var(--sl-font-sans);
 }
 
-/* Title bar */
+/* ─── Title bar ───────────────────────────────────────────────────────────── */
 .atelier-title-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 24px;
+  gap: 14px;
 }
 
 .atelier-title-tag {
-  font-size: 11px;
-  font-family: system-ui, -apple-system, sans-serif;
-  font-weight: 500;
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid;
-  letter-spacing: 0.03em;
+  font-family: var(--sl-font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
 }
 
-/* Phone frames */
+/* ─── Phone row ───────────────────────────────────────────────────────────── */
 .atelier-phones {
   display: flex;
-  gap: 24px;
+  gap: 28px;
   align-items: flex-start;
-  justify-content: center;
-  flex-wrap: wrap;
 }
 
+/* ─── Phone frame ─────────────────────────────────────────────────────────── */
 .atelier-phone-frame {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
-.atelier-phone-screen-wrap {
-  position: relative;
-}
-
-/* Phone chrome */
-.atelier-phone-frame > .atelier-phone-notch {
-  width: 120px;
-  height: 28px;
-  background: #1A1310;
-  border-radius: 0 0 20px 20px;
-  position: relative;
-  z-index: 3;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  margin-bottom: -2px;
-}
-
-.atelier-phone-frame > .atelier-phone-screen {
+.atelier-phone-shell {
   width: 320px;
-  height: 620px;
-  border-radius: 28px;
-  overflow: hidden;
+  height: 660px;
+  border: 1px solid var(--sl-border);
   position: relative;
-  box-shadow:
-    0 0 0 2px #D9CCBA,
-    0 0 0 4px #C9B99E,
-    0 8px 40px rgba(44,35,24,0.20),
-    0 2px 8px rgba(44,35,24,0.10);
-  background: #FAF7F2;
+  overflow: hidden;
+  background: var(--sl-bg);
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+}
+
+.atelier-phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 24px;
+  background: var(--sl-bg);
+  border-bottom: 1px solid var(--sl-border);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.atelier-phone-notch::after {
+  content: '';
+  width: 40px;
+  height: 4px;
+  background: var(--sl-border);
+  border-radius: 0;
+}
+
+.atelier-phone-screen {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-top: 24px;
 }
 
 .atelier-phone-label {
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.06em;
+  font-family: var(--sl-font-mono);
+  font-size: 9px;
+  font-weight: 300;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #9B876E;
-  margin-top: 4px;
+  color: var(--sl-muted-fg);
+  opacity: 0.5;
 }
 
-/* Screen base */
+/* ─── Screen base ─────────────────────────────────────────────────────────── */
 .atelier-screen {
-  width: 100%;
-  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: relative;
+  background: var(--sl-bg);
 }
 
-/* Paper grain texture overlay */
-.atelier-grain {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background-image:
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
-  mix-blend-mode: multiply;
-}
-
-/* Ruled decorative lines on sign-in */
-.atelier-ruled-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: 100%;
-  max-width: 220px;
-  margin-bottom: 28px;
-}
-
-.atelier-ruled-line {
-  height: 1px;
-  background: #C17D2E;
-  border-radius: 1px;
-}
-
-/* Sign-in screen layout */
+/* ─── Sign-in ─────────────────────────────────────────────────────────────── */
 .atelier-signin-hero {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 28px 20px;
-  position: relative;
-  z-index: 2;
+  padding: 24px 28px 16px;
 }
 
 .atelier-signin-footer {
-  padding: 0 20px 36px;
+  padding: 16px 20px 28px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  position: relative;
-  z-index: 2;
+  gap: 10px;
+  border-top: 1px solid var(--sl-border);
 }
 
-/* Amber divider */
-.atelier-divider {
-  width: 40px;
-  height: 2px;
-  background: linear-gradient(90deg, #C17D2E, #A66620);
-  border-radius: 1px;
-  opacity: 0.7;
-}
-
-/* Buttons */
-.atelier-btn-primary {
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-.atelier-btn-primary:active {
-  opacity: 0.85;
-  transform: scale(0.985);
-}
-
-.atelier-icon-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  flex-shrink: 0;
-}
-.atelier-icon-btn:active {
-  opacity: 0.7;
-}
-
-/* Sessions screen header */
+/* ─── Sessions ────────────────────────────────────────────────────────────── */
 .atelier-sessions-header {
   display: flex;
-  flex-direction: row;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  padding: 44px 16px 12px;
-  border-bottom: 1px solid;
-  position: relative;
-  z-index: 2;
-}
-
-.atelier-section-label {
-  padding: 10px 16px 6px;
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  position: relative;
-  z-index: 2;
+  padding: 40px 16px 14px;
+  border-bottom: 1px solid var(--sl-border);
+  flex-shrink: 0;
 }
 
 .atelier-list {
   flex: 1;
-  overflow-y: auto;
-  padding: 0 12px 16px;
-  position: relative;
-  z-index: 2;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .atelier-session-item {
-  width: 100%;
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 10px;
-  padding: 11px 12px 11px 0;
-  border: 1px solid;
-  border-radius: 12px;
+  gap: 12px;
+  padding: 13px 16px;
+  background: var(--sl-card);
+  border: none;
+  border-bottom: 1px solid var(--sl-border);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.12s;
-  overflow: hidden;
   text-align: left;
-}
-.atelier-session-item:active {
-  transform: scale(0.985);
+  width: 100%;
+  transition: background 0.12s;
 }
 
-/* Left amber accent bar */
-.atelier-session-bar {
-  width: 4px;
-  height: 38px;
-  border-radius: 0 3px 3px 0;
-  flex-shrink: 0;
-  border-right: 1px solid;
-  transition: background 0.2s;
+.atelier-session-item.is-active {
+  background: var(--sl-secondary);
 }
 
 .atelier-session-body {
@@ -245,149 +182,95 @@
   min-width: 0;
 }
 
-.atelier-bottom-fade {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 48px;
-  pointer-events: none;
-  z-index: 3;
-}
-
-/* Chat screen header */
-.atelier-chat-header {
+/* ─── Icon buttons ────────────────────────────────────────────────────────── */
+.atelier-icon-btn {
+  width: 34px;
+  height: 34px;
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 10px;
-  padding: 44px 14px 12px;
-  border-bottom: 1px solid;
-  position: relative;
-  z-index: 2;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  border-radius: 0;
+  flex-shrink: 0;
 }
 
 .atelier-back-btn {
-  background: none;
+  background: transparent;
   border: none;
-  padding: 4px;
   cursor: pointer;
+  padding: 4px;
   display: flex;
   align-items: center;
-  opacity: 0.8;
-  transition: opacity 0.15s;
-  flex-shrink: 0;
-}
-.atelier-back-btn:active {
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
-/* Messages area */
+/* ─── Chat ────────────────────────────────────────────────────────────────── */
+.atelier-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 38px 14px 12px;
+  border-bottom: 1px solid var(--sl-border);
+  flex-shrink: 0;
+}
+
 .atelier-messages {
   flex: 1;
-  overflow-y: auto;
-  padding: 14px 12px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  position: relative;
-  z-index: 2;
+  gap: 8px;
+  padding: 14px 0 8px;
 }
 
 .atelier-msg-row {
   display: flex;
   align-items: flex-end;
-  gap: 7px;
-}
-.atelier-msg-user {
-  flex-direction: row-reverse;
-}
-.atelier-msg-assistant {
-  flex-direction: row;
+  padding: 0 14px;
 }
 
-.atelier-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.atelier-msg-user {
+  justify-content: flex-end;
 }
 
 .atelier-bubble {
-  max-width: 82%;
-  padding: 10px 13px;
-  border-radius: 14px;
-  line-height: 1.5;
+  max-width: 76%;
+  padding: 9px 12px;
+  border-radius: 0;
 }
 
-/* Input area */
 .atelier-input-bar {
   display: flex;
-  flex-direction: row;
   align-items: flex-end;
   gap: 8px;
-  padding: 10px 12px 24px;
-  border-top: 1px solid;
-  position: relative;
-  z-index: 2;
-}
-
-.atelier-input-wrap {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
+  padding: 10px 14px 18px;
+  border-top: 1px solid var(--sl-border);
+  flex-shrink: 0;
 }
 
 .atelier-textarea {
   flex: 1;
-  background: none;
-  border: none;
-  outline: none;
   resize: none;
-  padding: 10px 12px;
+  border: 1px solid var(--sl-border);
+  outline: none;
+  background: var(--sl-card);
+  padding: 9px 12px;
   line-height: 1.5;
-  max-height: 100px;
-  min-height: 40px;
+  border-radius: 0;
+  font-family: var(--sl-font-sans);
+  font-size: 13px;
+  color: var(--sl-fg);
 }
 
 .atelier-send-btn {
-  width: 42px;
-  height: 42px;
-  border: none;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: none;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.12s;
+  border-radius: 0;
   flex-shrink: 0;
-}
-.atelier-send-btn:active {
-  opacity: 0.8;
-  transform: scale(0.93);
-}
-
-/* Responsive: single column on small viewports */
-@media (max-width: 1040px) {
-  .atelier-phones {
-    gap: 16px;
-  }
-  .atelier-phone-frame > .atelier-phone-screen {
-    width: 280px;
-    height: 540px;
-  }
-}
-
-@media (max-width: 780px) {
-  .atelier-phones {
-    flex-direction: column;
-    align-items: center;
-  }
-  .atelier-phone-frame > .atelier-phone-screen {
-    width: 300px;
-    height: 580px;
-  }
 }
