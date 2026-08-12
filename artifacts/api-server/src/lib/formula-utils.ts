@@ -47,6 +47,7 @@ export function toFormulaResponse(formula: Formula, materials: Material[]) {
     ingredients,
     ...safety,
     notes: formula.notes,
+    ifraCategory: formula.ifraCategory ?? null,
     updatedAt: formula.updatedAt,
     createdAt: formula.createdAt,
   };

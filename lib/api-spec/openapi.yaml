@@ -390,6 +390,9 @@ components:
           enum: [within_limit, review, exceeds_limit]
         notes:
           type: string
+        ifraCategory:
+          type: string
+          nullable: true
         updatedAt:
           type: string
           format: date-time
@@ -421,6 +424,8 @@ components:
             $ref: "#/components/schemas/FormulaIngredientInput"
         notes:
           type: string
+        ifraCategory:
+          type: string
     FormulaUpdate:
       type: object
       properties:
@@ -444,6 +449,8 @@ components:
           items:
             $ref: "#/components/schemas/FormulaIngredientInput"
         notes:
+          type: string
+        ifraCategory:
           type: string
     Material:
       type: object

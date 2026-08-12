@@ -49,6 +49,28 @@ function Button({ children, onClick, href, variant = "primary", testId, disabled
   return <button type={type} className={cls} onClick={onClick} disabled={disabled} data-testid={testId}>{children}</button>;
 }
 
+const IFRA_CATEGORIES: { value: string; label: string }[] = [
+  { value: "1",   label: "Cat 1 — Lip products" },
+  { value: "2",   label: "Cat 2 — Deodorant & antiperspirant" },
+  { value: "3",   label: "Cat 3 — Eye area products" },
+  { value: "4",   label: "Cat 4 — Fine fragrance (EdT, EdP, cologne)" },
+  { value: "5a",  label: "Cat 5a — Body lotion / body cream" },
+  { value: "5b",  label: "Cat 5b — Face moisturiser (leave-on)" },
+  { value: "5c",  label: "Cat 5c — Hand cream" },
+  { value: "5d",  label: "Cat 5d — Baby products (leave-on)" },
+  { value: "6",   label: "Cat 6 — Oral care (mouthwash)" },
+  { value: "7a",  label: "Cat 7a — Leave-on hair products" },
+  { value: "7b",  label: "Cat 7b — Aerosol hair products (leave-on)" },
+  { value: "8",   label: "Cat 8 — Makeup (non-eye, non-lip)" },
+  { value: "9a",  label: "Cat 9a — Rinse-off hair (shampoo)" },
+  { value: "9b",  label: "Cat 9b — Rinse-off hair colouring" },
+  { value: "10a", label: "Cat 10a — Home care / spray cleaners" },
+  { value: "10b", label: "Cat 10b — Fabric softener" },
+  { value: "11a", label: "Cat 11a — Candles" },
+  { value: "11b", label: "Cat 11b — Room / reed diffusers" },
+  { value: "12",  label: "Cat 12 — Other (industrial / professional)" },
+];
+
 const navItems = [
   { href: "/dashboard", label: "Studio desk", icon: Gauge },
   { href: "/formulas", label: "Formula library", icon: BookOpen },
@@ -1057,9 +1079,9 @@ function NewFormula() {
   const [, setLocation] = useLocation();
   const create = useCreateFormula();
   const qc = useQueryClient();
-  const [name, setName] = useState(""); const [brief, setBrief] = useState(""); const [concentration, setConcentration] = useState(20); const [totalMl, setTotalMl] = useState(30); const [notes, setNotes] = useState(""); const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>([]);
-  const submit = (e: FormEvent) => { e.preventDefault(); create.mutate({ data: { name, brief, status: "draft", concentration, totalMl, notes, ingredients } }, { onSuccess: formula => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }); setLocation(`/formulas/${formula.id}`); } }); };
-  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." action={<Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>} /><form onSubmit={submit} className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span><textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it’s in the library.</p></div><Button type="submit" disabled={create.isPending || !name} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
+  const [name, setName] = useState(""); const [brief, setBrief] = useState(""); const [concentration, setConcentration] = useState(20); const [totalMl, setTotalMl] = useState(30); const [notes, setNotes] = useState(""); const [ifraCategory, setIfraCategory] = useState(""); const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>([]);
+  const submit = (e: FormEvent) => { e.preventDefault(); create.mutate({ data: { name, brief, status: "draft", concentration, totalMl, notes, ifraCategory: ifraCategory || undefined, ingredients } }, { onSuccess: formula => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }); setLocation(`/formulas/${formula.id}`); } }); };
+  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." action={<Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>} /><form onSubmit={submit} className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span><textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><label className="mt-7 block text-xs font-medium">IFRA product category <span className="font-normal text-muted-foreground">(optional)</span><select value={ifraCategory} onChange={e => setIfraCategory(e.target.value)} data-testid="select-formula-ifra-category" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40"><option value="">— Not set</option>{IFRA_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></label><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it’s in the library.</p></div><Button type="submit" disabled={create.isPending || !name} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
 }
 
 function FormulaDetail() {
@@ -1071,15 +1093,17 @@ function FormulaDetail() {
   const [safetyOpen, setSafetyOpen] = useState(false);
   const [name, setName] = useState(""); const [brief, setBrief] = useState(""); const [notes, setNotes] = useState(""); const [status, setStatus] = useState<"draft" | "resting" | "approved" | "archived">("draft");
   const [editConcentration, setEditConcentration] = useState(20); const [editTotalMl, setEditTotalMl] = useState(30);
+  const [editIfraCategory, setEditIfraCategory] = useState("");
   const [editIngredients, setEditIngredients] = useState<FormulaIngredientInput[]>([]);
   const begin = () => {
     if (!formula) return;
     setName(formula.name); setBrief(formula.brief); setNotes(formula.notes ?? ""); setStatus(formula.status);
     setEditConcentration(formula.concentration); setEditTotalMl(formula.totalMl);
+    setEditIfraCategory(formula.ifraCategory ?? "");
     setEditIngredients(formula.ingredients.map(i => ({ materialId: i.materialId, materialName: i.materialName, percentage: i.percentage, grams: i.grams, dilution: i.dilution ?? 100, role: i.role as FormulaIngredientInput["role"], allergenFlags: i.allergenFlags ?? [] })));
     setEditing(true);
   };
-  const save = () => update.mutate({ id, data: { name, brief, notes, status, concentration: editConcentration, totalMl: editTotalMl, ingredients: editIngredients } }, { onSuccess: result => { qc.setQueryData(getGetFormulaQueryKey(id), result); qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setEditing(false); } });
+  const save = () => update.mutate({ id, data: { name, brief, notes, status, concentration: editConcentration, totalMl: editTotalMl, ifraCategory: editIfraCategory || undefined, ingredients: editIngredients } }, { onSuccess: result => { qc.setQueryData(getGetFormulaQueryKey(id), result); qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setEditing(false); } });
   const destroy = () => { if (window.confirm("Delete this formula from the library?")) remove.mutate({ id }, { onSuccess: () => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setLocation("/formulas"); } }); };
   const eventsQuery = useGetFormulaEvents(id, { query: { enabled: Number.isFinite(id) } });
   const events = eventsQuery.data ?? [];
@@ -1121,6 +1145,12 @@ function FormulaDetail() {
                             <option value="archived">Archived</option>
                           </select>
                         </label>
+                        <label className="mt-7 block text-xs font-medium">IFRA product category
+                          <select value={editIfraCategory} onChange={e => setEditIfraCategory(e.target.value)} data-testid="select-edit-ifra-category" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40">
+                            <option value="">— Not set</option>
+                            {IFRA_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                          </select>
+                        </label>
                         <label className="mt-7 block text-xs font-medium">Notebook notes
                           <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
                         </label>
@@ -1151,8 +1181,12 @@ function FormulaDetail() {
   <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula safety</p>
   <p className="mt-2 font-display text-3xl leading-tight">Allergens &amp; IFRA compliance</p>
   <div className="mt-5 space-y-2 border-t border-border pt-4 text-xs">
+    {formula.ifraCategory
+      ? <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="text-right">{IFRA_CATEGORIES.find(c => c.value === formula.ifraCategory)?.label ?? `Cat ${formula.ifraCategory}`}</span></div>
+      : <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="italic text-muted-foreground">Not set</span></div>
+    }
     <div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div>
-    <div className="flex justify-between"><span className="text-muted-foreground">IFRA status</span><span>{formula.ifraStatus}</span></div>
+    <div className="flex justify-between"><span className="text-muted-foreground">IFRA status</span><span>{formula.ifraStatus.replace(/_/g, " ")}</span></div>
     <div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div>
   </div>
   <AnimatePresence>

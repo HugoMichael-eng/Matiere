@@ -26,6 +26,7 @@ export const formulasTable = pgTable("formulas", {
   version: integer("version").notNull().default(1),
   ingredients: jsonb("ingredients").$type<FormulaIngredientRecord[]>().notNull().default([]),
   notes: text("notes").notNull().default(""),
+  ifraCategory: text("ifra_category"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

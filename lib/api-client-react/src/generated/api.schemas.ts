@@ -102,6 +102,7 @@ export interface Formula {
   allergenCount: number;
   ifraStatus: FormulaIfraStatus;
   notes?: string;
+  ifraCategory?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -130,6 +131,7 @@ export interface FormulaInput {
   totalMl: number;
   ingredients: FormulaIngredientInput[];
   notes?: string;
+  ifraCategory?: string;
 }
 
 export type FormulaUpdateStatus = typeof FormulaUpdateStatus[keyof typeof FormulaUpdateStatus];
@@ -156,6 +158,7 @@ export interface FormulaUpdate {
   totalMl?: number;
   ingredients?: FormulaIngredientInput[];
   notes?: string;
+  ifraCategory?: string;
 }
 
 export type MaterialSafetyStatus = typeof MaterialSafetyStatus[keyof typeof MaterialSafetyStatus];

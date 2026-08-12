@@ -22,4 +22,5 @@ export interface FormulaUpdate {
   totalMl?: number;
   ingredients?: FormulaIngredientInput[];
   notes?: string;
+  ifraCategory?: string;
 }

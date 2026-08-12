@@ -52,6 +52,7 @@ export const GetDashboardSummaryResponse = zod.object({
   "allergenCount": zod.number(),
   "ifraStatus": zod.enum(['within_limit', 'review', 'exceeds_limit']),
   "notes": zod.string().optional(),
+  "ifraCategory": zod.string().nullish(),
   "updatedAt": zod.coerce.date(),
   "createdAt": zod.coerce.date()
 })),
@@ -94,6 +95,7 @@ export const ListFormulasResponseItem = zod.object({
   "allergenCount": zod.number(),
   "ifraStatus": zod.enum(['within_limit', 'review', 'exceeds_limit']),
   "notes": zod.string().optional(),
+  "ifraCategory": zod.string().nullish(),
   "updatedAt": zod.coerce.date(),
   "createdAt": zod.coerce.date()
 })
@@ -134,7 +136,8 @@ export const CreateFormulaBody = zod.object({
   "role": zod.enum(['top', 'heart', 'base', 'modifier']),
   "allergenFlags": zod.array(zod.string()).optional()
 })),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "ifraCategory": zod.string().optional()
 })
 
 export const createFormulaResponseIngredientsItemDilutionDefault = 100;
@@ -164,6 +167,7 @@ export const CreateFormulaResponse = zod.object({
   "allergenCount": zod.number(),
   "ifraStatus": zod.enum(['within_limit', 'review', 'exceeds_limit']),
   "notes": zod.string().optional(),
+  "ifraCategory": zod.string().nullish(),
   "updatedAt": zod.coerce.date(),
   "createdAt": zod.coerce.date()
 })
@@ -206,6 +210,7 @@ export const GetFormulaResponse = zod.object({
   "allergenCount": zod.number(),
   "ifraStatus": zod.enum(['within_limit', 'review', 'exceeds_limit']),
   "notes": zod.string().optional(),
+  "ifraCategory": zod.string().nullish(),
   "updatedAt": zod.coerce.date(),
   "createdAt": zod.coerce.date()
 })
@@ -252,7 +257,8 @@ export const UpdateFormulaBody = zod.object({
   "role": zod.enum(['top', 'heart', 'base', 'modifier']),
   "allergenFlags": zod.array(zod.string()).optional()
 })).optional(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "ifraCategory": zod.string().optional()
 })
 
 export const updateFormulaResponseIngredientsItemDilutionDefault = 100;
@@ -282,6 +288,7 @@ export const UpdateFormulaResponse = zod.object({
   "allergenCount": zod.number(),
   "ifraStatus": zod.enum(['within_limit', 'review', 'exceeds_limit']),
   "notes": zod.string().optional(),
+  "ifraCategory": zod.string().nullish(),
   "updatedAt": zod.coerce.date(),
   "createdAt": zod.coerce.date()
 })

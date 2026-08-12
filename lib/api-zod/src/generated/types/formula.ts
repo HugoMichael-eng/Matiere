@@ -23,6 +23,7 @@ export interface Formula {
   allergenCount: number;
   ifraStatus: FormulaIfraStatus;
   notes?: string;
+  ifraCategory?: string | null;
   updatedAt: Date;
   createdAt: Date;
 }
