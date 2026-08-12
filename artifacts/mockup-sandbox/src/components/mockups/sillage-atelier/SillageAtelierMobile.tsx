@@ -284,7 +284,7 @@ function SessionsScreen() {
             border: `1px solid ${C.border}`, padding: "14px 14px 16px", cursor: "pointer",
             marginBottom: 16,
           }}
-          className="bg-[#d0d2db]">
+          className="bg-[#ccd4db]">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
             <Tag label={featured.tag} />
             <span style={{ fontFamily: F.mono, fontSize: 8, color: C.mutedFg, letterSpacing: "0.1em" }}>
