@@ -182,4 +182,118 @@ router.post("/conversations/:conversationId/messages", async (req, res): Promise
   );
 });
 
+// POST /conversations/:conversationId/messages/stream — streaming SSE variant
+router.post("/conversations/:conversationId/messages/stream", async (req, res): Promise<void> => {
+  const id = Number(req.params.conversationId);
+  if (!Number.isFinite(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const userId = (req as unknown as AuthenticatedRequest).userId;
+
+  const parsed = z
+    .object({ message: z.string().min(1), formulaContext: z.string().nullable().optional() })
+    .safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+
+  const [conv] = await db
+    .select()
+    .from(conversations)
+    .where(and(eq(conversations.id, id), eq(conversations.ownerId, userId)));
+  if (!conv) { res.status(404).json({ error: "Conversation not found" }); return; }
+
+  // Load existing history for context
+  const history = await db
+    .select()
+    .from(conversationMessages)
+    .where(eq(conversationMessages.conversationId, id))
+    .orderBy(asc(conversationMessages.createdAt));
+
+  const userContent = parsed.data.formulaContext
+    ? `${parsed.data.message}\n\nFormula context:\n${parsed.data.formulaContext}`
+    : parsed.data.message;
+
+  // Save user message
+  const [userMsg] = await db
+    .insert(conversationMessages)
+    .values({ conversationId: id, role: "user", content: userContent })
+    .returning();
+
+  // Set up SSE response
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no"); // disable nginx buffering if present
+  res.flushHeaders();
+
+  // Helper to write an SSE event
+  const send = (data: unknown) => res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+  // Emit the saved user message so the client can add it immediately
+  send({
+    type: "user_message",
+    message: {
+      id: userMsg.id,
+      conversationId: id,
+      role: userMsg.role,
+      content: userMsg.content,
+      createdAt: userMsg.createdAt,
+    },
+  });
+
+  const openaiMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
+    { role: "system", content: SYSTEM_PROMPT },
+    ...history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+    { role: "user", content: userContent },
+  ];
+
+  try {
+    const stream = await openai.chat.completions.create({
+      model: "gpt-5.6-terra",
+      max_completion_tokens: 4096,
+      messages: openaiMessages,
+      stream: true,
+    });
+
+    let fullContent = "";
+
+    for await (const chunk of stream) {
+      const token = chunk.choices[0]?.delta?.content ?? "";
+      if (token) {
+        fullContent += token;
+        send({ type: "token", token });
+      }
+    }
+
+    // Save assistant message
+    const [assistantMsg] = await db
+      .insert(conversationMessages)
+      .values({
+        conversationId: id,
+        role: "assistant",
+        content: fullContent || "I couldn't generate a response. Please try again.",
+      })
+      .returning();
+
+    // Touch updatedAt on conversation
+    await db
+      .update(conversations)
+      .set({ updatedAt: new Date() })
+      .where(eq(conversations.id, id));
+
+    // Send done event with the fully saved assistant message
+    send({
+      type: "done",
+      message: {
+        id: assistantMsg.id,
+        conversationId: id,
+        role: assistantMsg.role,
+        content: assistantMsg.content,
+        createdAt: assistantMsg.createdAt,
+      },
+    });
+    res.end();
+  } catch (err) {
+    send({ type: "error", error: "Failed to generate a response. Please try again." });
+    res.end();
+  }
+});
+
 export default router;

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { ClerkProvider, SignIn, SignUp, useAuth, useClerk, useUser } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
@@ -1270,6 +1270,95 @@ function FormulaDetail() {
 </aside></div></Shell>;
 }
 
+// ── Streaming hook for Lab responses ─────────────────────────────────────────
+type StreamMessage = {
+  id: number;
+  conversationId: number;
+  role: string;
+  content: string;
+  createdAt: string;
+};
+
+function useStreamMessage() {
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [streamingContent, setStreamingContent] = useState<string | null>(null);
+  const { getToken } = useAuth();
+  const abortRef = useRef<AbortController | null>(null);
+
+  const send = useCallback(async (
+    conversationId: number,
+    data: { message: string; formulaContext?: string | null },
+    callbacks: {
+      onUserMessage?: (msg: StreamMessage) => void;
+      onDone?: (msg: StreamMessage) => void;
+    } = {},
+  ) => {
+    if (abortRef.current) abortRef.current.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
+
+    setIsPending(true);
+    setError(null);
+    setStreamingContent("");
+
+    try {
+      const token = await getToken();
+      const response = await fetch(`/api/conversations/${conversationId}/messages/stream`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(data),
+        signal: ac.signal,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const evt = JSON.parse(line.slice(6));
+            if (evt.type === "user_message") {
+              callbacks.onUserMessage?.(evt.message as StreamMessage);
+            } else if (evt.type === "token") {
+              setStreamingContent(prev => (prev ?? "") + (evt.token as string));
+            } else if (evt.type === "done") {
+              callbacks.onDone?.(evt.message as StreamMessage);
+            } else if (evt.type === "error") {
+              throw new Error(evt.error as string);
+            }
+          } catch {
+            // ignore malformed lines
+          }
+        }
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      setError((err instanceof Error ? err.message : null) ?? "Something went wrong");
+    } finally {
+      setIsPending(false);
+      setStreamingContent(null);
+    }
+  }, [getToken]);
+
+  return { send, isPending, error, streamingContent };
+}
+
 function Coach() {
   const search = useSearch();
   const rawFormulaId = new URLSearchParams(search).get("formula");
@@ -1306,7 +1395,7 @@ function Coach() {
     query: { enabled: !!selectedConvId, queryKey: getGetConversationQueryKey(selectedConvId ?? 0) },
   });
   const createConv = useCreateConversation();
-  const sendMsg = useSendConversationMessage();
+  const streamMsg = useStreamMessage();
   const deleteConv = useDeleteConversation();
 
   const conversations = convsQuery.data ?? [];
@@ -1316,7 +1405,7 @@ function Coach() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeConv?.messages.length, sendMsg.isPending]);
+  }, [activeConv?.messages.length, streamMsg.streamingContent, streamMsg.isPending]);
 
   const handleCreate = (e: FormEvent) => {
     e.preventDefault();
@@ -1338,13 +1427,25 @@ function Coach() {
     e.preventDefault();
     if (!message.trim() || !selectedConvId) return;
     const ctx = buildContext(activeFormula);
-    sendMsg.mutate(
-      { conversationId: selectedConvId, data: { message, formulaContext: ctx } },
+    const sentMessage = message;
+    setMessage("");
+    const convId = selectedConvId;
+    streamMsg.send(
+      convId,
+      { message: sentMessage, formulaContext: ctx },
       {
-        onSuccess: (conv) => {
-          qc.setQueryData(getGetConversationQueryKey(selectedConvId), conv);
+        onUserMessage: (userMsg) => {
+          qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
+            if (!old) return old;
+            return { ...old, messages: [...old.messages, userMsg] };
+          });
+        },
+        onDone: (assistantMsg) => {
+          qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) => {
+            if (!old) return old;
+            return { ...old, messages: [...old.messages, assistantMsg] };
+          });
           qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
-          setMessage("");
         },
       },
     );
@@ -1518,19 +1619,23 @@ function Coach() {
                   </div>
                 ))}
 
-                {sendMsg.isPending && (
+                {streamMsg.isPending && (
                   <div className="pr-10">
-                    <p className="mb-1.5 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Lab · thinking…</p>
-                    <div className="border-l-2 border-accent py-2 pl-5">
-                      <div className="flex gap-1.5">
-                        {[0, 1, 2].map(i => (
-                          <span
-                            key={i}
-                            className="size-1.5 rounded-full bg-accent/60 animate-pulse"
-                            style={{ animationDelay: `${i * 150}ms` }}
-                          />
-                        ))}
-                      </div>
+                    <p className="mb-1.5 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Lab · now</p>
+                    <div className="border-l-2 border-accent pl-5 text-sm leading-7 text-foreground">
+                      {streamMsg.streamingContent ? (
+                        <MarkdownMessage content={streamMsg.streamingContent} />
+                      ) : (
+                        <div className="flex gap-1.5 py-2">
+                          {[0, 1, 2].map(i => (
+                            <span
+                              key={i}
+                              className="size-1.5 rounded-full bg-accent/60 animate-pulse"
+                              style={{ animationDelay: `${i * 150}ms` }}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1543,25 +1648,25 @@ function Coach() {
                   <input
                     value={message}
                     onChange={e => setMessage(e.target.value)}
-                    disabled={sendMsg.isPending}
+                    disabled={streamMsg.isPending}
                     data-testid="input-coach-message"
                     className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none"
                     placeholder={activeFormula ? `Ask about ${activeFormula.name}…` : "I'm working on…"}
                   />
                   <button
                     type="submit"
-                    disabled={sendMsg.isPending || !message.trim()}
+                    disabled={streamMsg.isPending || !message.trim()}
                     data-testid="button-send-coach"
                     className="grid size-9 shrink-0 place-items-center bg-primary text-primary-foreground disabled:opacity-40"
                   >
-                    {sendMsg.isPending
+                    {streamMsg.isPending
                       ? <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
                       : <Send size={14} />}
                   </button>
                 </form>
-                {sendMsg.isError && (
+                {streamMsg.error && (
                   <p className="mt-2 text-xs text-destructive" data-testid="status-coach-error">
-                    Something went wrong. Please try again.
+                    {streamMsg.error}
                   </p>
                 )}
               </div>
