@@ -273,91 +273,6 @@ function SessionsScreen() {
           </div>
         ))}
       </div>
-      {/* ── Continue hero ── */}
-      <div style={{ margin: "14px 16px 0", background: C.fg, padding: "16px 16px 14px" }}>
-        <div style={{ fontFamily: F.mono, fontSize: 7.5, fontWeight: 300,
-          letterSpacing: "0.22em", textTransform: "uppercase", color: C.accentFg,
-          opacity: 0.45, marginBottom: 8 }}>
-          Continue
-        </div>
-        <div style={{ fontFamily: F.sans, fontSize: 16, fontWeight: 700,
-          color: C.accentFg, lineHeight: 1.2, marginBottom: 4 }}>
-          Iris & Vetiver Structure
-        </div>
-        <div style={{ fontFamily: F.sans, fontSize: 11, fontWeight: 300,
-          color: C.accentFg, opacity: 0.55, lineHeight: 1.5, marginBottom: 14 }}>
-          "Try orris concrete at 1–2% to bridge vetiver and iris heart."
-        </div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: 10 }}>
-            <span style={{ fontFamily: F.mono, fontSize: 7.5, color: C.accentFg,
-              opacity: 0.45, letterSpacing: "0.14em", textTransform: "uppercase" }}>
-              12 messages
-            </span>
-            <span style={{ fontFamily: F.mono, fontSize: 7.5, color: C.accentFg,
-              opacity: 0.45, letterSpacing: "0.14em", textTransform: "uppercase" }}>
-              Today
-            </span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 4,
-            fontFamily: F.mono, fontSize: 8, letterSpacing: "0.18em",
-            textTransform: "uppercase", color: C.accentFg, fontWeight: 400 }}>
-            Resume
-            <Icon d={PATH.chevronRight} size={10} color={C.accentFg} sw={1.5} />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Quick actions ── */}
-      <div style={{ display: "flex", gap: 8, padding: "12px 16px 0" }}>
-        {[
-          { label: "New Session",  icon: PATH.plus },
-          { label: "Lab Notes",    icon: "M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" },
-          { label: "Materials",    icon: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" },
-        ].map((a) => (
-          <button key={a.label} style={{
-            flex: 1, border: `1px solid ${C.border}`, background: C.bg,
-            padding: "12px 8px 10px", cursor: "pointer",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 7,
-          }}>
-            <Icon d={a.icon} size={16} color={C.mutedFg} sw={1.5} />
-            <span style={{ fontFamily: F.mono, fontSize: 7, fontWeight: 400,
-              letterSpacing: "0.16em", textTransform: "uppercase", color: C.mutedFg,
-              textAlign: "center", lineHeight: 1.3 }}>
-              {a.label}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* ── Formula in progress ── */}
-      <div style={{ margin: "12px 16px 0", border: `1px solid ${C.border}`,
-        padding: "11px 12px", display: "flex", alignItems: "center", gap: 12,
-        background: C.card }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: F.mono, fontSize: 7.5, fontWeight: 300,
-            letterSpacing: "0.18em", textTransform: "uppercase", color: C.mutedFg, marginBottom: 4 }}>
-            Formula in progress
-          </div>
-          <div style={{ fontFamily: F.sans, fontSize: 13, fontWeight: 600, color: C.fg }}>
-            Iris No. 4 — Draft
-          </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 6, alignItems: "center" }}>
-            {["Top", "Heart", "Base"].map((n, i) => (
-              <div key={n} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <div style={{ width: 48, height: 3, background: C.border, position: "relative" }}>
-                  <div style={{ position: "absolute", left: 0, top: 0, height: "100%",
-                    width: ["60%","80%","45%"][i], background: C.fg }} />
-                </div>
-                <span style={{ fontFamily: F.mono, fontSize: 7, color: C.mutedFg,
-                  letterSpacing: "0.1em" }}>{n}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <Icon d={PATH.chevronRight} size={12} color={C.mutedFg} sw={1.5} />
-      </div>
-
       {/* ── Pinned / featured session ── */}
       <div style={{ padding: "12px 16px 0" }}>
         <div style={{ fontFamily: F.mono, fontSize: 8, fontWeight: 300,
@@ -574,7 +489,7 @@ const TAB_ICONS: Record<string, string> = {
 const TABS = ["Sessions", "Formulas", "Shop", "Lab"] as const;
 type Tab = typeof TABS[number];
 
-export default function SillageAtelierMobile() {
+export default function SillageAtelierCopyYVL21Ywa() {
   const [tab, setTab] = useState<Tab>("Sessions");
 
   return (

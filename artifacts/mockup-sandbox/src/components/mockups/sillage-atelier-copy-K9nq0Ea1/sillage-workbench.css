@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap');
+
+:root {
+  --wb-bg: hsl(220, 11.1%, 5.3%);
+  --wb-card: hsl(216, 11.1%, 8.8%);
+  --wb-border: hsl(220, 11.7%, 15.1%);
+  --wb-muted-fg: hsl(221, 15.5%, 59.6%);
+  --wb-muted: hsl(227, 26.7%, 19.8%);
+  --wb-accent: hsl(46, 83.8%, 61.4%);
+}
+
+.wb-root {
+  min-height: 100vh;
+  background: hsl(220, 11.1%, 3.5%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px 56px;
+  gap: 36px;
+  font-family: 'Jost', system-ui, sans-serif;
+}
+
+.wb-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.wb-phones {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.wb-phone-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.wb-phone-shell {
+  width: 320px;
+  height: 660px;
+  border: 1px solid var(--wb-border);
+  position: relative;
+  overflow: hidden;
+  background: var(--wb-bg);
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+}
+
+.wb-phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 24px;
+  background: var(--wb-bg);
+  border-bottom: 1px solid var(--wb-border);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wb-phone-notch::after {
+  content: '';
+  width: 40px;
+  height: 4px;
+  background: var(--wb-border);
+}
+
+.wb-phone-screen {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-top: 24px;
+}
+
+.wb-phone-label {
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 9px;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wb-muted-fg);
+  opacity: 0.5;
+}
+
+.wb-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--wb-bg);
+}
+
+/* ─── Home ───────────────────────────────────────────────────────────────── */
+.wb-home-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 18px 16px;
+}
+
+.wb-avatar {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--wb-muted);
+  flex-shrink: 0;
+}
+
+.wb-quick-ask {
+  margin: 0 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--wb-border);
+  background: var(--wb-card);
+}
+
+.wb-quick-ask-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 12.5px;
+  min-width: 0;
+}
+
+.wb-quick-ask-input::placeholder {
+  color: var(--wb-muted-fg);
+}
+
+.wb-mic-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.wb-section-label {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wb-muted-fg);
+  padding: 0 18px 10px;
+}
+
+.wb-formula-list {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 18px;
+}
+
+.wb-formula-card {
+  border: 1px solid var(--wb-border);
+  background: var(--wb-card);
+  padding: 12px 14px;
+}
+
+.wb-formula-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wb-flag-badge {
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: var(--wb-accent);
+  border: 1px solid var(--wb-accent);
+  padding: 2px 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.wb-progress-track {
+  height: 3px;
+  background: var(--wb-muted);
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.wb-progress-fill {
+  height: 100%;
+}
+
+/* ─── Tab bar ────────────────────────────────────────────────────────────── */
+.wb-tabbar {
+  display: flex;
+  border-top: 1px solid var(--wb-border);
+  padding: 10px 0 20px;
+  flex-shrink: 0;
+}
+
+.wb-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ─── Formula detail ─────────────────────────────────────────────────────── */
+.wb-formula-header {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--wb-border);
+  flex-shrink: 0;
+}
+
+.wb-pill {
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  color: var(--wb-muted-fg);
+  border: 1px solid var(--wb-border);
+  padding: 3px 7px;
+}
+
+.wb-pill-accent {
+  color: var(--wb-accent);
+  border-color: var(--wb-accent);
+}
+
+.wb-pill-ghost {
+  color: var(--wb-muted-fg);
+  border-color: var(--wb-border);
+}
+
+.wb-pyramid {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.wb-tier {
+  border-bottom: 1px solid var(--wb-border);
+  flex-shrink: 0;
+}
+
+.wb-tier-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.wb-tier-body {
+  padding: 0 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wb-note-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wb-note-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wb-annotation {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--wb-card);
+  border: 1px solid var(--wb-border);
+}
+
+/* ─── Insights ───────────────────────────────────────────────────────────── */
+.wb-insights-header {
+  padding: 20px 18px 14px;
+  flex-shrink: 0;
+}
+
+.wb-insight-list {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 18px 0;
+}
+
+.wb-insight-card {
+  border: 1px solid var(--wb-border);
+  background: var(--wb-card);
+  padding: 12px 14px;
+}
+
+.wb-insight-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wb-bookmark-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}

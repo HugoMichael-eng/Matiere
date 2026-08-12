@@ -1,0 +1,301 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap');
+
+/* ─── S1 design system tokens (dark mode) ─────────────────────────────────── */
+:root {
+  --sl-bg:         #FFFFFF;
+  --sl-card:       #F4F4F4;
+  --sl-border:     #E2E2E2;
+  --sl-fg:         #111111;
+  --sl-muted-fg:   #888888;
+  --sl-muted:      #EEEEEE;
+  --sl-secondary:  #F0F0F0;
+  --sl-accent:     #111111;
+  --sl-accent-fg:  #FFFFFF;
+  --sl-input:      #E2E2E2;
+  --sl-font-sans:  'Jost', system-ui, sans-serif;
+  --sl-font-mono:  'DM Mono', 'Courier New', monospace;
+}
+
+/* ─── Canvas ──────────────────────────────────────────────────────────────── */
+.atelier-root {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: var(--sl-font-sans);
+  background: var(--sl-bg);
+}
+
+.atelier-tab-bar {
+  display: flex;
+  border-top: 1px solid var(--sl-border);
+  flex-shrink: 0;
+}
+
+.atelier-tab {
+  flex: 1;
+  padding: 10px 4px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--sl-font-mono);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sl-muted-fg);
+  transition: color 0.15s;
+}
+
+.atelier-tab.is-active {
+  color: var(--sl-fg);
+  border-top: 2px solid var(--sl-fg);
+  margin-top: -1px;
+}
+
+/* ─── Title bar ───────────────────────────────────────────────────────────── */
+.atelier-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.atelier-title-tag {
+  font-family: var(--sl-font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+}
+
+/* ─── Phone row ───────────────────────────────────────────────────────────── */
+.atelier-phones {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+/* ─── Phone frame ─────────────────────────────────────────────────────────── */
+.atelier-phone-frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.atelier-phone-shell {
+  width: 320px;
+  height: 660px;
+  border: 1px solid var(--sl-border);
+  position: relative;
+  overflow: hidden;
+  background: var(--sl-bg);
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+}
+
+.atelier-phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 24px;
+  background: var(--sl-bg);
+  border-bottom: 1px solid var(--sl-border);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.atelier-phone-notch::after {
+  content: '';
+  width: 40px;
+  height: 4px;
+  background: var(--sl-border);
+  border-radius: 0;
+}
+
+.atelier-phone-screen {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-top: 24px;
+}
+
+.atelier-phone-label {
+  font-family: var(--sl-font-mono);
+  font-size: 9px;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--sl-muted-fg);
+  opacity: 0.5;
+}
+
+/* ─── Screen base ─────────────────────────────────────────────────────────── */
+.atelier-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--sl-bg);
+}
+
+/* ─── Sign-in ─────────────────────────────────────────────────────────────── */
+.atelier-signin-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 28px 16px;
+}
+
+.atelier-signin-footer {
+  padding: 16px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--sl-border);
+}
+
+/* ─── Sessions ────────────────────────────────────────────────────────────── */
+.atelier-sessions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 40px 16px 14px;
+  border-bottom: 1px solid var(--sl-border);
+  flex-shrink: 0;
+}
+
+.atelier-list {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.atelier-session-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  background: var(--sl-card);
+  border: none;
+  border-bottom: 1px solid var(--sl-border);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.12s;
+}
+
+.atelier-session-item.is-active {
+  background: var(--sl-secondary);
+}
+
+.atelier-session-body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ─── Icon buttons ────────────────────────────────────────────────────────── */
+.atelier-icon-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.atelier-back-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  opacity: 0.6;
+}
+
+/* ─── Chat ────────────────────────────────────────────────────────────────── */
+.atelier-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 38px 14px 12px;
+  border-bottom: 1px solid var(--sl-border);
+  flex-shrink: 0;
+}
+
+.atelier-messages {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 0 8px;
+}
+
+.atelier-msg-row {
+  display: flex;
+  align-items: flex-end;
+  padding: 0 14px;
+}
+
+.atelier-msg-user {
+  justify-content: flex-end;
+}
+
+.atelier-bubble {
+  max-width: 76%;
+  padding: 9px 12px;
+  border-radius: 0;
+}
+
+.atelier-input-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 14px 18px;
+  border-top: 1px solid var(--sl-border);
+  flex-shrink: 0;
+}
+
+.atelier-textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--sl-border);
+  outline: none;
+  background: var(--sl-card);
+  padding: 9px 12px;
+  line-height: 1.5;
+  border-radius: 0;
+  font-family: var(--sl-font-sans);
+  font-size: 13px;
+  color: var(--sl-fg);
+}
+
+.atelier-send-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  border-radius: 0;
+  flex-shrink: 0;
+}
