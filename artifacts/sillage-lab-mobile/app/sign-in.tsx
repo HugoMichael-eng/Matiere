@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  ImageBackground,
   Platform,
   Pressable,
   StyleSheet,
@@ -51,11 +50,7 @@ export default function SignInScreen() {
   const bottomPad = insets.bottom + (Platform.OS === 'web' ? 34 : 0);
 
   return (
-    <ImageBackground
-      source={require('../assets/images/mood-bg.jpg')}
-      style={[styles.root, { backgroundColor: colors.background }]}
-      imageStyle={{ opacity: 0.2 }}
-    >
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* Hero */}
       <View style={[styles.hero, { paddingTop: topPad + 60 }]}>
         <Image
@@ -153,7 +148,7 @@ export default function SignInScreen() {
           Sign in to access your coaching sessions
         </Text>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 

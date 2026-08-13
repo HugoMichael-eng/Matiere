@@ -539,11 +539,6 @@ function MaterialHero({ material }: { material: Material }) {
           onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
           className="group relative overflow-hidden bg-secondary/20"
         >
-          {/* Material macro image — right-side mood */}
-          <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 w-2/5 overflow-hidden">
-            <img src={`${import.meta.env.BASE_URL}images/material-macro.jpg`} className="h-full w-full object-cover object-left opacity-30" />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, var(--color-secondary) 0%, transparent 50%)' }} />
-          </div>
           {/* Cursor glow */}
           <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: glowBg }} />
 
@@ -1837,15 +1832,11 @@ function FieldNoteCard() {
       transition={{ delay: 0.22, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
       className="relative min-h-[420px] cursor-default lg:min-h-[540px]"
     >
-      <div
-        className="absolute inset-0 overflow-hidden border border-border p-8 text-foreground"
-        style={{ backgroundImage: `url(${import.meta.env.BASE_URL}images/ingredient-scatter.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center top' }}
-      >
-        <div className="absolute inset-0 bg-[#F2F1EF]/74" />
-        <div className="relative z-10 flex justify-between font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">
+      <div className="absolute inset-0 overflow-hidden border border-border p-8 text-foreground bg-[#eae1f785]">
+        <div className="flex justify-between font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">
           <span>Field note 014</span><span>03.14</span>
         </div>
-        <div className="absolute bottom-10 left-8 right-8 z-10">
+        <div className="absolute bottom-10 left-8 right-8">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1893,11 +1884,7 @@ function Landing() {
           <Button href="/sign-up" testId="link-landing-sign-up">Open the lab</Button>
         </div>
       </motion.header>
-      <main className="relative bg-[#bac8d654]">
-        {/* Mood image — very subtle full-bleed behind hero */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <img src={`${import.meta.env.BASE_URL}images/hero-bg.jpg`} className="h-full w-full object-cover object-center opacity-[0.13]" />
-        </div>
+      <main className="bg-[#bac8d654]">
         {/* Hero — scroll zoom layer */}
         <section className="relative mx-auto grid max-w-7xl items-center gap-14 overflow-visible px-5 pb-20 pt-16 sm:px-10 sm:pt-24 lg:grid-cols-[1.05fr_.95fr] lg:pb-32">
           <motion.div
@@ -1946,12 +1933,8 @@ function Landing() {
         </section>
 
         {/* 01 / 02 / 03 — scroll-triggered zoom reveal */}
-        <section
-          className="relative border-t border-border overflow-hidden"
-          style={{ backgroundImage: `url(${import.meta.env.BASE_URL}images/abstract-dark.jpg)`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-        >
-          <div className="absolute inset-0 bg-[#3e4a52]/88" />
-          <div className="relative mx-auto grid max-w-7xl gap-0 sm:grid-cols-3">
+        <section className="border-t border-border bg-background">
+          <div className="mx-auto grid max-w-7xl gap-0 sm:grid-cols-3">
             {[
               { num: "01", label: "Notice", title: "Keep the brief close.", copy: "A home for the feeling before the formula starts to behave." },
               { num: "02", label: "Wander", title: "Make room for odd.", copy: "A material library and a creative lab that help you take the less obvious turn." },
@@ -1963,11 +1946,11 @@ function Landing() {
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: "-70px" }}
                 transition={{ duration: 0.7, delay: i * 0.14, ease: [0.22, 1, 0.36, 1] }}
-                className="border-b border-border/30 p-8 sm:border-b-0 sm:border-r sm:border-r-border/30 ml-[0px] mr-[0px] pl-[65px] pr-[65px] pt-[24px] pb-[24px] mt-[-2px] mb-[-2px] font-medium"
+                className="border-b border-border p-8 sm:border-b-0 sm:border-r bg-[#687282] ml-[0px] mr-[0px] pl-[65px] pr-[65px] pt-[24px] pb-[24px] mt-[-2px] mb-[-2px] font-medium"
               >
                 <p className="font-mono-ui text-[#ffffff] text-[16px]">{num} / {label}</p>
                 <h2 className="mt-16 font-display text-3xl text-[#ffffff]">{title}</h2>
-                <p className="mt-3 text-sm leading-6 text-[#ffffffaa]">{copy}</p>
+                <p className="mt-3 text-sm leading-6 text-[#ffffff]">{copy}</p>
               </motion.div>
             ))}
           </div>
@@ -1984,13 +1967,6 @@ function Landing() {
             >
               <p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">A studio practice</p>
               <h2 className="mt-5 font-display text-5xl leading-[.9]">Precision can feel personal.</h2>
-              <div className="mt-8 overflow-hidden border border-border">
-                <img
-                  src={`${import.meta.env.BASE_URL}images/abstract-feature.jpg`}
-                  alt=""
-                  className="w-full h-52 object-cover object-center"
-                />
-              </div>
             </motion.div>
             <div className="grid gap-6 sm:grid-cols-2">
               {[

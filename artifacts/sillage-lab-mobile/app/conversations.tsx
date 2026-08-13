@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   Modal,
   Platform,
   Pressable,
@@ -194,16 +193,6 @@ export default function ConversationsScreen() {
               tintColor={colors.accent}
             />
           }
-          ListHeaderComponent={conversations.length > 0 ? (
-            <View style={[styles.moodBanner, { borderRadius: nativeTheme.radius, borderColor: colors.border }]}>
-              <Image
-                source={require('../assets/images/material-macro.jpg')}
-                style={styles.moodBannerImg}
-                resizeMode="cover"
-              />
-              <View style={[styles.moodBannerOverlay, { backgroundColor: colors.background }]} />
-            </View>
-          ) : null}
           ListEmptyComponent={
             <View style={styles.empty}>
               <Feather
@@ -487,19 +476,6 @@ const styles = StyleSheet.create({
   convMeta: { fontSize: 12 },
   convRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   convDate: { fontSize: 12 },
-  moodBanner: {
-    height: 130,
-    marginBottom: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    position: 'relative',
-  },
-  moodBannerImg: { width: '100%', height: '100%' },
-  moodBannerOverlay: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    opacity: 0.35,
-  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.65)',
