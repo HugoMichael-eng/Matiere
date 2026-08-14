@@ -1,6 +1,57 @@
 /* S1 Design System — single source of theme, Tailwind, fonts, and component CSS */
 @import "@workspace/s1/styles.css";
 
+/* ─── Sillage Lab palette ─────────────────────────────────────────
+   The landing (hero) page establishes the product palette: black
+   header/sidebar, soft light-gray body, muted lilac panels, and a pale
+   lilac field-note accent. We map that palette onto the S1 semantic
+   tokens so the shared shell and Studio desk inherit the same look
+   without inventing a parallel style system. */
+:root {
+  /* Soft light-gray desk surface + near-black ink */
+  --background: 260 20% 97.5%;
+  --foreground: 0 0% 7%;
+  --border: 258 16% 87%;
+
+  /* Cards sit a touch brighter than the desk */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 7%;
+  --card-border: 258 16% 87%;
+
+  /* Black header / sidebar, matching the landing chrome */
+  --sidebar: 0 0% 0%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-border: 0 0% 16%;
+  --sidebar-primary: 264 14% 75%;
+  --sidebar-primary-foreground: 0 0% 7%;
+  --sidebar-accent: 0 0% 10%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 264 14% 75%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 7%;
+
+  /* Primary actions are ink-black, as on the landing buttons */
+  --primary: 0 0% 7%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Pale lilac field-note surface for soft panels / hovers */
+  --secondary: 260 52% 94%;
+  --secondary-foreground: 0 0% 7%;
+
+  --muted: 258 22% 92%;
+  --muted-foreground: 260 6% 42%;
+
+  /* Muted lilac accent from the landing section panels (#bdb5c7) */
+  --accent: 264 14% 75%;
+  --accent-foreground: 0 0% 7%;
+
+  --destructive: 0 58% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 258 16% 87%;
+  --ring: 0 0% 7%;
+}
+
 /* ─── App-specific utilities ─────────────────────────────────────── */
 @layer utilities {
   /* Semantic font aliases used throughout sillage.tsx */

@@ -46,7 +46,7 @@ function Button({ children, onClick, href, variant = "primary", testId, disabled
     variant === "danger" ? "bg-destructive text-destructive-foreground hover:opacity-80" :
     "bg-transparent text-muted-foreground hover:text-foreground"
   }`;
-  if (href) return <Link href={href} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-[11px] font-medium tracking-[.12em] uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-50 hover:opacity-80 bg-[#57a1d4] border-t-[#140f0b05] border-r-[#140f0b05] border-b-[#140f0b05] border-l-[#140f0b05] text-[color:var(--card-border)]" data-testid={testId}>{children}</Link>;
+  if (href) return <Link href={href} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-[11px] font-medium tracking-[.12em] uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-50 hover:opacity-80 bg-[#57a1d4] border-t-[#140f0b05] border-r-[#140f0b05] border-b-[#140f0b05] border-l-[#140f0b05] text-white" data-testid={testId}>{children}</Link>;
   return <button type={type} className={cls} onClick={onClick} disabled={disabled} data-testid={testId}>{children}</button>;
 }
 
@@ -211,7 +211,7 @@ function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; 
 
 function StatusPill({ value }: { value: string }) {
   const label = value.replaceAll("_", " ");
-  const style = value === "approved" || value === "clear" || value === "within_limit" ? "text-muted-foreground border-l-2 pl-2 border-border" : value === "blocked" || value === "exceeds_limit" ? "text-destructive" : "text-accent";
+  const style = value === "approved" || value === "clear" || value === "within_limit" ? "text-muted-foreground border-l-2 pl-2 border-border" : value === "blocked" || value === "exceeds_limit" ? "text-destructive" : "text-accent-foreground border-l-2 pl-2 border-accent";
   return <span className={`inline-flex items-center font-mono-ui text-[9px] uppercase tracking-[.08em] ${style}`} data-testid={`status-${value}`}>{label}</span>;
 }
 
@@ -278,7 +278,7 @@ function MetricCard({ label, value, Icon, delay, testId, href }: { label: string
   const cardRef = useRef<HTMLDivElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const glow = useMotionTemplate`radial-gradient(180px at ${mouseX}px ${mouseY}px, rgba(255,255,255,0.07), transparent 80%)`;
+  const glow = useMotionTemplate`radial-gradient(180px at ${mouseX}px ${mouseY}px, hsl(var(--accent) / 0.28), transparent 80%)`;
 
   return (
     <Link href={href}>
@@ -296,7 +296,7 @@ function MetricCard({ label, value, Icon, delay, testId, href }: { label: string
         transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
         whileHover={{ y: -3, transition: { duration: 0.16 } }}
         whileTap={{ scale: 0.97 }}
-        className="group relative overflow-hidden bg-background p-6 text-foreground cursor-pointer"
+        className="group relative overflow-hidden bg-card p-6 text-foreground cursor-pointer"
       >
         {/* Cursor glow */}
         <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: glow }} />
@@ -638,12 +638,12 @@ function QuickPrompt() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className="border-b border-border py-8"
+      className="relative my-7 overflow-hidden border border-border bg-secondary/50 p-6 sm:p-8"
     >
       <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Creative lab</p>
       <h2 className="mt-3 font-display text-4xl leading-tight">What are you circling?</h2>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">A difficult material, a flat drydown, a brief that won't settle. Start here.</p>
-      <form onSubmit={submit} className="mt-6 flex items-center gap-0 border border-border bg-secondary/30">
+      <form onSubmit={submit} className="mt-6 flex items-center gap-0 border border-border bg-card">
         <input
           value={message}
           onChange={e => setMessage(e.target.value)}
@@ -668,7 +668,7 @@ function QuickPrompt() {
           <button
             key={prompt}
             onClick={() => setMessage(prompt)}
-            className="border border-border bg-secondary/20 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="border border-border bg-card px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             {prompt}
           </button>
@@ -763,18 +763,26 @@ function Dashboard() {
           : <EmptyState title="Your first formula is waiting." copy="Start with a feeling, a material, or a strange little question." href="/formulas/new" label="Open a fresh page" />}
       </motion.section>
 
-      {/* ── SHOP BANNER ───────────────────────────────────── */}
+      {/* ── SHOP BANNER — muted lilac panel, echoing the landing sections ── */}
       <motion.div
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border py-7"
-        whileHover={{ borderColor: "rgba(255,255,255,0.15)" }}
-        transition={{ duration: 0.2 }}
+        className="relative my-7 flex flex-col gap-4 overflow-hidden border border-accent/40 bg-accent px-6 py-7 text-accent-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div>
-          <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">Supplier sourcing</p>
+        <img
+          src={`${import.meta.env.BASE_URL}images/flower.jpg`}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute -right-6 top-1/2 hidden h-[150%] w-56 -translate-y-1/2 object-cover opacity-25 mix-blend-luminosity sm:block"
+        />
+        <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-accent via-accent/95 to-transparent sm:block" />
+        <div className="relative">
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-accent-foreground/60">Supplier sourcing</p>
           <h2 className="mt-2 font-display text-3xl">Stock the palette.</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Browse Fraterworks, PCW, and Contrebande — the three suppliers this studio tracks.</p>
+          <p className="mt-2 max-w-md text-sm leading-6 text-accent-foreground/70">Browse Fraterworks, PCW, and Contrebande — the three suppliers this studio tracks.</p>
         </div>
-        <div className="shrink-0">
+        <div className="relative shrink-0">
           <Button href="/shop" testId="button-dashboard-shop">Browse shop</Button>
         </div>
       </motion.div>
@@ -1096,12 +1104,12 @@ function IngredientBuilder({
                 transition={{ duration: 0.4, ease: "easeOut" }}
               />
             </div>
-            <span className={`font-mono-ui text-[10px] ${totalPct > 100 ? "text-destructive" : totalPct === 100 ? "text-accent" : "text-muted-foreground"}`}>
+            <span className={`font-mono-ui text-[10px] ${totalPct > 100 ? "text-destructive" : totalPct === 100 ? "text-accent-foreground" : "text-muted-foreground"}`}>
               {totalPct}% of formula
             </span>
           </div>
           {totalPct > 100 && <span className="font-mono-ui text-[9px] text-destructive">Exceeds 100%</span>}
-          {totalPct === 100 && <span className="font-mono-ui text-[9px] text-accent">Palette complete</span>}
+          {totalPct === 100 && <span className="font-mono-ui text-[9px] text-accent-foreground">Palette complete</span>}
           {totalPct > 0 && totalPct < 100 && (
             <span className="font-mono-ui text-[9px] text-muted-foreground">{Math.round((100 - totalPct) * 10) / 10}% remaining</span>
           )}
@@ -2032,7 +2040,7 @@ function NotFoundView() {
 }
 
 export function SillageApp() {
-  return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={{ theme: experimental__simple, options: { logoPlacement: "inside", logoLinkUrl: basePath || "/", logoImageUrl: `${window.location.origin}${basePath}/logo.svg` }, variables: { colorPrimary: "hsl(0 0% 7%)", colorForeground: "hsl(0 0% 7%)", colorMutedForeground: "hsl(0 0% 45%)", colorBackground: "hsl(0 0% 100%)", colorInput: "hsl(0 0% 94%)", colorInputForeground: "hsl(0 0% 7%)", colorDanger: "hsl(0 58% 48%)", colorNeutral: "hsl(0 0% 86%)", fontFamily: "Inter", borderRadius: "0rem" }, elements: { cardBox: "bg-card border border-border w-[440px] max-w-full", card: "!shadow-none !border-0 !bg-transparent", footer: "!shadow-none !border-0 !bg-transparent", headerTitle: "text-foreground font-medium", headerSubtitle: "text-muted-foreground", formFieldLabel: "text-foreground", formFieldInput: "bg-secondary text-foreground border border-border", formButtonPrimary: "bg-primary text-primary-foreground hover:opacity-80 rounded-none uppercase tracking-widest text-[11px]", footerActionLink: "text-accent", socialButtonsBlockButtonText: "text-foreground", dividerText: "text-muted-foreground", footerActionText: "text-muted-foreground" } }} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{ signIn: { start: { title: "Return to the studio", subtitle: "Your next idea is still on the page." } }, signUp: { start: { title: "Open your studio", subtitle: "A place for the work between first thought and final blotter." } } }}>
+  return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={{ theme: experimental__simple, options: { logoPlacement: "inside", logoLinkUrl: basePath || "/", logoImageUrl: `${window.location.origin}${basePath}/logo.svg` }, variables: { colorPrimary: "hsl(0 0% 7%)", colorForeground: "hsl(0 0% 7%)", colorMutedForeground: "hsl(0 0% 45%)", colorBackground: "hsl(0 0% 100%)", colorInput: "hsl(0 0% 94%)", colorInputForeground: "hsl(0 0% 7%)", colorDanger: "hsl(0 58% 48%)", colorNeutral: "hsl(0 0% 86%)", fontFamily: "Inter", borderRadius: "0rem" }, elements: { cardBox: "bg-card border border-border w-[440px] max-w-full", card: "!shadow-none !border-0 !bg-transparent", footer: "!shadow-none !border-0 !bg-transparent", headerTitle: "text-foreground font-medium", headerSubtitle: "text-muted-foreground", formFieldLabel: "text-foreground", formFieldInput: "bg-secondary text-foreground border border-border", formButtonPrimary: "bg-primary text-primary-foreground hover:opacity-80 rounded-none uppercase tracking-widest text-[11px]", footerActionLink: "text-foreground underline", socialButtonsBlockButtonText: "text-foreground", dividerText: "text-muted-foreground", footerActionText: "text-muted-foreground" } }} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{ signIn: { start: { title: "Return to the studio", subtitle: "Your next idea is still on the page." } }, signUp: { start: { title: "Open your studio", subtitle: "A place for the work between first thought and final blotter." } } }}>
     <QueryClientProvider client={queryClient}><WouterRouter base={basePath}><Switch><Route path="/sign-in/*?" component={() => <AuthPage kind="in" />} /><Route path="/sign-up/*?" component={() => <AuthPage kind="up" />} /><Route path="/"><HomeRedirect /></Route><Route path="/dashboard"><Protected><Dashboard /></Protected></Route><Route path="/formulas/new"><Protected><NewFormula /></Protected></Route><Route path="/formulas/:id"><Protected><FormulaDetail /></Protected></Route><Route path="/formulas"><Protected><Formulas /></Protected></Route><Route path="/materials"><Protected><Materials /></Protected></Route><Route path="/coach"><Protected><Coach /></Protected></Route><Route path="/shop"><Protected><Shop /></Protected></Route><Route><NotFoundView /></Route></Switch></WouterRouter></QueryClientProvider>
   </ClerkProvider>;
 }
