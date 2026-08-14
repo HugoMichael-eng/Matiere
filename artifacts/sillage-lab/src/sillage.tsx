@@ -1832,11 +1832,19 @@ function FieldNoteCard() {
       transition={{ delay: 0.22, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
       className="relative min-h-[420px] cursor-default lg:min-h-[540px]"
     >
-      <div className="absolute inset-0 overflow-hidden border border-border p-8 text-foreground bg-[#eae1f785] pt-[108px] pb-[108px] pl-[64px] pr-[64px]">
-        <div className="flex justify-between font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">
+      <div className="absolute inset-0 overflow-hidden border border-border p-8 text-foreground pt-[108px] pb-[108px] pl-[64px] pr-[64px]">
+        <img
+          src={`${import.meta.env.BASE_URL}images/hero-droplets.jpg`}
+          alt="Macro photograph of perfume oil droplets on brushed steel"
+          className="absolute inset-0 h-full w-full object-cover"
+          data-testid="img-hero-photo"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#ffffffd9] via-[#ffffff66] to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#ffffffb8] to-transparent" />
+        <div className="relative flex justify-between font-mono-ui text-[9px] uppercase tracking-[.16em] text-[#3a3a3f]">
           <span>Field note 014</span><span>03.14</span>
         </div>
-        <div className="absolute bottom-10 left-8 right-8">
+        <div className="absolute bottom-10 left-8 right-8 z-[1]">
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1967,6 +1975,16 @@ function Landing() {
             >
               <p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">A studio practice</p>
               <h2 className="mt-5 font-display text-5xl leading-[.9]">Precision can feel personal.</h2>
+              <motion.img
+                src={`${import.meta.env.BASE_URL}images/flower.jpg`}
+                alt="A white flower against a dusk-violet sky"
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-8 w-full max-w-md border border-border object-cover"
+                data-testid="img-precision-flower"
+              />
             </motion.div>
             <div className="grid gap-6 sm:grid-cols-2">
               {[
