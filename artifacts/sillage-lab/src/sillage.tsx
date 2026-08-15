@@ -974,6 +974,24 @@ function Materials() {
   </Shell>;
 }
 
+const BASE_MOODS = [
+  { name: "Clean",  prompt: "A clean, transparent skin scent — no soap, just presence",  img: "/images/mood-clean.jpg",  families: ["musk"] },
+  { name: "Warm",   prompt: "A warm, resinous amber with depth and sensuality",          img: "/images/mood-warm.jpg",   families: ["resinous", "spicy"] },
+  { name: "Dark",   prompt: "A dark, smoky, almost feral composition",                   img: "/images/mood-dark.jpg",   families: ["woody", "resinous"] },
+  { name: "Fresh",  prompt: "A luminous fresh green accord — dew, herbs, cut stems",     img: "/images/mood-fresh.jpg",  families: ["green", "fresh", "citrus"] },
+  { name: "Floral", prompt: "A romantic, heady white floral that lingers",               img: "/images/mood-floral.jpg", families: ["floral"] },
+  { name: "Woody",  prompt: "A dry, cerebral woody accord — sandalwood, cedar, vetiver", img: "/images/mood-woody.jpg",  families: ["woody"] },
+] as const;
+
+const BASE_ACCORDS = [
+  { name: "Clean Musk",       desc: "Soft. Transparent. Skin-like.",  icon: Sparkles, families: ["musk"] },
+  { name: "Amber Woods",      desc: "Warm. Resinous. Addictive.",     icon: Leaf,     families: ["resinous", "woody"] },
+  { name: "Fresh Citrus",     desc: "Bright. Zesty. Uplifting.",      icon: Beaker,   families: ["citrus"] },
+  { name: "Modern Patchouli", desc: "Earthy. Textured. Refined.",     icon: Leaf,     families: ["woody"] },
+  { name: "White Florals",    desc: "Luminous. Heady. Sensual.",      icon: Sparkles, families: ["floral"] },
+  { name: "Chypre",           desc: "Mossy. Elegant. Complex.",       icon: Beaker,   families: ["green", "citrus"] },
+] as const;
+
 const FAMILY_WASH: Record<string, { bg: string; img: string; pos: string }> = {
   citrus:    { bg: "bg-secondary",  img: "botanicals.jpg", pos: "center top"    },
   floral:    { bg: "bg-accent/30",  img: "jasmine.jpg",    pos: "center"        },
@@ -2401,25 +2419,49 @@ function Coach() {
     !sessionSearch.trim() || c.title.toLowerCase().includes(sessionSearch.toLowerCase())
   );
 
-  // ── Mood definitions ──
-  const MOODS = [
-    { name: "Clean",  prompt: "A clean, transparent skin scent — no soap, just presence",  img: "/images/mood-clean.jpg" },
-    { name: "Warm",   prompt: "A warm, resinous amber with depth and sensuality",            img: "/images/mood-warm.jpg" },
-    { name: "Dark",   prompt: "A dark, smoky, almost feral composition",                    img: "/images/mood-dark.jpg" },
-    { name: "Fresh",  prompt: "A luminous fresh green accord — dew, herbs, cut stems",      img: "/images/mood-fresh.jpg" },
-    { name: "Floral", prompt: "A romantic, heady white floral that lingers",                img: "/images/mood-floral.jpg" },
-    { name: "Woody",  prompt: "A dry, cerebral woody accord — sandalwood, cedar, vetiver",  img: "/images/mood-woody.jpg" },
-  ] as const;
+  // ── Personalized moods & accords from the user's material library ──
+  const materialsQuery = useListMaterials();
+  const libraryMaterials = materialsQuery.data ?? [];
 
-  // ── Accord definitions ──
-  const ACCORDS = [
-    { name: "Clean Musk",       desc: "Soft. Transparent. Skin-like.",   icon: Sparkles },
-    { name: "Amber Woods",      desc: "Warm. Resinous. Addictive.",       icon: Leaf },
-    { name: "Fresh Citrus",     desc: "Bright. Zesty. Uplifting.",        icon: Beaker },
-    { name: "Modern Patchouli", desc: "Earthy. Textured. Refined.",       icon: Leaf },
-    { name: "White Florals",    desc: "Luminous. Heady. Sensual.",        icon: Sparkles },
-    { name: "Chypre",           desc: "Mossy. Elegant. Complex.",         icon: Beaker },
-  ] as const;
+  const { moods, accords } = useMemo(() => {
+    // Group the library by (lowercased) olfactive family
+    const byFamily = new Map<string, Material[]>();
+    for (const m of libraryMaterials) {
+      const key = m.family?.toLowerCase().trim() ?? "";
+      if (!key) continue;
+      const list = byFamily.get(key) ?? [];
+      list.push(m);
+      byFamily.set(key, list);
+    }
+    const has = (fams: readonly string[]) => fams.some(f => (byFamily.get(f)?.length ?? 0) > 0);
+    const owned = (fams: readonly string[]) =>
+      fams.flatMap(f => byFamily.get(f) ?? []).map(m => m.name);
+
+    const moodList = BASE_MOODS.map(mood => {
+      const names = owned(mood.families);
+      const prompt = names.length > 0
+        ? `${mood.prompt}. From my own material library I have: ${names.slice(0, 6).join(", ")} — build the direction around what I already own.`
+        : mood.prompt;
+      return { ...mood, prompt, ownedCount: names.length };
+    });
+
+    const accordList = BASE_ACCORDS.map(accord => {
+      const names = owned(accord.families);
+      const buildable = accord.families.length > 0 && accord.families.every(f => has([f]));
+      const familyLabel = accord.families[0] ?? "";
+      const hint = names.length > 0
+        ? (names.length === 1
+            ? `You have ${names[0]} — a starting point.`
+            : `You have ${names.length} ${familyLabel} materials to build with.`)
+        : null;
+      return { ...accord, ownedNames: names, buildable, hint };
+    });
+
+    // Buildable accords first, so suggestions lead with what the studio actually owns
+    accordList.sort((a, b) => Number(b.buildable) - Number(a.buildable));
+
+    return { moods: moodList, accords: accordList };
+  }, [libraryMaterials]);
 
   // ── View: hub vs chat ──
   const inChat = !!selectedConvId;
@@ -2489,13 +2531,13 @@ function Coach() {
                 <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-foreground">Explore by mood</p>
               </div>
               <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-none">
-                {MOODS.map((mood, i) => (
+                {moods.map((mood, i) => (
                   <motion.button
                     key={mood.name}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    onClick={() => createWithTitle(mood.name, `Give me a creative brief for a ${mood.name.toLowerCase()} fragrance direction — describe the feeling, the key materials that define it, and two or three specific accord ideas I could explore.`)}
+                    onClick={() => createWithTitle(mood.name, `Give me a creative brief for a ${mood.name.toLowerCase()} fragrance direction — ${mood.prompt}. Describe the feeling, the key materials that define it, and two or three specific accord ideas I could explore.`)}
                     disabled={createConv.isPending}
                     className="group flex shrink-0 flex-col items-center gap-2.5 disabled:opacity-50"
                   >
@@ -2513,7 +2555,7 @@ function Coach() {
             <div className="mt-10">
               <p className="mb-4 font-mono-ui text-[9px] uppercase tracking-[.22em] text-foreground">Popular accords</p>
               <div className="space-y-2">
-                {ACCORDS.map((accord, i) => {
+                {accords.map((accord, i) => {
                   const Icon = accord.icon;
                   return (
                     <motion.button
@@ -2521,7 +2563,9 @@ function Coach() {
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 + i * 0.05, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                      onClick={() => createWithTitle(accord.name, `Tell me about the ${accord.name} accord — what defines it (${accord.desc}), which raw materials are essential to building it, and what's a modern take I could explore?`)}
+                      onClick={() => createWithTitle(accord.name, accord.ownedNames.length > 0
+                        ? `Tell me about the ${accord.name} accord — what defines it (${accord.desc}), and how I could build it starting from materials I already own: ${accord.ownedNames.slice(0, 6).join(", ")}. What would I still need to add?`
+                        : `Tell me about the ${accord.name} accord — what defines it (${accord.desc}), which raw materials are essential to building it, and what's a modern take I could explore?`)}
                       disabled={createConv.isPending}
                       className="group flex w-full items-center gap-4 rounded-xl border border-border bg-secondary/20 px-4 py-3.5 transition-colors hover:bg-secondary/40 disabled:opacity-50"
                     >
@@ -2529,8 +2573,18 @@ function Coach() {
                         <Icon size={14} strokeWidth={1.5} className="text-muted-foreground" />
                       </div>
                       <div className="min-w-0 flex-1 text-left">
-                        <p className="text-[13px] font-medium">{accord.name}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">{accord.desc}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-[13px] font-medium">{accord.name}</p>
+                          {accord.buildable && (
+                            <span
+                              className="inline-flex shrink-0 items-center border border-accent/40 bg-accent/10 px-1.5 py-0.5 font-mono-ui text-[7px] uppercase tracking-widest text-accent-foreground/70"
+                              data-testid={`badge-buildable-${accord.name.toLowerCase().replaceAll(" ", "-")}`}
+                            >
+                              You have the materials
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{accord.hint ?? accord.desc}</p>
                       </div>
                       <ArrowRight size={13} className="shrink-0 text-muted-foreground/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
                     </motion.button>
