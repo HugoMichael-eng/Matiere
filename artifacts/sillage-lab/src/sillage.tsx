@@ -1568,7 +1568,7 @@ function Coach() {
     <Shell>
       <PageHeader
         eyebrow="Studio companion · creative lab"
-        title="Give the idea room."
+        title="What are you circling?"
         description="Persistent coaching sessions — pick up a thread, or start a new one."
       />
 
