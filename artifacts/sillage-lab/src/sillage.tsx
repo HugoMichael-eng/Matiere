@@ -747,11 +747,11 @@ function Dashboard() {
 
   return (
     <Shell>
-      {/* ── HERO: greeting + quick prompt merged ──────────── */}
-      <QuickPrompt greeting={greeting} weekday={weekday} />
-
       {/* ── IDEA GENERATOR ────────────────────────────────── */}
       <FormulaIdeaGenerator onSelect={(n, b) => setLocation(`/formulas/new?name=${encodeURIComponent(n)}&brief=${encodeURIComponent(b)}`)} />
+
+      {/* ── HERO: greeting ────────────────────────────────── */}
+      <QuickPrompt greeting={greeting} weekday={weekday} />
 
       {/* ── STAGE PIPELINE ────────────────────────────────── */}
       {stageTotal > 0 && <StageTrack counts={stageCounts} total={stageTotal} />}
