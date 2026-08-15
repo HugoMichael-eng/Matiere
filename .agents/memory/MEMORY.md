@@ -1,3 +1,4 @@
 - [S1 Design System](s1-design-system.md) — S1 tokens, fonts, and migration approach for Sillage Lab.
+- [S2 Design System](s2-design-system.md) — Editorial Void; Jost + Cormorant Garamond; zero radius; cold lavender accent #B0AAB8.
 - [History feature](history-feature.md) — Persistent coach sessions, formula changelog, activity feed; zod must be installed per-package in api-server.
 - [Expo Clerk setup](expo-clerk-setup.md) — @clerk/clerk-expo peer deps, React Query v5 gotcha, S1 native hooks built.

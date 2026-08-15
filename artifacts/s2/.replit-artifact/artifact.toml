@@ -1,0 +1,19 @@
+kind = "design-system"
+previewPath = "/s2/"
+title = "S2 Design System"
+description = "S2 — a precision design system for Matière. Editorial void aesthetic: pure black and white with a cold muted accent. Jost (geometric, Futura-inspired) pairs with Cormorant Garamond (high-contrast serif) for tension between the rational and the sensual. Zero radius, sharp edges throughout."
+version = "1.0.0"
+id = "artifacts/s2"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/s2/" ]
+localPort = 19123
+
+[services.development]
+run = "pnpm --filter @workspace/s2 run dev"
+
+[services.env]
+PORT = "19123"
+BASE_PATH = "/s2/"
