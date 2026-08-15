@@ -1232,7 +1232,7 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-[#2563eb] px-6 py-10 sm:px-10 sm:py-12"
+      className="bg-[#000000] px-6 py-10 sm:px-10 sm:py-12"
     >
       {/* Header */}
       <div className="flex items-center gap-2.5 mb-6">
@@ -1258,10 +1258,10 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
             type="submit"
             disabled={loading}
             data-testid="button-generate-ideas"
-            className="flex h-[60px] shrink-0 items-center gap-2 border-l border-white/20 bg-white px-5 font-mono-ui text-[10px] uppercase tracking-widest text-[#2563eb] transition-opacity disabled:opacity-50 hover:opacity-90"
+            className="flex h-[60px] shrink-0 items-center gap-2 border-l border-white/20 bg-white px-5 font-mono-ui text-[10px] uppercase tracking-widest text-black transition-opacity disabled:opacity-50 hover:opacity-90"
           >
             {loading
-              ? <span className="size-3.5 animate-spin rounded-full border-2 border-[#2563eb]/30 border-t-[#2563eb]" />
+              ? <span className="size-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black" />
               : <Sparkles size={13} />}
             {loading ? "Thinking…" : "Generate"}
           </button>
@@ -2236,5 +2236,5 @@ export function SillageApp() {
 function HomeRedirect() {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return <Landing />;
-  return isSignedIn ? <Redirect to="/coach" /> : <Landing />;
+  return isSignedIn ? <Redirect to="/dashboard" /> : <Landing />;
 }
