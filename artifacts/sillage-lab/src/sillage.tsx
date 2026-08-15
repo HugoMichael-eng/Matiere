@@ -1119,7 +1119,8 @@ function IngredientBuilder({
   );
 }
 
-type FormulaIdea = { name: string; brief: string; direction: string };
+type FormulaIdeaMaterial = { name: string; role: "top" | "heart" | "base"; pct: number };
+type FormulaIdea = { name: string; brief: string; direction: string; materials?: FormulaIdeaMaterial[] };
 
 const IDEA_PROMPTS = [
   "Something that smells like the last hour of summer…",
@@ -1170,8 +1171,20 @@ function useTypewriter(phrases: string[]) {
   return displayed;
 }
 
+const ROLE_META: Record<string, { label: string; barOpacity: string; dotColor: string }> = {
+  top:   { label: "Top",   barOpacity: "opacity-90", dotColor: "bg-white/80" },
+  heart: { label: "Heart", barOpacity: "opacity-60", dotColor: "bg-white/55" },
+  base:  { label: "Base",  barOpacity: "opacity-35", dotColor: "bg-white/35" },
+};
+
 function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: () => void; onClose: () => void }) {
-  // Close on backdrop click
+  // Sort materials: top → heart → base
+  const materials = [...(idea.materials ?? [])].sort((a, b) => {
+    const order = { top: 0, heart: 1, base: 2 };
+    return (order[a.role] ?? 3) - (order[b.role] ?? 3);
+  });
+  const maxPct = Math.max(...materials.map(m => m.pct), 1);
+
   return (
     <AnimatePresence>
       <motion.div
@@ -1189,49 +1202,114 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: ()
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 340, damping: 38, mass: 0.9 }}
-        className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[88vh] flex-col overflow-hidden bg-[#0C0C0C]"
+        className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[90vh] flex-col overflow-hidden bg-[#0C0C0C]"
         onClick={e => e.stopPropagation()}
       >
         {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1">
+        <div className="flex justify-center pt-3 pb-1 shrink-0">
           <div className="h-[3px] w-10 bg-white/20" />
         </div>
 
         {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-8">
+        <div className="flex-1 overflow-y-auto px-6 py-5 sm:px-8">
           {/* Eyebrow */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <Sparkles size={12} className="text-white/50" />
               <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/50">Formula suggestion</p>
             </div>
-            <button
-              onClick={onClose}
-              className="p-1 text-white/40 hover:text-white/80 transition-colors"
-              aria-label="Close"
-            >
+            <button onClick={onClose} className="p-1 text-white/40 hover:text-white/80 transition-colors" aria-label="Close">
               <X size={18} />
             </button>
           </div>
 
           {/* Name */}
-          <h2 className="font-display text-4xl sm:text-5xl leading-[.92] text-white">{idea.name}</h2>
+          <motion.h2
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="font-display text-4xl sm:text-5xl leading-[.92] text-white"
+          >
+            {idea.name}
+          </motion.h2>
 
           {/* Brief */}
-          <div className="mt-7 border-t border-white/10 pt-6">
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-3">The brief</p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.08, duration: 0.3 }}
+            className="mt-6 border-t border-white/10 pt-5"
+          >
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-2">The brief</p>
             <p className="text-base leading-7 text-white/85">{idea.brief}</p>
-          </div>
+          </motion.div>
 
-          {/* Direction */}
-          <div className="mt-6 border-t border-white/10 pt-6">
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-3">Where to start</p>
-            <p className="text-sm leading-6 text-white/65">{idea.direction}</p>
-          </div>
+          {/* Materials — animated bars */}
+          {materials.length > 0 && (
+            <div className="mt-6 border-t border-white/10 pt-5">
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-5">Materials &amp; ratios</p>
+              <div className="space-y-4">
+                {materials.map((mat, i) => {
+                  const meta = ROLE_META[mat.role] ?? ROLE_META.base;
+                  const barWidth = `${Math.round((mat.pct / maxPct) * 100)}%`;
+                  return (
+                    <motion.div
+                      key={mat.name}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.12 + i * 0.07, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      {/* Name row */}
+                      <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-block h-1.5 w-1.5 shrink-0 ${meta.dotColor}`} />
+                          <span className="text-sm text-white/90">{mat.name}</span>
+                          <span className="font-mono-ui text-[8px] uppercase tracking-widest text-white/30">{meta.label}</span>
+                        </div>
+                        <span className="font-mono-ui text-[11px] tabular-nums text-white/50">{mat.pct}%</span>
+                      </div>
+                      {/* Bar */}
+                      <div className="h-[2px] w-full bg-white/10">
+                        <motion.div
+                          className={`h-full bg-white ${meta.barOpacity}`}
+                          initial={{ width: 0 }}
+                          animate={{ width: barWidth }}
+                          transition={{ delay: 0.18 + i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+              {/* Total */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.18 + materials.length * 0.07 + 0.1, duration: 0.3 }}
+                className="mt-5 flex items-center justify-between border-t border-white/10 pt-3"
+              >
+                <span className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-white/30">Concentrate total</span>
+                <span className="font-mono-ui text-[11px] tabular-nums text-white/50">
+                  {materials.reduce((s, m) => s + m.pct, 0)}%
+                </span>
+              </motion.div>
+            </div>
+          )}
+
+          {/* Direction note */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25, duration: 0.3 }}
+            className="mt-6 border-t border-white/10 pt-5 pb-2"
+          >
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-2">Direction</p>
+            <p className="text-sm leading-6 text-white/55">{idea.direction}</p>
+          </motion.div>
         </div>
 
         {/* Sticky CTA */}
-        <div className="border-t border-white/10 bg-[#0C0C0C] px-6 py-5 sm:px-8">
+        <div className="shrink-0 border-t border-white/10 bg-[#0C0C0C] px-6 py-5 sm:px-8">
           <button
             onClick={onStart}
             data-testid="button-idea-start"
