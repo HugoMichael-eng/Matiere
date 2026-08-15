@@ -31,7 +31,7 @@ const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 function Logo({ light = false }: { light?: boolean }) {
   return (
     <Link href="/" data-testid="link-brand" className="flex items-center gap-3 group">
-      <span className={`font-mono-ui text-[10px] font-medium uppercase tracking-[.35em] ${light ? "text-white" : "text-foreground"}`}>SILLAGE LAB</span>
+      <span className={`font-mono-ui text-[10px] font-medium uppercase tracking-[.35em] ${light ? "text-white" : "text-foreground"}`}>MATIÈRE</span>
     </Link>
   );
 }
@@ -1929,7 +1929,7 @@ function Landing() {
               transition={{ delay: 0.24, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
               className="mt-9 max-w-lg text-[28px] text-left border-t-[#a62d2d] border-r-[#a62d2d] border-b-[#a62d2d] border-l-[#a62d2d] text-[#000000]"
             >
-              Sillage Lab is a focused studio for independent perfumers: keep the instinct, keep the record, keep formula safety close enough to trust.
+              Matière is a focused studio for independent perfumers: keep the instinct, keep the record, keep formula safety close enough to trust.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -2017,7 +2017,7 @@ function Landing() {
       </main>
       <footer className="border-t border-border px-5 py-8 sm:px-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between text-[10px] text-muted-foreground">
-          <span className="font-mono-ui uppercase tracking-[.14em]">Sillage Lab · for independent noses</span>
+          <span className="font-mono-ui uppercase tracking-[.14em]">Matière · for independent noses</span>
           <span>Made for the long drydown.</span>
         </div>
       </footer>
