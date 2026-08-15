@@ -682,6 +682,7 @@ function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string 
 }
 
 function Dashboard() {
+  const [, setLocation] = useLocation();
   const summaryQuery = useGetDashboardSummary();
   const draftsQuery = useListFormulas({ status: "draft" });
   const restingQuery = useListFormulas({ status: "resting" });
