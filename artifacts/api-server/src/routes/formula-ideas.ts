@@ -6,77 +6,94 @@ import { z } from "zod";
 const router: IRouter = Router();
 router.use(requireAuth);
 
-const Body = z.object({
+const IdeasBody = z.object({
   mood: z.string().max(300).optional(),
 });
 
+const MaterialsBody = z.object({
+  name: z.string().max(200),
+  brief: z.string().max(600),
+});
+
+function stripFences(raw: string): string {
+  return raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+}
+
+// POST /formulas/ideas — generates 3 creative formula concepts
 router.post("/formulas/ideas", async (req, res): Promise<void> => {
-  const parsed = Body.safeParse(req.body);
+  const parsed = IdeasBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
 
   const mood = parsed.data.mood?.trim() || "";
-  const moodLine = mood ? `The perfumer is thinking about: "${mood}".` : "";
+  const userMsg = mood
+    ? `The perfumer is thinking about: "${mood}".`
+    : "Surprise me — three original formula starting points.";
 
   const response = await openai.chat.completions.create({
     model: "gpt-5.6-terra",
-    max_completion_tokens: 1500,
+    max_completion_tokens: 800,
     messages: [
       {
         role: "system",
-        content: `You are a creative director and master perfumer for an independent studio. Generate exactly 3 original formula ideas. Each idea must have:
-- NAME: evocative, literary, 2–5 words
-- BRIEF: one sentence capturing the emotional intention (not a list of notes)
-- DIRECTION: one sentence on the structural or material angle to explore
-- MATERIALS: 5–7 specific aromatic materials, each with a ROLE (top / heart / base) and a PCT (integer percentage, e.g. 12). The pct values across all materials should sum to between 70 and 90. Use real perfumery materials (e.g. bergamot, iso e super, ambroxan, linalool, hedione, orris, vetiver, musks, etc.). Make the material selection serve the brief.
+        content:
+          'You are a creative director for an independent perfumery studio. Generate exactly 3 original formula ideas. Return valid JSON only — no markdown, no code fences — in this exact shape: { "ideas": [ { "name": "...", "brief": "...", "direction": "..." } ] }. NAME: evocative, literary, 2–5 words. BRIEF: one sentence capturing the emotional intention, not a list of notes. DIRECTION: one sentence on the structural or material angle. Make ideas genuinely distinct. Avoid clichés — no "fresh", "clean", "bold", "vibrant". Think like an artist.',
+      },
+      { role: "user", content: userMsg },
+    ],
+  });
 
-Return valid JSON only, no markdown, in this exact shape:
-{
-  "ideas": [
-    {
-      "name": "...",
-      "brief": "...",
-      "direction": "...",
-      "materials": [
-        { "name": "Bergamot", "role": "top", "pct": 12 },
-        { "name": "Hedione", "role": "heart", "pct": 18 }
-      ]
-    }
-  ]
-}
+  const raw = stripFences(response.choices[0]?.message?.content ?? '{"ideas":[]}');
+  try {
+    res.json(JSON.parse(raw));
+  } catch {
+    res.json({
+      ideas: [
+        { name: "Something quiet", brief: "A scent that stays after everyone has left the room.", direction: "Explore ambrette seed, orris, and a trace of birch tar." },
+      ],
+    });
+  }
+});
 
-Make ideas genuinely distinct from each other. Avoid clichés — no "fresh", "clean", "bold", "vibrant". Think like an artist, not a marketer.`,
+// POST /formulas/idea-materials — returns material suggestions for a chosen idea
+router.post("/formulas/idea-materials", async (req, res): Promise<void> => {
+  const parsed = MaterialsBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const { name, brief } = parsed.data;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-5.6-terra",
+    max_completion_tokens: 600,
+    messages: [
+      {
+        role: "system",
+        content:
+          'You are a master perfumer. Given a formula concept, suggest 5–7 specific aromatic materials that would build it. Return valid JSON only — no markdown, no code fences — in this shape: { "materials": [ { "name": "Bergamot", "role": "top", "pct": 12 } ] }. ROLE must be exactly "top", "heart", or "base". PCT must be an integer. All pct values must sum between 70 and 90. Use real, specific perfumery materials (e.g. iso e super, hedione, ambroxan, linalool, vetiver, musks, orris, etc.). The selection must serve the brief.',
       },
       {
         role: "user",
-        content: moodLine
-          ? moodLine
-          : "Surprise me — three original formula starting points.",
+        content: `Formula name: "${name}"\nBrief: "${brief}"\n\nSuggest materials.`,
       },
     ],
   });
 
-  const raw = response.choices[0]?.message?.content ?? '{"ideas":[]}';
+  const raw = stripFences(response.choices[0]?.message?.content ?? '{"materials":[]}');
   try {
-    const data = JSON.parse(raw);
-    res.json(data);
+    res.json(JSON.parse(raw));
   } catch {
     res.json({
-      ideas: [
-        {
-          name: "Something quiet",
-          brief: "A scent that stays after everyone has left the room.",
-          direction: "Build around ambrette seed with a trace of orris and birch tar.",
-          materials: [
-            { name: "Ambrette seed", role: "heart", pct: 20 },
-            { name: "Orris butter", role: "heart", pct: 12 },
-            { name: "Birch tar", role: "base", pct: 8 },
-            { name: "Iso E Super", role: "base", pct: 18 },
-            { name: "Bergamot", role: "top", pct: 15 },
-          ],
-        },
+      materials: [
+        { name: "Ambrette seed", role: "heart", pct: 20 },
+        { name: "Orris butter",  role: "heart", pct: 12 },
+        { name: "Iso E Super",   role: "base",  pct: 18 },
+        { name: "Bergamot",      role: "top",   pct: 15 },
+        { name: "Birch tar",     role: "base",  pct: 8  },
       ],
     });
   }

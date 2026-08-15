@@ -1120,7 +1120,7 @@ function IngredientBuilder({
 }
 
 type FormulaIdeaMaterial = { name: string; role: "top" | "heart" | "base"; pct: number };
-type FormulaIdea = { name: string; brief: string; direction: string; materials?: FormulaIdeaMaterial[] };
+type FormulaIdea = { name: string; brief: string; direction: string };
 
 const IDEA_PROMPTS = [
   "Something that smells like the last hour of summer…",
@@ -1177,13 +1177,91 @@ const ROLE_META: Record<string, { label: string; barOpacity: string; dotColor: s
   base:  { label: "Base",  barOpacity: "opacity-35", dotColor: "bg-white/35" },
 };
 
-function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: () => void; onClose: () => void }) {
-  // Sort materials: top → heart → base
-  const materials = [...(idea.materials ?? [])].sort((a, b) => {
+function MaterialBars({ materials }: { materials: FormulaIdeaMaterial[] }) {
+  const sorted = [...materials].sort((a, b) => {
     const order = { top: 0, heart: 1, base: 2 };
     return (order[a.role] ?? 3) - (order[b.role] ?? 3);
   });
-  const maxPct = Math.max(...materials.map(m => m.pct), 1);
+  const maxPct = Math.max(...sorted.map(m => m.pct), 1);
+  return (
+    <div className="space-y-4">
+      {sorted.map((mat, i) => {
+        const meta = ROLE_META[mat.role] ?? ROLE_META.base;
+        const barWidth = `${Math.round((mat.pct / maxPct) * 100)}%`;
+        return (
+          <motion.div
+            key={mat.name}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.07, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <span className={`inline-block h-1.5 w-1.5 shrink-0 ${meta.dotColor}`} />
+                <span className="text-sm text-white/90">{mat.name}</span>
+                <span className="font-mono-ui text-[8px] uppercase tracking-widest text-white/30">{meta.label}</span>
+              </div>
+              <span className="font-mono-ui text-[11px] tabular-nums text-white/50">{mat.pct}%</span>
+            </div>
+            <div className="h-[2px] w-full bg-white/10">
+              <motion.div
+                className={`h-full bg-white ${meta.barOpacity}`}
+                initial={{ width: 0 }}
+                animate={{ width: barWidth }}
+                transition={{ delay: 0.06 + i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </div>
+          </motion.div>
+        );
+      })}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: sorted.length * 0.07 + 0.1, duration: 0.3 }}
+        className="mt-2 flex items-center justify-between border-t border-white/10 pt-3"
+      >
+        <span className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-white/30">Concentrate total</span>
+        <span className="font-mono-ui text-[11px] tabular-nums text-white/50">
+          {sorted.reduce((s, m) => s + m.pct, 0)}%
+        </span>
+      </motion.div>
+    </div>
+  );
+}
+
+function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: () => void; onClose: () => void }) {
+  const { getToken } = useAuth();
+  const [materials, setMaterials] = useState<FormulaIdeaMaterial[]>([]);
+  const [loadingMats, setLoadingMats] = useState(true);
+  const [matsError, setMatsError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingMats(true);
+    setMatsError(false);
+    (async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch(`${basePath}/api/formulas/idea-materials`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: "include",
+          body: JSON.stringify({ name: idea.name, brief: idea.brief }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) setMaterials(data.materials ?? []);
+      } catch {
+        if (!cancelled) setMatsError(true);
+      } finally {
+        if (!cancelled) setLoadingMats(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [idea.name, idea.brief]);
 
   return (
     <AnimatePresence>
@@ -1244,68 +1322,43 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: ()
             <p className="text-base leading-7 text-white/85">{idea.brief}</p>
           </motion.div>
 
-          {/* Materials — animated bars */}
-          {materials.length > 0 && (
-            <div className="mt-6 border-t border-white/10 pt-5">
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-5">Materials &amp; ratios</p>
-              <div className="space-y-4">
-                {materials.map((mat, i) => {
-                  const meta = ROLE_META[mat.role] ?? ROLE_META.base;
-                  const barWidth = `${Math.round((mat.pct / maxPct) * 100)}%`;
-                  return (
-                    <motion.div
-                      key={mat.name}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.12 + i * 0.07, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                    >
-                      {/* Name row */}
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-block h-1.5 w-1.5 shrink-0 ${meta.dotColor}`} />
-                          <span className="text-sm text-white/90">{mat.name}</span>
-                          <span className="font-mono-ui text-[8px] uppercase tracking-widest text-white/30">{meta.label}</span>
-                        </div>
-                        <span className="font-mono-ui text-[11px] tabular-nums text-white/50">{mat.pct}%</span>
-                      </div>
-                      {/* Bar */}
-                      <div className="h-[2px] w-full bg-white/10">
-                        <motion.div
-                          className={`h-full bg-white ${meta.barOpacity}`}
-                          initial={{ width: 0 }}
-                          animate={{ width: barWidth }}
-                          transition={{ delay: 0.18 + i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                        />
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-              {/* Total */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.18 + materials.length * 0.07 + 0.1, duration: 0.3 }}
-                className="mt-5 flex items-center justify-between border-t border-white/10 pt-3"
-              >
-                <span className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-white/30">Concentrate total</span>
-                <span className="font-mono-ui text-[11px] tabular-nums text-white/50">
-                  {materials.reduce((s, m) => s + m.pct, 0)}%
-                </span>
-              </motion.div>
-            </div>
-          )}
-
-          {/* Direction note */}
+          {/* Direction */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.25, duration: 0.3 }}
-            className="mt-6 border-t border-white/10 pt-5 pb-2"
+            transition={{ delay: 0.13, duration: 0.3 }}
+            className="mt-5 border-t border-white/10 pt-5"
           >
             <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-2">Direction</p>
             <p className="text-sm leading-6 text-white/55">{idea.direction}</p>
           </motion.div>
+
+          {/* Materials — fetched on open */}
+          <div className="mt-6 border-t border-white/10 pt-5 pb-4">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-5">Materials &amp; ratios</p>
+
+            {loadingMats && (
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="animate-pulse">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="h-3 bg-white/10 rounded-none" style={{ width: `${40 + i * 8}%` }} />
+                      <div className="h-3 w-8 bg-white/10 rounded-none" />
+                    </div>
+                    <div className="h-[2px] w-full bg-white/10" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!loadingMats && matsError && (
+              <p className="text-xs text-white/40">Couldn't load materials. Try again.</p>
+            )}
+
+            {!loadingMats && !matsError && materials.length > 0 && (
+              <MaterialBars materials={materials} />
+            )}
+          </div>
         </div>
 
         {/* Sticky CTA */}
