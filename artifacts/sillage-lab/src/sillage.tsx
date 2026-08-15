@@ -2838,7 +2838,7 @@ function Shop() {
 const FIELD_NOTE_SCENES = [
   {
     fieldNote: "014", date: "03.14",
-    bg: "landing-site.jpg",
+    bg: "hero-flowers.jpg",
     name: "salt / iris", nameEm: "old wood",
     description: "A little mineral. A soft refusal. Something that stays after the room is empty.",
     concentration: "20%", unit: "eau de parfum",
