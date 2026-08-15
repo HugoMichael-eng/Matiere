@@ -12,7 +12,7 @@ const IdeasBody = z.object({
 
 const MaterialsBody = z.object({
   name: z.string().max(200),
-  brief: z.string().max(600),
+  brief: z.string().max(1200),
 });
 
 function stripFences(raw: string): string {
@@ -39,7 +39,7 @@ router.post("/formulas/ideas", async (req, res): Promise<void> => {
       {
         role: "system",
         content:
-          'You are a creative director for an independent perfumery studio. Generate exactly 3 original formula ideas. Return valid JSON only — no markdown, no code fences — in this exact shape: { "ideas": [ { "name": "...", "brief": "...", "direction": "..." } ] }. NAME: evocative, literary, 2–5 words. BRIEF: one sentence capturing the emotional intention, not a list of notes. DIRECTION: one sentence on the structural or material angle. Make ideas genuinely distinct. Avoid clichés — no "fresh", "clean", "bold", "vibrant". Think like an artist.',
+          'You are a creative director at an independent fine fragrance studio working with professional perfumers. Generate exactly 3 original formula concepts. Return valid JSON only — no markdown, no code fences — in this exact shape: { "ideas": [ { "name": "...", "brief": "...", "direction": "..." } ] }. NAME: evocative and literary, 2–5 words, no generic perfume titles. BRIEF: one sentence of pure emotional or sensory intention — what the wearer feels or remembers, never a list of notes. DIRECTION: one sentence describing the structural or material strategy — name the accord architecture, a key tension (e.g. mineral vs. animalic, green vs. resinous), or a specific technique (e.g. chypre base inverted, musk-forward skeleton, lactonic heart). Make the three ideas genuinely distinct in both concept and structure. No clichés: avoid "fresh", "clean", "vibrant", "bold", "sensual", "luxurious". Think like a Nose with 20 years of competition experience.',
       },
       { role: "user", content: userMsg },
     ],
@@ -69,16 +69,33 @@ router.post("/formulas/idea-materials", async (req, res): Promise<void> => {
 
   const response = await openai.chat.completions.create({
     model: "gpt-5.6-terra",
-    max_completion_tokens: 1100,
+    max_completion_tokens: 3000,
     messages: [
       {
         role: "system",
-        content:
-          'You are a master perfumer composing a working formula. Given a concept, suggest 10–14 specific aromatic materials that build it with real structural depth. Return valid JSON only — no markdown, no code fences — in this shape: { "materials": [ { "name": "Bergamot", "role": "top", "pct": 12 } ] }. Rules: ROLE must be exactly "top", "heart", or "base". PCT must be a positive integer. All pct values must sum between 90 and 110 (a complete concentrate). Coverage rules: include at least 2 top notes (citrus, green, aromatic), at least 3–4 heart notes (florals, spices, resins, woods), at least 3 base notes (musks, ambers, woods, animalics), and 1–2 modifiers or diffusants (e.g. hedione, iso e super, ambroxan, linalool, ethylene brassylate, galaxolide). Use real, specific perfumery materials — IUPAC names or trade names both fine (e.g. "Iso E Super", "Ambroxan", "Hedione HC", "Cashmeran", "Clearwood", "Benzyl salicylate"). No vague generics like "musk" alone. The blend must serve the brief coherently.',
+        content: `You are a professional perfumer with decades of fine fragrance experience. Given a formula concept, compose a complete working material list as a professional studio Nose would — typically 20–40 ingredients depending on the complexity the concept demands. Do not pad; do not truncate. The list should reflect the actual complexity a fine fragrance of this type requires.
+
+Return valid JSON only — no markdown, no code fences — in this exact shape:
+{ "materials": [ { "name": "Bergamot", "role": "top", "pct": 12 } ] }
+
+RULES:
+- ROLE must be exactly "top", "heart", or "base"
+- PCT is a positive number (decimals allowed, e.g. 0.5, 1.5); represent small-dose materials accurately
+- All pct values must sum between 95 and 115 (the full concentrate)
+- Use real trade names and IUPAC names as professionals use them — never vague generics like "musk" or "wood" alone
+
+STRUCTURE (cover all of these):
+• Top accord (4–6 materials): citrus, green, aromatic, aldehydic, ozone — e.g. Bergamot, Lemon, Grapefruit, Petitgrain, Basil, Violet leaf absolute, Hedione, Calone 1951, Iso-methyl ionone
+• Heart accord (8–14 materials): florals, spices, resins, phenolics — e.g. Rose oxide, Damascone Beta, Phenyl ethyl alcohol, Eugenol, Methyl laitone, Habanolide, Floralozone, Clove bud, Ylang ylang, Jasmine absolute, Geraniol, Dihydromyrcenol
+• Base accord (6–10 materials): woods, musks, ambers, animalics, balsams — e.g. Clearwood, Javanol, Ambroxan, Cetalox, Cashmeran, Timberol, Norlimbanol, Galaxolide, Habanolide, Labdanum absolute, Benzyl benzoate, Ethylene brassylate, Tonalide, Iso E Super (can read top/base), Vetiver acetate, Patchouli alcohol
+• Diffusants & carriers (2–4 materials): IPM, DPG, benzyl salicylate, linalool, Iso E Super — these improve radiance and projection
+• Fixatives (2–3 materials): musks or resins that extend longevity — e.g. Macrocyclic musks, Evernyl methyl ether, Benzyl benzoate, Labdanum
+
+TONE: Choose materials that genuinely serve the brief. Reflect current IFF, Givaudan, Symrise, and Firmenich catalogues — use materials that are available and widely used in professional studio work. Avoid anachronistic materials or ones that are effectively banned (HICC, musk ambrette, oakmoss above trace). Nitromusks are out. Polycyclic musks are in. For a brief that lends itself to naturals, include absolutes and CO2 extracts. For a synthetic-forward brief, lean into aroma chemicals. The blend must be coherent and serve the concept.`,
       },
       {
         role: "user",
-        content: `Formula name: "${name}"\nBrief: "${brief}"\n\nSuggest materials.`,
+        content: `Formula name: "${name}"\nBrief: "${brief}"\n\nCompose the material list.`,
       },
     ],
   });
