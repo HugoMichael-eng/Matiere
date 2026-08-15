@@ -608,11 +608,25 @@ function MaterialHero({ material }: { material: Material }) {
   );
 }
 
-function QuickPrompt() {
+function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string }) {
   const [message, setMessage] = useState("");
   const [, setLocation] = useLocation();
   const qc = useQueryClient();
   const createConv = useCreateConversation();
+  const heroRef = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const sx = useSpring(mx, { stiffness: 70, damping: 20 });
+  const sy = useSpring(my, { stiffness: 70, damping: 20 });
+  const imgX = useTransform(sx, [0, 1], ["-2%", "2%"]);
+  const imgY = useTransform(sy, [0, 1], ["-2%", "2%"]);
+
+  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = heroRef.current?.getBoundingClientRect();
+    if (!r) return;
+    mx.set((e.clientX - r.left) / r.width);
+    my.set((e.clientY - r.top) / r.height);
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -634,47 +648,134 @@ function QuickPrompt() {
   const isPending = createConv.isPending;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className="relative my-7 overflow-hidden border border-border bg-secondary/50 p-6 sm:p-8"
+    <div
+      ref={heroRef}
+      onMouseMove={onMouseMove}
+      onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
+      className="relative overflow-hidden border-b border-border bg-foreground -mx-5 sm:-mx-8 lg:-mx-12"
+      style={{ minHeight: "clamp(420px, 55vw, 600px)" }}
     >
-      <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Creative lab</p>
-      <h2 className="mt-3 font-display text-4xl leading-tight">What are you working on?</h2>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">A difficult material, a flat drydown, a brief that won't settle. Start here.</p>
-      <form onSubmit={submit} className="mt-6 flex items-center gap-0 border border-border bg-card">
-        <input
-          value={message}
-          onChange={e => setMessage(e.target.value)}
-          disabled={isPending}
-          data-testid="input-quick-prompt"
-          className="min-w-0 flex-1 bg-transparent px-4 py-4 text-sm outline-none placeholder:text-muted-foreground/60"
-          placeholder="I'm trying to make something that feels like…"
+      {/* Photo texture layer — parallax on desktop */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-[-4%] will-change-transform"
+        style={{ x: imgX, y: imgY }}
+      >
+        <img
+          src={`${import.meta.env.BASE_URL}images/hero-droplets.jpg`}
+          alt=""
+          className="h-full w-full object-cover opacity-[0.13] mix-blend-luminosity"
         />
-        <button
-          type="submit"
-          disabled={isPending || !message.trim()}
-          data-testid="button-quick-prompt-send"
-          className="grid h-[52px] w-14 shrink-0 place-items-center bg-primary text-primary-foreground disabled:opacity-40"
+      </motion.div>
+
+      {/* Gradient vignette — darker bottom so text reads cleanly */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%)",
+        }}
+      />
+      {/* Left vignette for breathing room on wide screens */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 hidden sm:block"
+        style={{
+          background: "linear-gradient(to right, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0) 50%)",
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative flex h-full flex-col justify-between px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
+
+        {/* Top row: eyebrow + quiet secondary action */}
+        <motion.div
+          className="flex items-center justify-between"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
         >
-          {isPending
-            ? <span className="size-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
-            : <Send size={15} />}
-        </button>
-      </form>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {["How do I make a clean musk less obvious?", "The opening is too linear.", "I want warmth without sweetness."].map(prompt => (
-          <button
-            key={prompt}
-            onClick={() => setMessage(prompt)}
-            className="border border-border bg-card px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-wider text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.32em] text-white/40">
+            {weekday} · studio desk
+          </p>
+          <Link
+            href="/formulas/new"
+            data-testid="button-new-formula"
+            className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-white/40 transition-colors hover:text-white/80"
           >
-            {prompt}
-          </button>
-        ))}
+            New formula
+          </Link>
+        </motion.div>
+
+        {/* Greeting — editorial scale */}
+        <div className="mt-auto">
+          <motion.h1
+            data-testid={`heading-${`${greeting}, maker.`.toLowerCase().replaceAll(" ", "-")}`}
+            className="font-display leading-[.85] tracking-[-0.03em] text-white"
+            style={{ fontSize: "clamp(3.2rem, 9vw, 8rem)" }}
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {greeting},
+            <br />
+            maker.
+          </motion.h1>
+
+          {/* QuickPrompt card — sits as a distinct layer at the bottom of the hero */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-8 border border-white/10 bg-white/[0.06] backdrop-blur-sm"
+            style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.35)" }}
+          >
+            {/* Prompt header */}
+            <div className="border-b border-white/10 px-5 py-4 sm:px-6">
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-white/40">Creative lab</p>
+              <h2 className="mt-1.5 font-display text-xl leading-tight text-white sm:text-2xl">
+                What are you working on?
+              </h2>
+            </div>
+
+            {/* Input row */}
+            <form onSubmit={submit} className="flex items-stretch">
+              <input
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                disabled={isPending}
+                data-testid="input-quick-prompt"
+                className="min-w-0 flex-1 bg-transparent px-5 py-4 text-sm text-white outline-none placeholder:text-white/30"
+                placeholder="I'm trying to make something that feels like…"
+              />
+              <button
+                type="submit"
+                disabled={isPending || !message.trim()}
+                data-testid="button-quick-prompt-send"
+                className="grid h-[52px] w-14 shrink-0 place-items-center bg-white text-foreground transition-opacity disabled:opacity-30 hover:opacity-90"
+              >
+                {isPending
+                  ? <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
+                  : <Send size={15} />}
+              </button>
+            </form>
+
+            {/* Suggestion chips */}
+            <div className="flex flex-wrap gap-2 border-t border-white/10 px-5 py-3 sm:px-6">
+              {["How do I make a clean musk less obvious?", "The opening is too linear.", "I want warmth without sweetness."].map(prompt => (
+                <button
+                  key={prompt}
+                  onClick={() => setMessage(prompt)}
+                  className="border border-white/15 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-wider text-white/40 transition-colors hover:border-white/35 hover:text-white/70"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -720,15 +821,8 @@ function Dashboard() {
 
   return (
     <Shell>
-      <PageHeader
-        eyebrow={`${weekday} · studio desk`}
-        title={`${greeting}, maker.`}
-        description="A clear view of the work that's still becoming."
-        action={<Button href="/formulas/new" testId="button-new-formula">New formula</Button>}
-      />
-
-      {/* ── QUICK PROMPT ──────────────────────────────────── */}
-      <QuickPrompt />
+      {/* ── HERO: greeting + quick prompt merged ──────────── */}
+      <QuickPrompt greeting={greeting} weekday={weekday} />
 
       {/* ── STAGE PIPELINE ────────────────────────────────── */}
       {stageTotal > 0 && <StageTrack counts={stageCounts} total={stageTotal} />}
