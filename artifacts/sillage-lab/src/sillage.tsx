@@ -2048,5 +2048,5 @@ export function SillageApp() {
 function HomeRedirect() {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return <Landing />;
-  return isSignedIn ? <Redirect to="/dashboard" /> : <Landing />;
+  return isSignedIn ? <Redirect to="/coach" /> : <Landing />;
 }
