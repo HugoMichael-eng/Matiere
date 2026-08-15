@@ -2989,7 +2989,7 @@ function Protected({ children }: { children: ReactNode }) {
 }
 
 function AuthPage({ kind }: { kind: "in" | "up" }) {
-  return <div className="grid min-h-[100dvh] place-items-center px-4 py-10 bg-[#ffffff]"><div className="absolute left-6 top-6 sm:left-10 sm:top-8"><Logo /></div><div className="relative z-10 w-full max-w-[440px] border border-border bg-card p-2 shadow-2xl">{kind === "in" ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} /> : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />}</div></div>;
+  return <div className="grid min-h-[100dvh] place-items-center px-4 py-10 bg-[#ffffff]"><div className="absolute left-6 top-6 sm:left-10 sm:top-8"><Logo /></div><div className="relative z-10 w-full max-w-[440px] border border-border bg-card p-2 shadow-2xl">{kind === "in" ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} fallbackRedirectUrl={`${basePath}/dashboard`} /> : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} fallbackRedirectUrl={`${basePath}/dashboard`} />}</div></div>;
 }
 
 function NotFoundView() {
