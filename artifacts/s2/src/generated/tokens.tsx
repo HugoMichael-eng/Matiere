@@ -79,8 +79,8 @@ export const tokens = {
       "sans-serif"
     ],
     "serif": [
-      "Cormorant Garamond",
-      "serif"
+      "Jost",
+      "sans-serif"
     ],
     "mono": [
       "JetBrains Mono",

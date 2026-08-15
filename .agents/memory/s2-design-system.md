@@ -11,11 +11,10 @@ description: S2 token decisions, font choices, and aesthetic rules for the Edito
 Pure black and white tension with a single cold muted lavender-steel accent. No warmth anywhere. Every edge sharp (zero radius). Two typefaces in deliberate contrast.
 
 ## Fonts
-- **Sans (UI/body):** Jost — geometric grotesque, free Futura substitute. Loaded from Google Fonts.
-- **Serif (display):** Cormorant Garamond — high-contrast editorial serif. Used for large display headlines only, never body.
-- **Mono:** JetBrains Mono — clean technical mono.
+- **Single typeface:** Jost only, weights 100–900. No serif. All contrast comes from weight and scale, not font family.
+- **Mono:** JetBrains Mono — for formulas, CAS numbers, lab data, code only.
 
-**Why:** Futura is licensed/not on Google Fonts; Jost is the closest free substitute. Cormorant creates tension against Jost's rational geometry — the same pairing used in luxury fashion/beauty.
+**Why:** CDG/Acne Studios reference — both are single-typeface systems. Cormorant Garamond was removed because the user didn't like it. The "serif" token alias in tokens.json also maps to Jost to keep CSS vars consistent.
 
 ## Key token values (light)
 - accent: `#B0AAB8` — cold muted lavender-steel (the system's ONLY colour personality)

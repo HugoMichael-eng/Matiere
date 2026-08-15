@@ -60,18 +60,18 @@ function Swatch({
 export function OverviewPage() {
   return (
     <div className="space-y-4">
-      {/* Editorial hero — Cormorant × Jost pairing */}
+      {/* Editorial hero — single typeface, weight contrast */}
       <section className="border bg-foreground p-8 text-background">
         <p className="font-sans text-[10px] uppercase tracking-[.25em] text-background/40">S2 · Editorial Void</p>
-        <h1 className="mt-3 font-serif text-5xl font-light leading-[.9] tracking-tight">
+        <h1 className="mt-3 font-sans text-6xl font-thin leading-[.85] tracking-tight">
           The materials<br />answer back.
         </h1>
-        <p className="mt-4 font-sans text-sm text-background/60 max-w-sm leading-6">
-          Pure black and white. One cold accent. Jost carries the structure; Cormorant Garamond holds the soul.
+        <p className="mt-5 font-sans text-sm font-normal text-background/60 max-w-sm leading-6">
+          One typeface. Extreme weight contrast. No decoration — only precision.
         </p>
         <div className="mt-6 flex gap-3">
           <Button variant="outline" className="border-background/20 text-background hover:bg-background/10">Explore</Button>
-          <span className="flex items-center px-3 font-sans text-[10px] uppercase tracking-widest text-background/30">Zero radius · Two typefaces · One accent</span>
+          <span className="flex items-center px-3 font-sans text-[10px] uppercase tracking-widest text-background/30">Zero radius · One typeface · One accent</span>
         </div>
       </section>
 
@@ -88,19 +88,23 @@ export function OverviewPage() {
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Type pairing */}
+        {/* Weight contrast */}
         <section className="border bg-card p-5 text-card-foreground">
           <h2 className="text-[10px] font-medium uppercase tracking-[.2em] text-muted-foreground">
-            Type pairing
+            Weight contrast
           </h2>
-          <div className="mt-5 space-y-4">
+          <div className="mt-5 space-y-3">
             <div>
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Jost — UI / Body</p>
-              <p className="font-sans text-2xl font-light">The quick brown fox</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">100 — Display</p>
+              <p className="font-sans text-4xl font-thin leading-none">Matière</p>
             </div>
-            <div className="border-t pt-4">
-              <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">Cormorant Garamond — Display</p>
-              <p className="font-serif text-3xl font-light italic leading-tight">The quick brown fox</p>
+            <div className="border-t pt-3">
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">400 — Body</p>
+              <p className="font-sans text-base font-normal">The quick brown fox jumps over the lazy dog.</p>
+            </div>
+            <div className="border-t pt-3">
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground mb-1">700 — Emphasis</p>
+              <p className="font-sans text-sm font-bold uppercase tracking-widest">Studio desk</p>
             </div>
           </div>
         </section>
@@ -188,36 +192,44 @@ export function ColorsPage() {
 }
 
 export function FontsPage() {
+  const WEIGHTS = [
+    { w: '100', label: 'Thin' },
+    { w: '200', label: 'ExtraLight' },
+    { w: '300', label: 'Light' },
+    { w: '400', label: 'Regular' },
+    { w: '500', label: 'Medium' },
+    { w: '600', label: 'SemiBold' },
+    { w: '700', label: 'Bold' },
+    { w: '800', label: 'ExtraBold' },
+    { w: '900', label: 'Black' },
+  ] as const;
+
   return (
     <div className="space-y-6 border bg-card p-6 text-card-foreground">
-      {/* Jost */}
+      {/* Specimen */}
       <section>
-        <p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Jost — Sans / UI / Body</p>
-        <p className="mt-3 font-sans text-5xl font-extralight leading-none">Aa Bb Cc</p>
-        <p className="mt-3 font-sans text-xl font-light">The quick brown fox jumps over the lazy dog.</p>
-        <p className="mt-2 font-sans text-base">Geometric grotesque. Futura-inspired precision. Every letterform is a decision.</p>
-        <p className="mt-2 font-sans text-sm text-muted-foreground">Used for: all UI labels, body copy, buttons, navigation, data.</p>
-        <div className="mt-4 flex flex-wrap gap-4">
-          {(['100','200','300','400','500','600','700'] as const).map(w => (
-            <span key={w} className="font-sans text-sm" style={{ fontWeight: w }}>Aa {w}</span>
-          ))}
-        </div>
+        <p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Jost — The only typeface</p>
+        <p className="mt-4 font-sans text-[80px] font-thin leading-none tracking-tight">Aa</p>
+        <p className="mt-4 font-sans text-xl font-light leading-snug">
+          Geometric grotesque. Futura-inspired precision.<br />One typeface, nine weights, infinite contrast.
+        </p>
+        <p className="mt-2 font-sans text-sm text-muted-foreground">
+          All roles — display, body, UI, labels — use Jost. Weight and scale create the hierarchy.
+        </p>
       </section>
 
       <div className="border-t" />
 
-      {/* Cormorant Garamond */}
+      {/* Weight ramp */}
       <section>
-        <p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Cormorant Garamond — Serif / Display</p>
-        <p className="mt-3 font-serif text-5xl font-light leading-none italic">Aa Bb Cc</p>
-        <p className="mt-3 font-serif text-2xl font-light italic">The quick brown fox jumps over the lazy dog.</p>
-        <p className="mt-2 font-serif text-lg">High contrast. Hairline strokes. Used for display moments only — never body copy.</p>
-        <p className="mt-2 font-sans text-sm text-muted-foreground">Used for: editorial headlines, large display type, expressive statements.</p>
-        <div className="mt-4 flex flex-wrap gap-4">
-          {(['300','400','500','600'] as const).map(w => (
-            <span key={w} className="font-serif text-sm" style={{ fontWeight: w }}>Aa {w}</span>
+        <p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground mb-4">Weight ramp</p>
+        <div className="space-y-3">
+          {WEIGHTS.map(({ w, label }) => (
+            <div key={w} className="flex items-baseline gap-6">
+              <span className="w-24 shrink-0 font-sans text-[9px] uppercase tracking-widest text-muted-foreground">{w} {label}</span>
+              <p className="font-sans text-2xl leading-none" style={{ fontWeight: w }}>The quick brown fox</p>
+            </div>
           ))}
-          <span className="font-serif text-sm italic">Italic</span>
         </div>
       </section>
 
@@ -225,10 +237,10 @@ export function FontsPage() {
 
       {/* Type scale */}
       <section className="space-y-4">
-        <h2 className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Scale</h2>
+        <p className="text-[9px] uppercase tracking-[.25em] text-muted-foreground">Scale in use</p>
         {TYPE_SCALE.map((entry) => (
           <div key={entry.label} className="grid gap-2 sm:grid-cols-[88px_1fr]">
-            <span className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <span className="pt-1 text-[9px] uppercase tracking-widest text-muted-foreground">
               {entry.label}
             </span>
             <p className={entry.className}>Every edge is a statement.</p>

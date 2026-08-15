@@ -192,7 +192,7 @@ export type NavGroup = {
 export const DESIGN_SYSTEM = {
   title: 'S2 Design System',
   description:
-    'Editorial Void — pure black and white tension with a cold muted accent. Jost × Cormorant Garamond. Zero radius throughout.',
+    'Editorial Void — one typeface, extreme weight contrast. Jost 100–900, cold lavender accent, zero radius throughout.',
 } as const;
 
 export const OVERVIEW_ENTRY: PreviewEntry = {
