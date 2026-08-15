@@ -216,7 +216,50 @@ function StatusPill({ value }: { value: string }) {
 }
 
 function Skeleton({ className = "" }: { className?: string }) { return <div className={`animate-pulse bg-muted ${className}`} />; }
-function ErrorState({ retry }: { retry: () => void }) { return <div className="border border-destructive/30 bg-destructive/5 p-8 text-center"><CircleAlert className="mx-auto text-destructive" /><p className="mt-3 font-display text-2xl">The studio is quiet.</p><p className="mt-1 text-sm text-muted-foreground">We couldn’t read your workspace just now.</p><div className="mt-4"><Button onClick={retry} variant="outline" testId="button-retry">Try again</Button></div></div>; }
+function ErrorState({ retry }: { retry: () => void }) { return <div className="border border-destructive/30 bg-destructive/5 p-8 text-center"><CircleAlert className="mx-auto text-destructive" /><p className="mt-3 font-display text-2xl">The studio is quiet.</p><p className="mt-1 text-sm text-muted-foreground">We couldn't read your workspace just now.</p><div className="mt-4"><Button onClick={retry} variant="outline" testId="button-retry">Try again</Button></div></div>; }
+
+/** Lab-notebook section separator: hairline rule with a centred monospace label */
+function SectionRule({ label }: { label: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="relative flex items-center gap-4 py-6"
+    >
+      <div className="h-px flex-1 bg-border" />
+      <span className="shrink-0 bg-background px-3 font-mono-ui text-[8px] uppercase tracking-[.28em] text-muted-foreground">
+        {label}
+      </span>
+      <div className="h-px flex-1 bg-border" />
+    </motion.div>
+  );
+}
+
+/** Contact-sheet image tile with a monospace caption */
+function ImageTile({ src, caption, objectPosition = "center" }: { src: string; caption: string; objectPosition?: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="flex flex-col"
+    >
+      <div className="overflow-hidden" style={{ height: "40vh", minHeight: 220 }}>
+        <img
+          src={src}
+          alt=""
+          aria-hidden
+          className="h-full w-full object-cover"
+          style={{ objectPosition }}
+        />
+      </div>
+      <p className="mt-2 font-mono-ui text-[8px] uppercase tracking-[.22em] text-muted-foreground">{caption}</p>
+    </motion.div>
+  );
+}
 
 function FormulaRow({ formula }: { formula: Formula }) {
   return (
@@ -539,6 +582,14 @@ function MaterialHero({ material }: { material: Material }) {
           onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
           className="group relative overflow-hidden bg-secondary/20"
         >
+          {/* Background leaves image */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+            <img
+              src={`${import.meta.env.BASE_URL}images/leaves.jpg`}
+              alt=""
+              className="h-full w-full object-cover opacity-[0.08] mix-blend-luminosity grayscale"
+            />
+          </div>
           {/* Cursor glow */}
           <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ background: glowBg }} />
 
@@ -643,9 +694,17 @@ function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string 
           className="h-full w-full object-cover opacity-[0.13] mix-blend-luminosity"
         />
       </motion.div>
+      {/* SVG grain / noise overlay */}
+      <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
+        <filter id="qp-grain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#qp-grain)" />
+      </svg>
 
       {/* Content */}
-      <div className="relative flex flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-12">
+      <div className="relative flex flex-col px-5 py-10 sm:px-8 sm:py-12 lg:px-12">
         {/* Top row: eyebrow + quiet secondary action */}
         <motion.div
           className="flex items-center justify-between"
@@ -743,6 +802,47 @@ function Dashboard() {
         ))}
       </div>
 
+      {/* ── MATERIALS SPOTLIGHT STRIP ─────────────────────── */}
+      <motion.div
+        className="border-b border-border overflow-hidden"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div className="flex items-center justify-between px-0 pt-5 pb-3">
+          <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-muted-foreground">Palette · seasonal</p>
+        </div>
+        <div className="flex gap-px overflow-x-auto">
+          {[
+            { src: `${import.meta.env.BASE_URL}images/spice.jpg`,     label: "Cardamom CO₂", pos: "center" },
+            { src: `${import.meta.env.BASE_URL}images/jasmine.jpg`,  label: "Jasmine sambac", pos: "center" },
+            { src: `${import.meta.env.BASE_URL}images/resin.jpg`,    label: "Labdanum abs.", pos: "center" },
+            { src: `${import.meta.env.BASE_URL}images/leaves.jpg`,   label: "Vetiver roots", pos: "center top" },
+          ].map(({ src, label, pos }, i) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.06 + i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="group relative flex-1 min-w-[120px] overflow-hidden"
+              style={{ height: 120 }}
+            >
+              <img
+                src={src}
+                alt=""
+                aria-hidden
+                className="absolute inset-0 h-full w-full object-cover opacity-60 transition-opacity duration-500 group-hover:opacity-80"
+                style={{ objectPosition: pos }}
+              />
+              <div className="absolute inset-0 bg-foreground/40" />
+              <p className="absolute bottom-2 left-2 font-mono-ui text-[8px] uppercase tracking-[.18em] text-white/80">{label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      <SectionRule label="The notebook · recent" />
+
       {/* ── LATEST FORMULAS — full width ──────────────────── */}
       <motion.section
         className="border-b border-border py-7"
@@ -765,6 +865,8 @@ function Dashboard() {
           ? summary.recentFormulas.map(formula => <FormulaRow key={formula.id} formula={formula} />)
           : <EmptyState title="Your first formula is waiting." copy="Start with a feeling, a material, or a strange little question." href="/formulas/new" label="Open a fresh page" />}
       </motion.section>
+
+      <SectionRule label="Source · supply" />
 
       {/* ── SHOP BANNER — muted lilac panel, echoing the landing sections ── */}
       <motion.div
@@ -792,6 +894,8 @@ function Dashboard() {
 
       {/* ── ACTIVITY FEED ─────────────────────────────────── */}
       {(activityQuery.data?.length ?? 0) > 0 && (
+        <>
+        <SectionRule label="Studio log · activity" />
         <div className="py-7">
           <div className="mb-4 flex items-center justify-between">
             <div>
@@ -814,6 +918,7 @@ function Dashboard() {
             ))}
           </div>
         </div>
+        </>
       )}
     </Shell>
   );
@@ -830,10 +935,33 @@ function Formulas() {
   const [status, setStatus] = useState<"all" | "draft" | "resting" | "approved">(urlStatus ?? "all");
   const query = useListFormulas({ search: search || undefined, status: status === "all" ? undefined : status });
   const formulas = query.data ?? [];
-  return <Shell><PageHeader eyebrow="Library · formulas" title="Formula library" description="The living record of what you’ve made, paused, and almost made." action={<Button href="/formulas/new" testId="button-library-new">New formula</Button>} />
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row"><div className="relative flex-1"><Search size={16} className="absolute left-4 top-3.5 text-muted-foreground" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or brief..." data-testid="input-formula-search" className="w-full border border-border bg-card py-3 pl-11 pr-4 text-sm outline-none transition-colors focus:border-foreground/40" /></div><select value={status} data-testid="select-formula-status" className="border border-border bg-card px-4 py-3 text-xs outline-none focus:border-foreground/40" onChange={e => setStatus(e.target.value as typeof status)}><option value="all">All stages</option><option value="draft">Drafts</option><option value="resting">Resting</option><option value="approved">Approved</option></select></div>
-    <div className="border border-border bg-card px-5 sm:px-7"><div className="hidden grid-cols-[1.5fr_1fr_110px_110px_24px] gap-4 border-b border-border py-3 font-mono-ui text-[9px] uppercase tracking-[.14em] text-muted-foreground sm:grid"><span>Formula</span><span>Palette</span><span>Stage</span><span className="text-right">Changed</span><span /></div>{query.isLoading ? [1, 2, 3].map(i => <Skeleton key={i} className="my-5 h-14" />) : query.isError ? <ErrorState retry={() => query.refetch()} /> : formulas.length ? formulas.map(formula => <FormulaRow key={formula.id} formula={formula} />) : <EmptyState title="No formulas found." copy="Try another search, or give the next one a name." href="/formulas/new" label="Start a formula" />}</div>
-  </Shell>;
+  return (
+    <Shell>
+      {/* Atmospheric header banner */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.7 }}
+        className="relative -mx-5 sm:-mx-8 lg:-mx-12 h-[120px] overflow-hidden border-b border-border"
+      >
+        <img
+          src={`${import.meta.env.BASE_URL}images/molecule.jpg`}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover opacity-20 grayscale mix-blend-luminosity"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
+        <div className="relative flex h-full flex-col justify-center px-5 sm:px-8 lg:px-12">
+          <p className="font-mono-ui text-[8px] uppercase tracking-[.3em] text-muted-foreground">The notebook · all formulas</p>
+          <p className="mt-1 font-mono-ui text-[9px] text-muted-foreground/60">A living record of each composition</p>
+        </div>
+      </motion.div>
+      <PageHeader eyebrow="Library · formulas" title="Formula library" description="The living record of what you've made, paused, and almost made." action={<Button href="/formulas/new" testId="button-library-new">New formula</Button>} />
+      <SectionRule label="Filter · search" />
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row"><div className="relative flex-1"><Search size={16} className="absolute left-4 top-3.5 text-muted-foreground" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or brief..." data-testid="input-formula-search" className="w-full border border-border bg-card py-3 pl-11 pr-4 text-sm outline-none transition-colors focus:border-foreground/40" /></div><select value={status} data-testid="select-formula-status" className="border border-border bg-card px-4 py-3 text-xs outline-none focus:border-foreground/40" onChange={e => setStatus(e.target.value as typeof status)}><option value="all">All stages</option><option value="draft">Drafts</option><option value="resting">Resting</option><option value="approved">Approved</option></select></div>
+      <div className="border border-border bg-card px-5 sm:px-7"><div className="hidden grid-cols-[1.5fr_1fr_110px_110px_24px] gap-4 border-b border-border py-3 font-mono-ui text-[9px] uppercase tracking-[.14em] text-muted-foreground sm:grid"><span>Formula</span><span>Palette</span><span>Stage</span><span className="text-right">Changed</span><span /></div>{query.isLoading ? [1, 2, 3].map(i => <Skeleton key={i} className="my-5 h-14" />) : query.isError ? <ErrorState retry={() => query.refetch()} /> : formulas.length ? formulas.map(formula => <FormulaRow key={formula.id} formula={formula} />) : <EmptyState title="No formulas found." copy="Try another search, or give the next one a name." href="/formulas/new" label="Start a formula" />}</div>
+    </Shell>
+  );
 }
 
 function Materials() {
@@ -846,9 +974,58 @@ function Materials() {
   </Shell>;
 }
 
+const FAMILY_WASH: Record<string, { bg: string; img: string; pos: string }> = {
+  citrus:    { bg: "bg-secondary",  img: "botanicals.jpg", pos: "center top"    },
+  floral:    { bg: "bg-accent/30",  img: "jasmine.jpg",    pos: "center"        },
+  woody:     { bg: "bg-secondary",  img: "leaves.jpg",     pos: "center bottom" },
+  resinous:  { bg: "bg-muted",      img: "resin.jpg",      pos: "center"        },
+  fresh:     { bg: "bg-secondary",  img: "botanicals.jpg", pos: "top left"      },
+  musk:      { bg: "bg-accent/20",  img: "molecule.jpg",   pos: "center"        },
+  spicy:     { bg: "bg-muted",      img: "spice.jpg",      pos: "center"        },
+  green:     { bg: "bg-secondary",  img: "leaves.jpg",     pos: "bottom"        },
+};
+
 function MaterialCard({ material }: { material: Material }) {
   const [expanded, setExpanded] = useState(false);
-  return <article className="group border border-border bg-card p-5" data-testid={`card-material-${material.id}`}><div className="flex items-start justify-between gap-3"><div className="grid size-10 place-items-center bg-secondary text-foreground"><Leaf size={18} strokeWidth={1.5} /></div><StatusPill value={material.safetyStatus} /></div><h3 className="mt-5 font-display text-2xl leading-none" data-testid={`text-material-name-${material.id}`}>{material.name}</h3><p className="mt-2 text-xs text-muted-foreground">{material.family} · {material.origin}</p><div className="mt-5 flex items-center justify-between border-t border-border pt-4 font-mono-ui text-[9px] uppercase tracking-[.11em] text-muted-foreground"><span>IFRA {material.ifraLimit}%</span><span>{material.inStock ? "In stock" : "To source"}</span></div><button onClick={() => setExpanded(!expanded)} data-testid={`button-material-details-${material.id}`} className="mt-4 flex w-full items-center justify-between text-left text-[11px] uppercase tracking-widest text-foreground">{expanded ? "Hide notes" : "Read usage notes"}<ChevronDown size={14} className={`transition-transform ${expanded ? "rotate-180" : ""}`} /></button>{expanded && <div className="mt-3 border-t border-border pt-3 text-xs leading-5 text-muted-foreground animate-fade-in"><p>{material.usageNotes}</p>{material.allergens.length > 0 && <p className="mt-2 text-destructive">Allergens to note: {material.allergens.join(", ")}</p>}<p className="mt-2 font-mono-ui text-[9px]">CAS {material.casNumber ?? "Not listed"}</p></div>}</article>;
+  const familyKey = material.family?.toLowerCase() ?? "";
+  const wash = FAMILY_WASH[familyKey] ?? { bg: "bg-secondary", img: "botanicals.jpg", pos: "center" };
+  return (
+    <article className="group relative border border-border bg-card overflow-hidden p-5" data-testid={`card-material-${material.id}`}>
+      {/* Tinted background image */}
+      <img
+        src={`${import.meta.env.BASE_URL}images/${wash.img}`}
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.12] mix-blend-multiply"
+        style={{ objectPosition: wash.pos }}
+      />
+      <div className="relative">
+        <div className="flex items-start justify-between gap-3">
+          <div className={`grid size-10 place-items-center ${wash.bg} text-foreground`}>
+            <Leaf size={18} strokeWidth={1.5} />
+          </div>
+          <StatusPill value={material.safetyStatus} />
+        </div>
+        <h3 className="mt-5 font-display text-2xl leading-none" data-testid={`text-material-name-${material.id}`}>{material.name}</h3>
+        <p className="mt-2 text-xs text-muted-foreground">{material.family} · {material.origin}</p>
+        <div className="mt-5 flex items-center justify-between border-t border-border pt-4 font-mono-ui text-[9px] uppercase tracking-[.11em] text-muted-foreground">
+          <span>IFRA {material.ifraLimit}%</span>
+          <span>{material.inStock ? "In stock" : "To source"}</span>
+        </div>
+        <button onClick={() => setExpanded(!expanded)} data-testid={`button-material-details-${material.id}`} className="mt-4 flex w-full items-center justify-between text-left text-[11px] uppercase tracking-widest text-foreground">
+          {expanded ? "Hide notes" : "Read usage notes"}
+          <ChevronDown size={14} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
+        </button>
+        {expanded && (
+          <div className="mt-3 border-t border-border pt-3 text-xs leading-5 text-muted-foreground animate-fade-in">
+            <p>{material.usageNotes}</p>
+            {material.allergens.length > 0 && <p className="mt-2 text-destructive">Allergens to note: {material.allergens.join(", ")}</p>}
+            <p className="mt-2 font-mono-ui text-[9px]">CAS {material.casNumber ?? "Not listed"}</p>
+          </div>
+        )}
+      </div>
+    </article>
+  );
 }
 
 function MaterialCombobox({ materials, value, onChange, index }: {
@@ -2602,6 +2779,143 @@ function Landing() {
                 >
                   <p className="text-sm font-medium">{title}</p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Contact sheet — full-bleed horizontal image strip */}
+        <section className="border-t border-white/10 bg-[#000000]">
+          <div className="grid grid-cols-2 gap-px sm:grid-cols-4">
+            {[
+              { src: `${import.meta.env.BASE_URL}images/botanicals.jpg`, caption: "Dried botanicals",    pos: "center top" },
+              { src: `${import.meta.env.BASE_URL}images/resin.jpg`,    caption: "Labdanum resin",      pos: "center" },
+              { src: `${import.meta.env.BASE_URL}images/jasmine.jpg`,  caption: "Jasmine sambac",      pos: "center" },
+              { src: `${import.meta.env.BASE_URL}images/spice.jpg`,    caption: "Cardamom / pepper",   pos: "center" },
+            ].map(({ src, caption, pos }, i) => (
+              <motion.div
+                key={caption}
+                initial={{ opacity: 0, y: 22 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.8 }}
+                className="overflow-hidden"
+              >
+                <div className="relative overflow-hidden" style={{ height: "280px" }}>
+                  <img
+                    src={src}
+                    alt={caption}
+                    className="absolute inset-0 h-full w-full object-cover opacity-70 grayscale"
+                    style={{ objectPosition: pos }}
+                  />
+                  <div className="absolute inset-0 bg-black/40" />
+                  <p className="absolute bottom-4 left-4 font-mono-ui text-[9px] uppercase tracking-[.2em] text-white/40">{caption}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Manifesto — black section with large display type and decorative rules */}
+        <section className="bg-[#000000] px-5 py-24 sm:px-10">
+          <div className="mx-auto max-w-4xl">
+            {/* Top decorative rule */}
+            <motion.div
+              initial={{ opacity: 0, scaleX: 0 }}
+              whileInView={{ opacity: 1, scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="mb-12 flex items-center gap-4 origin-left"
+            >
+              <div className="h-px flex-1 bg-white/20" />
+              <span className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-white/30">Studio principle</span>
+              <div className="h-px flex-1 bg-white/20" />
+            </motion.div>
+
+            <motion.blockquote
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+              className="font-display text-[clamp(2.2rem,6vw,5.5rem)] leading-[.88] tracking-[-0.035em] text-white"
+            >
+              The formula is a record.<br />
+              The record is the instinct.<br />
+              <em className="text-[#B0AAB8]">The instinct doesn't lie.</em>
+            </motion.blockquote>
+
+            {/* Bottom decorative rule with diamond */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mt-12 flex items-center gap-4"
+            >
+              <div className="h-px flex-1 bg-white/20" />
+              <svg width="10" height="10" viewBox="0 0 10 10" className="shrink-0 text-white/20" fill="currentColor">
+                <polygon points="5,0 10,5 5,10 0,5" />
+              </svg>
+              <div className="h-px flex-1 bg-white/20" />
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-10 max-w-lg text-sm leading-7 text-white/50"
+            >
+              Built for the independent nose who works seriously. Every formula stays in the notebook. Every limit stays in the margin.
+            </motion.p>
+          </div>
+        </section>
+
+        {/* Material showcase row — static, decorative */}
+        <section className="border-t border-white/10 bg-[#000000] px-5 py-20 sm:px-10">
+          <div className="mx-auto max-w-7xl">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="mb-10 font-mono-ui text-[9px] uppercase tracking-[.3em] text-white/40"
+            >
+              The palette · key materials
+            </motion.p>
+            <div className="grid gap-px sm:grid-cols-3">
+              {[
+                { name: "Cardamom CO₂", family: "Spicy / Aromatic", origin: "Guatemala", ifra: "3.0%", img: "spice.jpg", pos: "center", note: "Eucalyptic and warm, with a cold green facet. Bridges green top notes into a spicy heart." },
+                { name: "Rose Absolute", family: "Floral", origin: "Bulgaria / Turkey", ifra: "12.0%", img: "rose.jpg", pos: "center", note: "The most complex natural in the palette. Honey, geraniol, damascenone. Nothing replaces it." },
+                { name: "Labdanum Abs.", family: "Resinous / Animalic", origin: "Spain / Greece", ifra: "6.0%", img: "resin.jpg", pos: "center", note: "Warm, leathery, animalic. The backbone of the chypre family. Irreplaceable as a fixative." },
+              ].map(({ name, family, origin, ifra, img, pos, note }, i) => (
+                <motion.div
+                  key={name}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.65, delay: i * 0.13, ease: [0.22, 1, 0.36, 1] }}
+                  className="relative overflow-hidden border border-white/10"
+                >
+                  <div className="relative h-44 overflow-hidden">
+                    <img
+                      src={`${import.meta.env.BASE_URL}images/${img}`}
+                      alt=""
+                      aria-hidden
+                      className="absolute inset-0 h-full w-full object-cover opacity-40"
+                      style={{ objectPosition: pos }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#000000]" />
+                  </div>
+                  <div className="border-t border-white/10 p-5">
+                    <h3 className="font-display text-3xl text-white">{name}</h3>
+                    <p className="mt-2 font-mono-ui text-[8px] uppercase tracking-[.18em] text-white/40">{family} · {origin}</p>
+                    <p className="mt-3 text-xs leading-5 text-white/55">{note}</p>
+                    <div className="mt-4 flex items-center gap-3 border-t border-white/10 pt-4">
+                      <span className="font-mono-ui text-[8px] uppercase tracking-[.18em] text-white/30">IFRA limit</span>
+                      <span className="font-mono-ui text-[9px] text-white/60">{ifra}</span>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
             </div>

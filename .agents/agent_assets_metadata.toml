@@ -1,0 +1,37 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "yxA8zbWb53Ei7wHTgblwz"
+uri = "file://attached_assets/inspect/botanicals.jpg"
+type = "image"
+title = "botanicals.jpg"
+description = "Inspect for Fraterworks suitability"
+
+[[outputs]]
+id = "1beM2QrbIxCgI_dOHj8kF"
+uri = "file://attached_assets/inspect/jasmine.jpg"
+type = "image"
+title = "jasmine.jpg"
+description = "Inspect for Fraterworks suitability"
+
+[[outputs]]
+id = "Q7fG3Qw09QG1DlkMgQsak"
+uri = "file://attached_assets/inspect/leaves.jpg"
+type = "image"
+title = "leaves.jpg"
+description = "Inspect for Fraterworks suitability"
+
+[[outputs]]
+id = "2KgCtqbhk4h5J-TN6wskg"
+uri = "file://attached_assets/inspect/spice.jpg"
+type = "image"
+title = "spice.jpg"
+description = "Inspect for Fraterworks suitability"
+
+[[outputs]]
+id = "dOGCemuX2LyAQsMsl1NvD"
+uri = "file://attached_assets/inspect/molecule.jpg"
+type = "image"
+title = "molecule.jpg"
+description = "Inspect for Fraterworks suitability"
