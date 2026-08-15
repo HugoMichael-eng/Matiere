@@ -641,7 +641,7 @@ function QuickPrompt() {
       className="relative my-7 overflow-hidden border border-border bg-secondary/50 p-6 sm:p-8"
     >
       <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Creative lab</p>
-      <h2 className="mt-3 font-display text-4xl leading-tight">What are you circling?</h2>
+      <h2 className="mt-3 font-display text-4xl leading-tight">What are you working on?</h2>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">A difficult material, a flat drydown, a brief that won't settle. Start here.</p>
       <form onSubmit={submit} className="mt-6 flex items-center gap-0 border border-border bg-card">
         <input
@@ -1688,7 +1688,7 @@ function Coach() {
 
                 {activeConv?.messages.length === 0 && !convQuery.isLoading && (
                   <div className="py-10 text-center">
-                    <p className="font-display text-2xl">What are you circling?</p>
+                    <p className="font-display text-2xl">What are you working on?</p>
                     <p className="mt-2 text-sm text-muted-foreground">
                       {activeFormula
                         ? `The lab knows about ${activeFormula.name}. Ask about its structure, a material, or what to try next.`
