@@ -46,7 +46,7 @@ function Button({ children, onClick, href, variant = "primary", testId, disabled
     variant === "danger" ? "bg-destructive text-destructive-foreground hover:opacity-80" :
     "bg-transparent text-muted-foreground hover:text-foreground"
   }`;
-  if (href) return <Link href={href} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-[11px] font-medium tracking-[.12em] uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-50 hover:opacity-80 bg-[#57a1d4] border-t-[#140f0b05] border-r-[#140f0b05] border-b-[#140f0b05] border-l-[#140f0b05] text-white" data-testid={testId}>{children}</Link>;
+  if (href) return <Link href={href} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-[11px] font-medium tracking-[.12em] uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-50 hover:opacity-80 border-t-[#140f0b05] border-r-[#140f0b05] border-b-[#140f0b05] border-l-[#140f0b05] text-white bg-[#000000]" data-testid={testId}>{children}</Link>;
   return <button type={type} className={cls} onClick={onClick} disabled={disabled} data-testid={testId}>{children}</button>;
 }
 
@@ -1925,115 +1925,115 @@ function FormulaDetail() {
   if (query.isError || !formula) return <Shell><ErrorState retry={() => query.refetch()} /></Shell>;
   return (
     <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex gap-2"><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><div className="flex items-center gap-3 pt-1"><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p><button onClick={begin} data-testid="button-edit-inline" className="border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:bg-secondary">Edit</button></div></div><div className="mt-5 space-y-1">{(() => { const unlinkCount = formula.ingredients.filter(i => i.materialId === 0).length; return unlinkCount > 0 ? (<div className="mb-4 flex items-start gap-2.5 border border-accent/30 bg-accent/10 px-4 py-3" data-testid="banner-unlinked-ingredients"><CircleAlert size={13} className="mt-0.5 shrink-0 text-accent-foreground/70" /><p className="font-mono-ui text-[10px] uppercase tracking-[.1em] leading-5 text-accent-foreground/70">{unlinkCount} ingredient{unlinkCount > 1 ? "s" : ""} not yet linked to your library — open Edit to resolve</p></div>) : null; })()}{formula.ingredients.map((item, i) => { const unlinked = item.materialId === 0; return (<div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className={`grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t py-4 ${unlinked ? "border-accent/30" : "border-border"}`}><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{item.materialName}</p>{unlinked && <span className="inline-flex items-center border border-accent/40 px-1.5 py-0.5 font-mono-ui text-[8px] uppercase tracking-widest text-accent-foreground/70" data-testid={`badge-unlinked-${i}`}>Unlinked</span>}</div><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>); })}</div></div>{editing && (
-                                                                                    <div className="fixed inset-0 z-40 overflow-y-auto bg-background">
-                                                                                      <div className="mx-auto max-w-5xl px-5 pb-20 pt-6 sm:px-10">
-                                                                                        <div className="mb-8 flex items-center justify-between">
-                                                                                          <div>
-                                                                                            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Editing · formula {String(formula.id).padStart(3, "0")}</p>
-                                                                                            <h2 className="mt-1 font-display text-4xl">Stay curious.</h2>
-                                                                                          </div>
-                                                                                          <button onClick={() => setEditing(false)} data-testid="button-close-edit" className="grid size-9 place-items-center border border-border bg-card hover:bg-secondary"><X size={16} /></button>
-                                                                                        </div>
-                                                                                        <div className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
-                                                                                          <div className="space-y-5">
-                                                                                            <div className="border border-border bg-card p-6 sm:p-7">
-                                                                                              <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p>
-                                                                                              <div className="mt-5 grid grid-cols-2 gap-4">
-                                                                                                <label className="text-xs font-medium">Concentration %
-                                                                                                  <input type="number" min="0" max="100" value={editConcentration} onChange={e => setEditConcentration(Number(e.target.value))} data-testid="input-edit-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
-                                                                                                </label>
-                                                                                                <label className="text-xs font-medium">Batch size ml
-                                                                                                  <input type="number" min="0" value={editTotalMl} onChange={e => setEditTotalMl(Number(e.target.value))} data-testid="input-edit-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
-                                                                                                </label>
+                                                                                          <div className="fixed inset-0 z-40 overflow-y-auto bg-background">
+                                                                                            <div className="mx-auto max-w-5xl px-5 pb-20 pt-6 sm:px-10">
+                                                                                              <div className="mb-8 flex items-center justify-between">
+                                                                                                <div>
+                                                                                                  <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Editing · formula {String(formula.id).padStart(3, "0")}</p>
+                                                                                                  <h2 className="mt-1 font-display text-4xl">Stay curious.</h2>
+                                                                                                </div>
+                                                                                                <button onClick={() => setEditing(false)} data-testid="button-close-edit" className="grid size-9 place-items-center border border-border bg-card hover:bg-secondary"><X size={16} /></button>
                                                                                               </div>
-                                                                                              <label className="mt-7 block text-xs font-medium">Stage
-                                                                                                <select value={status} onChange={e => setStatus(e.target.value as typeof status)} data-testid="select-edit-status" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40">
-                                                                                                  <option value="draft">Draft</option>
-                                                                                                  <option value="resting">Resting</option>
-                                                                                                  <option value="approved">Approved</option>
-                                                                                                  <option value="archived">Archived</option>
-                                                                                                </select>
-                                                                                              </label>
-                                                                                              <IfraCategoryPicker value={editIfraCategory} onChange={setEditIfraCategory} testId="select-edit-ifra-category" />
-                                                                                              <label className="mt-7 block text-xs font-medium">Notebook notes
-                                                                                                <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
-                                                                                              </label>
+                                                                                              <div className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
+                                                                                                <div className="space-y-5">
+                                                                                                  <div className="border border-border bg-card p-6 sm:p-7">
+                                                                                                    <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p>
+                                                                                                    <div className="mt-5 grid grid-cols-2 gap-4">
+                                                                                                      <label className="text-xs font-medium">Concentration %
+                                                                                                        <input type="number" min="0" max="100" value={editConcentration} onChange={e => setEditConcentration(Number(e.target.value))} data-testid="input-edit-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+                                                                                                      </label>
+                                                                                                      <label className="text-xs font-medium">Batch size ml
+                                                                                                        <input type="number" min="0" value={editTotalMl} onChange={e => setEditTotalMl(Number(e.target.value))} data-testid="input-edit-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+                                                                                                      </label>
+                                                                                                    </div>
+                                                                                                    <label className="mt-7 block text-xs font-medium">Stage
+                                                                                                      <select value={status} onChange={e => setStatus(e.target.value as typeof status)} data-testid="select-edit-status" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40">
+                                                                                                        <option value="draft">Draft</option>
+                                                                                                        <option value="resting">Resting</option>
+                                                                                                        <option value="approved">Approved</option>
+                                                                                                        <option value="archived">Archived</option>
+                                                                                                      </select>
+                                                                                                    </label>
+                                                                                                    <IfraCategoryPicker value={editIfraCategory} onChange={setEditIfraCategory} testId="select-edit-ifra-category" />
+                                                                                                    <label className="mt-7 block text-xs font-medium">Notebook notes
+                                                                                                      <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
+                                                                                                    </label>
+                                                                                                  </div>
+                                                                                                </div>
+                                                                                                <div className="space-y-5">
+                                                                                                  <IngredientBuilder ingredients={editIngredients} setIngredients={setEditIngredients} totalMl={editTotalMl} concentration={editConcentration} />
+                                                                                                  <div className="flex items-center justify-between border border-border bg-card p-5">
+                                                                                                    <div>
+                                                                                                      <p className="font-display text-2xl">Save the revision.</p>
+                                                                                                      <p className="mt-1 text-xs text-muted-foreground">All changes replace the current version.</p>
+                                                                                                    </div>
+                                                                                                    <div className="flex gap-2">
+                                                                                                      <Button onClick={() => setEditing(false)} variant="quiet" testId="button-cancel-edit">Cancel</Button>
+                                                                                                      <Button onClick={save} disabled={update.isPending || !name} testId="button-update-formula">{update.isPending ? "Saving…" : "Save changes"}</Button>
+                                                                                                    </div>
+                                                                                                  </div>
+                                                                                                  {update.isError && <p className="text-sm text-destructive" data-testid="status-update-error">Couldn't save. Try again.</p>}
+                                                                                                </div>
+                                                                                              </div>
                                                                                             </div>
                                                                                           </div>
-                                                                                          <div className="space-y-5">
-                                                                                            <IngredientBuilder ingredients={editIngredients} setIngredients={setEditIngredients} totalMl={editTotalMl} concentration={editConcentration} />
-                                                                                            <div className="flex items-center justify-between border border-border bg-card p-5">
-                                                                                              <div>
-                                                                                                <p className="font-display text-2xl">Save the revision.</p>
-                                                                                                <p className="mt-1 text-xs text-muted-foreground">All changes replace the current version.</p>
-                                                                                              </div>
-                                                                                              <div className="flex gap-2">
-                                                                                                <Button onClick={() => setEditing(false)} variant="quiet" testId="button-cancel-edit">Cancel</Button>
-                                                                                                <Button onClick={save} disabled={update.isPending || !name} testId="button-update-formula">{update.isPending ? "Saving…" : "Save changes"}</Button>
-                                                                                              </div>
+                                                                                        )}</section><aside className="space-y-6"><button onClick={() => setSafetyOpen(v => !v)} className="w-full text-left border border-border bg-secondary p-6 text-foreground transition-colors hover:bg-secondary/80 active:bg-secondary/60">
+                                                                              <div className="flex items-start justify-between gap-3">
+                                                                                <ShieldCheck size={20} className="text-muted-foreground mt-0.5 shrink-0" />
+                                                                                <ChevronDown size={16} className={`mt-0.5 shrink-0 text-muted-foreground transition-transform duration-200 ${safetyOpen ? "rotate-180" : ""}`} />
+                                                                              </div>
+                                                                              <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula safety</p>
+                                                                              <p className="mt-2 font-display text-3xl leading-tight">Allergens &amp; IFRA compliance</p>
+                                                                              <div className="mt-5 space-y-2 border-t border-border pt-4 text-xs">
+                                                                                {formula.ifraCategory
+                                                                                  ? <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="text-right">{IFRA_CATEGORIES.find(c => c.value === formula.ifraCategory)?.label ?? `Cat ${formula.ifraCategory}`}</span></div>
+                                                                                  : <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="italic text-muted-foreground">Not set</span></div>
+                                                                                }
+                                                                                <div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div>
+                                                                                <div className="flex justify-between"><span className="text-muted-foreground">IFRA status</span><span>{formula.ifraStatus.replace(/_/g, " ")}</span></div>
+                                                                                <div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div>
+                                                                              </div>
+                                                                              <AnimatePresence>
+                                                                                {safetyOpen && (
+                                                                                  <motion.div
+                                                                                    initial={{ opacity: 0, height: 0 }}
+                                                                                    animate={{ opacity: 1, height: "auto" }}
+                                                                                    exit={{ opacity: 0, height: 0 }}
+                                                                                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                                                                                    className="overflow-hidden"
+                                                                                  >
+                                                                                    <div className="mt-4 border-t border-border pt-4 space-y-3">
+                                                                                      {formula.ingredients.filter(i => (i.allergenFlags ?? []).length > 0).length === 0 ? (
+                                                                                        <p className="text-xs text-muted-foreground">No allergen flags on any ingredient.</p>
+                                                                                      ) : (
+                                                                                        formula.ingredients
+                                                                                          .filter(i => (i.allergenFlags ?? []).length > 0)
+                                                                                          .map((item, i) => (
+                                                                                            <div key={i} className="text-xs">
+                                                                                              <p className="font-medium">{item.materialName}</p>
+                                                                                              <p className="mt-0.5 text-muted-foreground">{(item.allergenFlags ?? []).join(", ")}</p>
                                                                                             </div>
-                                                                                            {update.isError && <p className="text-sm text-destructive" data-testid="status-update-error">Couldn't save. Try again.</p>}
-                                                                                          </div>
-                                                                                        </div>
-                                                                                      </div>
+                                                                                          ))
+                                                                                      )}
                                                                                     </div>
-                                                                                  )}</section><aside className="space-y-6"><button onClick={() => setSafetyOpen(v => !v)} className="w-full text-left border border-border bg-secondary p-6 text-foreground transition-colors hover:bg-secondary/80 active:bg-secondary/60">
-                                                                        <div className="flex items-start justify-between gap-3">
-                                                                          <ShieldCheck size={20} className="text-muted-foreground mt-0.5 shrink-0" />
-                                                                          <ChevronDown size={16} className={`mt-0.5 shrink-0 text-muted-foreground transition-transform duration-200 ${safetyOpen ? "rotate-180" : ""}`} />
-                                                                        </div>
-                                                                        <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula safety</p>
-                                                                        <p className="mt-2 font-display text-3xl leading-tight">Allergens &amp; IFRA compliance</p>
-                                                                        <div className="mt-5 space-y-2 border-t border-border pt-4 text-xs">
-                                                                          {formula.ifraCategory
-                                                                            ? <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="text-right">{IFRA_CATEGORIES.find(c => c.value === formula.ifraCategory)?.label ?? `Cat ${formula.ifraCategory}`}</span></div>
-                                                                            : <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="italic text-muted-foreground">Not set</span></div>
-                                                                          }
-                                                                          <div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div>
-                                                                          <div className="flex justify-between"><span className="text-muted-foreground">IFRA status</span><span>{formula.ifraStatus.replace(/_/g, " ")}</span></div>
-                                                                          <div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div>
-                                                                        </div>
-                                                                        <AnimatePresence>
-                                                                          {safetyOpen && (
-                                                                            <motion.div
-                                                                              initial={{ opacity: 0, height: 0 }}
-                                                                              animate={{ opacity: 1, height: "auto" }}
-                                                                              exit={{ opacity: 0, height: 0 }}
-                                                                              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                                                                              className="overflow-hidden"
-                                                                            >
-                                                                              <div className="mt-4 border-t border-border pt-4 space-y-3">
-                                                                                {formula.ingredients.filter(i => (i.allergenFlags ?? []).length > 0).length === 0 ? (
-                                                                                  <p className="text-xs text-muted-foreground">No allergen flags on any ingredient.</p>
-                                                                                ) : (
-                                                                                  formula.ingredients
-                                                                                    .filter(i => (i.allergenFlags ?? []).length > 0)
-                                                                                    .map((item, i) => (
-                                                                                      <div key={i} className="text-xs">
-                                                                                        <p className="font-medium">{item.materialName}</p>
-                                                                                        <p className="mt-0.5 text-muted-foreground">{(item.allergenFlags ?? []).join(", ")}</p>
-                                                                                      </div>
-                                                                                    ))
+                                                                                  </motion.div>
                                                                                 )}
+                                                                              </AnimatePresence>
+                                                                            </button><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div>
+                                                                            {events.length > 0 && (
+                                                                              <div className="border border-border bg-card p-6">
+                                                                                <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Change log</p>
+                                                                                <div className="mt-4 space-y-0">
+                                                                                  {events.slice(0, 8).map((ev, i) => (
+                                                                                    <div key={ev.id} className={`flex items-start gap-3 py-3 ${i > 0 ? 'border-t border-border' : ''}`}>
+                                                                                      <div className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground shrink-0 w-16">{new Date(ev.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
+                                                                                      <p className="text-xs leading-5 text-muted-foreground">{ev.summary}</p>
+                                                                                    </div>
+                                                                                  ))}
+                                                                                </div>
                                                                               </div>
-                                                                            </motion.div>
-                                                                          )}
-                                                                        </AnimatePresence>
-                                                                      </button><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div>
-                                                                      {events.length > 0 && (
-                                                                        <div className="border border-border bg-card p-6">
-                                                                          <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Change log</p>
-                                                                          <div className="mt-4 space-y-0">
-                                                                            {events.slice(0, 8).map((ev, i) => (
-                                                                              <div key={ev.id} className={`flex items-start gap-3 py-3 ${i > 0 ? 'border-t border-border' : ''}`}>
-                                                                                <div className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground shrink-0 w-16">{new Date(ev.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
-                                                                                <p className="text-xs leading-5 text-muted-foreground">{ev.summary}</p>
-                                                                              </div>
-                                                                            ))}
-                                                                          </div>
-                                                                        </div>
-                                                                      )}
-                                                                      </aside></div></Shell>
+                                                                            )}
+                                                                            </aside></div></Shell>
   );
 }
 
@@ -2240,9 +2240,7 @@ function Coach() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeConv?.messages.length, streamMsg.streamingContent, streamMsg.isPending]);
 
-  const handleCreate = (e: FormEvent) => {
-    e.preventDefault();
-    const title = newTitle.trim() || "New session";
+  const createWithTitle = (title: string) => {
     createConv.mutate(
       { data: { title } },
       {
@@ -2254,6 +2252,11 @@ function Coach() {
         },
       },
     );
+  };
+
+  const handleCreate = (e: FormEvent) => {
+    e.preventDefault();
+    createWithTitle(newTitle.trim() || "New session");
   };
 
   const handleSend = (e: FormEvent) => {
@@ -2387,27 +2390,39 @@ function Coach() {
           )}
 
           <nav>
-            {conversations.map(conv => (
-              <button
+            {conversations.map((conv, i) => (
+              <motion.button
                 key={conv.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 onClick={() => setSelectedConvId(conv.id)}
-                className={`group w-full border-b border-border px-4 py-3 text-left transition-colors ${
+                data-testid={`button-session-${conv.id}`}
+                className={`group relative w-full border-b border-border px-4 py-3 text-left transition-colors ${
                   selectedConvId === conv.id ? "bg-secondary/40" : "hover:bg-secondary/20"
                 }`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="truncate text-sm font-medium">{conv.title}</p>
+                {/* Accent bar — slides in on hover / stays on active */}
+                <span className={`absolute left-0 top-0 h-full w-[2px] bg-foreground transition-transform duration-300 origin-top ${
+                  selectedConvId === conv.id ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"
+                }`} />
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 shrink-0 font-mono-ui text-[8px] text-muted-foreground/50">{String(i + 1).padStart(2, "0")}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{conv.title}</p>
+                    <p className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground">
+                      {conv.messageCount ?? 0} {(conv.messageCount ?? 0) === 1 ? "message" : "messages"} · {new Date(conv.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
                   <button
                     onClick={e => { e.stopPropagation(); handleDelete(conv.id); }}
+                    aria-label="Delete session"
                     className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-destructive"
                   >
                     <X size={11} />
                   </button>
                 </div>
-                <p className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground">
-                  {conv.messageCount ?? 0} messages · {new Date(conv.updatedAt).toLocaleDateString()}
-                </p>
-              </button>
+              </motion.button>
             ))}
           </nav>
         </div>
@@ -2415,20 +2430,51 @@ function Coach() {
         {/* ── Conversation view (right) ── */}
         <div className="flex flex-col">
           {!selectedConvId ? (
-            <div className="flex flex-1 flex-col items-center justify-center p-12 text-center">
-              <div className="mb-5 grid size-16 place-items-center border border-dashed border-border text-muted-foreground">
+            <div className="flex flex-1 flex-col items-center justify-center p-8 text-center sm:p-12">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="mb-5 grid size-16 place-items-center border border-dashed border-border text-muted-foreground"
+              >
                 <MessageCircle size={22} strokeWidth={1.3} />
-              </div>
+              </motion.div>
               <p className="font-display text-3xl">
                 {conversations.length ? "Select a session." : "Start your first session."}
               </p>
               <p className="mt-2 max-w-xs text-sm text-muted-foreground">
                 {conversations.length
-                  ? "Choose a session on the left, or start a new one."
-                  : "Click «+ New» to open your first coaching conversation."}
+                  ? "Pick up a thread on the left — or open a new line of questioning."
+                  : "Pull a thread below, or start from scratch with «+ New»."}
               </p>
+              {/* Starter prompts — one click opens a session on that thread */}
+              <div className="mt-8 w-full max-w-md">
+                <p className="mb-3 font-mono-ui text-[8px] uppercase tracking-[.24em] text-muted-foreground/60">Open a thread</p>
+                <div className="flex flex-col gap-px bg-border border border-border">
+                  {[
+                    "Why does my base note disappear after an hour?",
+                    "Make a clean musk less obvious",
+                    "The opening is too linear — how do I break it?",
+                    "A modern chypre without oakmoss",
+                  ].map((prompt, i) => (
+                    <motion.button
+                      key={prompt}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.15 + i * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      onClick={() => createWithTitle(prompt)}
+                      disabled={createConv.isPending}
+                      data-testid={`button-starter-prompt-${i}`}
+                      className="group flex items-center justify-between gap-3 bg-card px-4 py-3 text-left text-sm transition-colors hover:bg-secondary/30 disabled:opacity-50"
+                    >
+                      <span className="truncate">{prompt}</span>
+                      <ArrowUpRight size={12} className="shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
               {activeFormula && (
-                <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground">
+                <p className="mt-6 font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground">
                   Formula context ready: {activeFormula.name}
                 </p>
               )}
@@ -2693,9 +2739,9 @@ function Landing() {
               initial={{ opacity: 0, y: 36, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="max-w-3xl font-display tracking-[-.045em] text-[69px] text-[#000000] mb-0 pt-0 pb-0 mt-4"
+              className="max-w-3xl font-display tracking-[-.045em] text-[69px] text-[#000000] mb-0 mt-[5px] pt-[0px] pb-[0px]"
             >
-              Where instinct meets <em className="text-[#000000] ml-[1px] mr-[1px]">precision.</em>
+              Where instinct meets <em className="text-[#000000] ml-[1px] mr-[1px] pt-[0px] pb-[0px] mt-[50px] mb-[50px]">precision.</em>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 22 }}
@@ -2890,9 +2936,9 @@ function Landing() {
               transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
               className="font-display text-[clamp(2.2rem,6vw,5.5rem)] leading-[.88] tracking-[-0.035em] text-white"
             >
-              The formula is a record.<br />
-              The record is the instinct.<br />
-              <em className="text-[#B0AAB8]">The instinct doesn't lie.</em>
+              Every great perfume began<br />
+              as someone's stubborn instinct.<br />
+              <em className="text-[#B0AAB8]">Keep yours on the page.</em>
             </motion.blockquote>
 
             {/* Bottom decorative rule with diamond */}
