@@ -6,7 +6,7 @@ import { experimental__simple } from "@clerk/themes";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useMotionTemplate, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import {
-  ArrowUpRight, Beaker, BookOpen, ChevronDown, ChevronRight, CircleAlert,
+  ArrowRight, ArrowUpRight, Beaker, BookOpen, ChevronDown, ChevronRight, CircleAlert,
   FlaskConical, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
   Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, X, ShoppingBag
 } from "lucide-react";
