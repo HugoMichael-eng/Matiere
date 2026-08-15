@@ -2860,20 +2860,49 @@ function Landing() {
                 data-testid="img-precision-flower"
               />
             </motion.div>
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
               {[
-                { title: "Formula safety in the margin", copy: "Allergens and IFRA status stay visible at the exact moment a choice is made." },
-                { title: "A library that remembers", copy: "Hold on to drafts, resting experiments, and the formula that finally clicked." },
-              ].map(({ title, copy }, i) => (
+                {
+                  index: "01",
+                  title: "Formula builder",
+                  copy: "Add materials by role — top, heart, base — with live percentage and gram weights as you go.",
+                },
+                {
+                  index: "02",
+                  title: "Safety in the margin",
+                  copy: "Allergen flags and IFRA limits surface at the exact moment a choice is made, not after.",
+                },
+                {
+                  index: "03",
+                  title: "AI idea generator",
+                  copy: "Describe a brief in plain language. Get a material blueprint with role assignments to build from.",
+                },
+                {
+                  index: "04",
+                  title: "Material library",
+                  copy: "Your ingredient collection, browsable by olfactive family. Every material links to the formulas that use it.",
+                },
+                {
+                  index: "05",
+                  title: "Creative lab",
+                  copy: "Persistent AI coaching sessions — pick up a thread on longevity, accord balance, or what to try next.",
+                },
+                {
+                  index: "06",
+                  title: "Formula history",
+                  copy: "A full changelog of every edit. Go back to any state, or use history to understand what changed and why.",
+                },
+              ].map(({ index, title, copy }, i) => (
                 <motion.div
                   key={title}
                   initial={{ opacity: 0, y: 28, scale: 0.96 }}
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.6, delay: i * 0.16, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.6, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                   className="border-l border-border pl-5"
                 >
-                  <p className="text-sm font-medium">{title}</p>
+                  <span className="font-mono-ui text-[8px] text-muted-foreground/40">{index}</span>
+                  <p className="mt-1 text-sm font-medium">{title}</p>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">{copy}</p>
                 </motion.div>
               ))}
