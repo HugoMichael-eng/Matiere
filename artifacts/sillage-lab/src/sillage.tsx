@@ -609,10 +609,6 @@ function MaterialHero({ material }: { material: Material }) {
 }
 
 function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string }) {
-  const [message, setMessage] = useState("");
-  const [, setLocation] = useLocation();
-  const qc = useQueryClient();
-  const createConv = useCreateConversation();
   const heroRef = useRef<HTMLDivElement>(null);
   const mx = useMotionValue(0.5);
   const my = useMotionValue(0.5);
@@ -627,25 +623,6 @@ function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string 
     mx.set((e.clientX - r.left) / r.width);
     my.set((e.clientY - r.top) / r.height);
   };
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-    const title = message.trim().slice(0, 60);
-    const pendingMessage = message;
-    setMessage("");
-    createConv.mutate(
-      { data: { title } },
-      {
-        onSuccess: (conv) => {
-          qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
-          setLocation(`/coach?conv=${conv.id}&autoSend=${encodeURIComponent(pendingMessage)}`);
-        },
-      },
-    );
-  };
-
-  const isPending = createConv.isPending;
 
   return (
     <div
@@ -722,57 +699,6 @@ function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string 
             maker.
           </motion.h1>
 
-          {/* QuickPrompt card — sits as a distinct layer at the bottom of the hero */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-8 border border-white/10 bg-white/[0.06] backdrop-blur-sm"
-            style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.35)" }}
-          >
-            {/* Prompt header */}
-            <div className="border-b border-white/10 px-5 py-4 sm:px-6">
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-white/40">Creative lab</p>
-              <h2 className="mt-1.5 font-display text-xl leading-tight text-white sm:text-2xl">
-                What are you working on?
-              </h2>
-            </div>
-
-            {/* Input row */}
-            <form onSubmit={submit} className="flex items-stretch">
-              <input
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                disabled={isPending}
-                data-testid="input-quick-prompt"
-                className="min-w-0 flex-1 bg-transparent px-5 py-4 text-sm text-white outline-none placeholder:text-white/30"
-                placeholder="I'm trying to make something that feels like…"
-              />
-              <button
-                type="submit"
-                disabled={isPending || !message.trim()}
-                data-testid="button-quick-prompt-send"
-                className="grid h-[52px] w-14 shrink-0 place-items-center bg-white text-foreground transition-opacity disabled:opacity-30 hover:opacity-90"
-              >
-                {isPending
-                  ? <span className="size-4 animate-spin rounded-full border-2 border-foreground/20 border-t-foreground" />
-                  : <Send size={15} />}
-              </button>
-            </form>
-
-            {/* Suggestion chips */}
-            <div className="flex flex-wrap gap-2 border-t border-white/10 px-5 py-3 sm:px-6">
-              {["How do I make a clean musk less obvious?", "The opening is too linear.", "I want warmth without sweetness."].map(prompt => (
-                <button
-                  key={prompt}
-                  onClick={() => setMessage(prompt)}
-                  className="border border-white/15 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-wider text-white/40 transition-colors hover:border-white/35 hover:text-white/70"
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </motion.div>
         </div>
       </div>
     </div>
