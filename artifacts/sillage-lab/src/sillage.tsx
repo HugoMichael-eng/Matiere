@@ -2166,6 +2166,7 @@ function Coach() {
   const [newTitle, setNewTitle] = useState("");
   const [creatingNew, setCreatingNew] = useState(false);
   const [message, setMessage] = useState("");
+  const [sessionSearch, setSessionSearch] = useState("");
 
   const convsQuery = useListConversations();
   const convQuery = useGetConversation(selectedConvId ?? 0, {
@@ -2337,37 +2338,79 @@ function Coach() {
     );
   };
 
+  // Date bucket helper
+  const dateBucket = (dateStr: string) => {
+    const now = new Date();
+    const d = new Date(dateStr);
+    const diffMs = now.getTime() - d.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    if (diffDays < 1) return "Today";
+    if (diffDays < 7) return "This week";
+    return "Earlier";
+  };
+
+  const relativeDate = (dateStr: string) => {
+    const now = new Date();
+    const d = new Date(dateStr);
+    const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return d.toLocaleDateString(undefined, { weekday: "short" });
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  };
+
+  const filteredConversations = conversations.filter(c =>
+    !sessionSearch.trim() || c.title.toLowerCase().includes(sessionSearch.toLowerCase())
+  );
+
+  const grouped = (["Today", "This week", "Earlier"] as const).map(bucket => ({
+    bucket,
+    items: filteredConversations.filter(c => dateBucket(c.updatedAt) === bucket),
+  })).filter(g => g.items.length > 0);
+
   return (
     <Shell>
-      <PageHeader
-        eyebrow="Studio companion · creative lab"
-        title="What are you working on?"
-        description="Persistent coaching sessions — pick up a thread, or start a new one."
-      />
+      {/* ── Page header ── */}
+      <div className="border-b border-border px-0 py-8">
+        <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-muted-foreground">Studio companion · creative lab</p>
+        <h1 className="mt-3 font-display text-5xl leading-[1.02]">What are you<br />working on?</h1>
+        <div className="mt-5 flex items-center gap-4">
+          <p className="text-sm text-muted-foreground">Persistent coaching sessions — pick up a thread, or start a new one.</p>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => { setCreatingNew(true); setSelectedConvId(null); }}
+            data-testid="button-new-session"
+            className="ml-auto shrink-0 border border-foreground bg-foreground px-4 py-2 font-mono-ui text-[9px] uppercase tracking-widest text-background transition-opacity hover:opacity-80"
+          >
+            + New session
+          </motion.button>
+        </div>
+      </div>
 
-      <div className="grid min-h-[600px] border-t border-border lg:grid-cols-[260px_1fr]">
+      <div className="grid min-h-[600px] border-t border-border lg:grid-cols-[300px_1fr]">
         {/* ── Session list (left) ── */}
         <div className="border-b border-border lg:border-b-0 lg:border-r lg:border-border">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Sessions</p>
-            <button
-              onClick={() => setCreatingNew(v => !v)}
-              data-testid="button-new-session"
-              className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:text-accent"
-            >
-              + New
-            </button>
+
+          {/* Search */}
+          <div className="border-b border-border px-4 py-2.5">
+            <input
+              value={sessionSearch}
+              onChange={e => setSessionSearch(e.target.value)}
+              placeholder="Search sessions…"
+              className="w-full bg-transparent text-xs outline-none placeholder:text-muted-foreground/40"
+            />
           </div>
 
           {creatingNew && (
-            <form onSubmit={handleCreate} className="border-b border-border p-4">
+            <form onSubmit={handleCreate} className="border-b border-border bg-secondary/20 p-4">
+              <p className="mb-2 font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">New session</p>
               <input
                 autoFocus
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
-                placeholder="Session title…"
+                placeholder="Name this thread…"
                 data-testid="input-session-title"
-                className="w-full border-b border-border bg-transparent pb-2 text-sm outline-none placeholder:text-muted-foreground/50"
+                className="w-full border-b border-border bg-transparent pb-2 text-sm outline-none placeholder:text-muted-foreground/40"
               />
               <div className="mt-3 flex gap-2">
                 <Button type="submit" disabled={createConv.isPending} testId="button-create-conv">
@@ -2379,50 +2422,72 @@ function Coach() {
           )}
 
           {convsQuery.isLoading && (
-            <div className="space-y-2 p-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+            <div className="space-y-px p-4">
+              {[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
             </div>
           )}
 
           {!convsQuery.isLoading && conversations.length === 0 && (
-            <p className="p-5 text-xs text-muted-foreground">No sessions yet.</p>
+            <div className="p-8 text-center">
+              <p className="font-display text-2xl">No threads yet.</p>
+              <p className="mt-2 text-xs text-muted-foreground">Start a session above or pick a prompt on the right.</p>
+            </div>
           )}
 
-          <nav>
-            {conversations.map((conv, i) => (
-              <motion.button
-                key={conv.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                onClick={() => setSelectedConvId(conv.id)}
-                data-testid={`button-session-${conv.id}`}
-                className={`group relative w-full border-b border-border px-4 py-3 text-left transition-colors ${
-                  selectedConvId === conv.id ? "bg-secondary/40" : "hover:bg-secondary/20"
-                }`}
-              >
-                {/* Accent bar — slides in on hover / stays on active */}
-                <span className={`absolute left-0 top-0 h-full w-[2px] bg-foreground transition-transform duration-300 origin-top ${
-                  selectedConvId === conv.id ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"
-                }`} />
-                <div className="flex items-start gap-3">
-                  <span className="mt-0.5 shrink-0 font-mono-ui text-[8px] text-muted-foreground/50">{String(i + 1).padStart(2, "0")}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{conv.title}</p>
-                    <p className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground">
-                      {conv.messageCount ?? 0} {(conv.messageCount ?? 0) === 1 ? "message" : "messages"} · {new Date(conv.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <button
-                    onClick={e => { e.stopPropagation(); handleDelete(conv.id); }}
-                    aria-label="Delete session"
-                    className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-destructive"
-                  >
-                    <X size={11} />
-                  </button>
+          {!convsQuery.isLoading && conversations.length > 0 && filteredConversations.length === 0 && (
+            <p className="p-5 text-xs text-muted-foreground">No sessions match "{sessionSearch}".</p>
+          )}
+
+          <nav className="pb-4">
+            {grouped.map(({ bucket, items }) => (
+              <div key={bucket}>
+                {/* Date group header */}
+                <div className="sticky top-0 z-10 border-b border-border bg-card/90 px-4 py-1.5 backdrop-blur-sm">
+                  <p className="font-mono-ui text-[7px] uppercase tracking-[.26em] text-muted-foreground/50">{bucket}</p>
                 </div>
-              </motion.button>
+                {items.map((conv, i) => {
+                  const isActive = selectedConvId === conv.id;
+                  const msgCount = conv.messageCount ?? 0;
+                  return (
+                    <motion.button
+                      key={conv.id}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      onClick={() => { setSelectedConvId(conv.id); setCreatingNew(false); }}
+                      data-testid={`button-session-${conv.id}`}
+                      className={`group relative w-full border-b border-border/60 px-4 py-4 text-left transition-colors duration-150 ${
+                        isActive ? "bg-foreground text-background" : "hover:bg-secondary/30"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className={`line-clamp-2 flex-1 text-sm font-medium leading-snug ${isActive ? "text-background" : "text-foreground"}`}>
+                          {conv.title}
+                        </p>
+                        <button
+                          onClick={e => { e.stopPropagation(); handleDelete(conv.id); }}
+                          aria-label="Delete session"
+                          className={`mt-0.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 ${isActive ? "text-background/60 hover:text-background" : "text-muted-foreground hover:text-destructive"}`}
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                      <div className="mt-2 flex items-center gap-2">
+                        {msgCount > 0 && (
+                          <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 font-mono-ui text-[7px] uppercase tracking-wider ${
+                            isActive ? "bg-background/20 text-background/80" : "bg-secondary text-muted-foreground"
+                          }`}>
+                            {msgCount} {msgCount === 1 ? "msg" : "msgs"}
+                          </span>
+                        )}
+                        <span className={`font-mono-ui text-[8px] ${isActive ? "text-background/50" : "text-muted-foreground/50"}`}>
+                          {relativeDate(conv.updatedAt)}
+                        </span>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
             ))}
           </nav>
         </div>
