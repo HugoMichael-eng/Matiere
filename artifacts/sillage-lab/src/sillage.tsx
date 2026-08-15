@@ -630,7 +630,6 @@ function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string 
       onMouseMove={onMouseMove}
       onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
       className="relative overflow-hidden border-b border-border bg-foreground -mx-5 sm:-mx-8 lg:-mx-12"
-      style={{ minHeight: "clamp(420px, 55vw, 600px)" }}
     >
       {/* Photo texture layer — parallax on desktop */}
       <motion.div
@@ -645,26 +644,8 @@ function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string 
         />
       </motion.div>
 
-      {/* Gradient vignette — darker bottom so text reads cleanly */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%)",
-        }}
-      />
-      {/* Left vignette for breathing room on wide screens */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 hidden sm:block"
-        style={{
-          background: "linear-gradient(to right, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0) 50%)",
-        }}
-      />
-
       {/* Content */}
-      <div className="relative flex h-full flex-col justify-between px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
-
+      <div className="relative flex flex-col px-5 py-6 sm:px-8 sm:py-8 lg:px-12">
         {/* Top row: eyebrow + quiet secondary action */}
         <motion.div
           className="flex items-center justify-between"
@@ -684,22 +665,17 @@ function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string 
           </Link>
         </motion.div>
 
-        {/* Greeting — editorial scale */}
-        <div className="mt-auto">
-          <motion.h1
-            data-testid={`heading-${`${greeting}, maker.`.toLowerCase().replaceAll(" ", "-")}`}
-            className="font-display leading-[.85] tracking-[-0.03em] text-white"
-            style={{ fontSize: "clamp(3.2rem, 9vw, 8rem)" }}
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {greeting},
-            <br />
-            maker.
-          </motion.h1>
-
-        </div>
+        {/* Greeting */}
+        <motion.h1
+          data-testid={`heading-${`${greeting}, maker.`.toLowerCase().replaceAll(" ", "-")}`}
+          className="mt-4 font-display leading-[.88] tracking-[-0.03em] text-white"
+          style={{ fontSize: "clamp(2.4rem, 7vw, 6rem)" }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {greeting}, maker.
+        </motion.h1>
       </div>
     </div>
   );
