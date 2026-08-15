@@ -2936,9 +2936,9 @@ function Landing() {
               transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
               className="font-display text-[clamp(2.2rem,6vw,5.5rem)] leading-[.88] tracking-[-0.035em] text-white"
             >
-              Every great perfume began<br />
-              as someone's stubborn instinct.<br />
-              <em className="text-[#B0AAB8]">Keep yours on the page.</em>
+              Nothing in a formula is neutral.<br />
+              Every weight is an argument.<br />
+              <em className="text-[#B0AAB8]">Own all of them.</em>
             </motion.blockquote>
 
             {/* Bottom decorative rule with diamond */}
