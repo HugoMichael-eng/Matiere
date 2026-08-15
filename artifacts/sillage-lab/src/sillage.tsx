@@ -2850,8 +2850,8 @@ function Landing() {
               <p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">A studio practice</p>
               <h2 className="mt-5 font-display text-5xl leading-[.9]">Precision can feel personal.</h2>
               <motion.img
-                src={`${import.meta.env.BASE_URL}images/flower.jpg`}
-                alt="A white flower against a dusk-violet sky"
+                src={`${import.meta.env.BASE_URL}images/texture.jpg`}
+                alt="Raw material texture macro"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
