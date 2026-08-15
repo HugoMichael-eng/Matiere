@@ -2191,6 +2191,41 @@ function Coach() {
   const conversations = convsQuery.data ?? [];
   const activeConv = convQuery.data;
 
+  // Auto-send a seed message when an accord/mood creates a new session
+  const [pendingAutoMessage, setPendingAutoMessage] = useState<string | null>(null);
+  const pendingSentRef = useRef(false);
+  useEffect(() => {
+    if (pendingSentRef.current) return;
+    if (!pendingAutoMessage || !selectedConvId || !activeConv) return;
+    if (activeConv.messages.length > 0) { setPendingAutoMessage(null); return; }
+    pendingSentRef.current = true;
+    const msg = pendingAutoMessage;
+    setPendingAutoMessage(null);
+    const convId = selectedConvId;
+    const optimisticId = -Date.now();
+    qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) =>
+      old ? { ...old, messages: [...old.messages, { id: optimisticId, conversationId: convId, role: "user" as const, content: msg, createdAt: new Date().toISOString() }] } : old
+    );
+    streamMsg.send(convId, { message: msg, formulaContext: null }, {
+      onUserMessage: (userMsg) => {
+        qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) =>
+          old ? { ...old, messages: old.messages.map(m => m.id === optimisticId ? userMsg : m) } : old
+        );
+      },
+      onDone: (assistantMsg) => {
+        qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) =>
+          old ? { ...old, messages: [...old.messages, assistantMsg] } : old
+        );
+        qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+      },
+      onError: () => {
+        qc.setQueryData(getGetConversationQueryKey(convId), (old: { messages: StreamMessage[] } | undefined) =>
+          old ? { ...old, messages: old.messages.filter(m => m.id !== optimisticId) } : old
+        );
+      },
+    });
+  }, [pendingAutoMessage, selectedConvId, activeConv, streamMsg, qc]);
+
   // Auto-send the message from QuickPrompt once the conversation is ready
   const autoSentRef = useRef(false);
   useEffect(() => {
@@ -2253,7 +2288,8 @@ function Coach() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeConv?.messages.length, streamMsg.streamingContent, streamMsg.isPending]);
 
-  const createWithTitle = (title: string) => {
+  const createWithTitle = (title: string, autoMessage?: string) => {
+    pendingSentRef.current = false; // reset so the effect can fire for this new session
     createConv.mutate(
       { data: { title } },
       {
@@ -2262,6 +2298,7 @@ function Coach() {
           setSelectedConvId(conv.id);
           setCreatingNew(false);
           setNewTitle("");
+          if (autoMessage) setPendingAutoMessage(autoMessage);
         },
       },
     );
@@ -2501,7 +2538,7 @@ function Coach() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                        onClick={() => createWithTitle(mood.prompt)}
+                        onClick={() => createWithTitle(mood.name, `Give me a creative brief for a ${mood.name.toLowerCase()} fragrance direction — describe the feeling, the key materials that define it, and two or three specific accord ideas I could explore.`)}
                         disabled={createConv.isPending}
                         className="group flex shrink-0 flex-col items-center gap-2.5 disabled:opacity-50"
                       >
@@ -2527,7 +2564,7 @@ function Coach() {
                           initial={{ opacity: 0, x: -8 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.1 + i * 0.05, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                          onClick={() => createWithTitle(`${accord.name}: ${accord.desc.replaceAll(".", "").split(". ").join(", ")}`)}
+                          onClick={() => createWithTitle(accord.name, `Tell me about the ${accord.name} accord — what defines it (${accord.desc}), which raw materials are essential to building it, and what's a modern take I could explore?`)}
                           disabled={createConv.isPending}
                           className="group flex w-full items-center gap-4 rounded-xl border border-border bg-secondary/20 px-4 py-3.5 transition-colors hover:bg-secondary/40 disabled:opacity-50"
                         >
