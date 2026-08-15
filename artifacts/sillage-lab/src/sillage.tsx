@@ -1215,13 +1215,63 @@ function IngredientBuilder({
 
 type FormulaIdea = { name: string; brief: string; direction: string };
 
+const IDEA_PROMPTS = [
+  "Something that smells like the last hour of summer…",
+  "A woody base that feels modern, not dusty…",
+  "Warmth without sweetness. Something mineral.",
+  "I want it to smell like a library in winter.",
+  "A clean musk that isn't obvious…",
+  "The smell of cold air and warm skin.",
+  "Opens green, dries down to skin and silence.",
+  "A fragrance for the morning after rain.",
+  "Something that makes you feel like you've just arrived somewhere good.",
+];
+
+function useTypewriter(phrases: string[]) {
+  const [displayed, setDisplayed] = useState("");
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [charIdx, setCharIdx] = useState(0);
+  const [phase, setPhase] = useState<"typing" | "pausing" | "deleting">("typing");
+
+  useEffect(() => {
+    const current = phrases[phraseIdx];
+    let timeout: ReturnType<typeof setTimeout>;
+    if (phase === "typing") {
+      if (charIdx < current.length) {
+        timeout = setTimeout(() => {
+          setDisplayed(current.slice(0, charIdx + 1));
+          setCharIdx(c => c + 1);
+        }, 38);
+      } else {
+        timeout = setTimeout(() => setPhase("pausing"), 1800);
+      }
+    } else if (phase === "pausing") {
+      timeout = setTimeout(() => setPhase("deleting"), 400);
+    } else {
+      if (charIdx > 0) {
+        timeout = setTimeout(() => {
+          setDisplayed(current.slice(0, charIdx - 1));
+          setCharIdx(c => c - 1);
+        }, 18);
+      } else {
+        setPhraseIdx(i => (i + 1) % phrases.length);
+        setPhase("typing");
+      }
+    }
+    return () => clearTimeout(timeout);
+  }, [phase, charIdx, phraseIdx, phrases]);
+
+  return displayed;
+}
+
 function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: string) => void }) {
   const { getToken } = useAuth();
   const [mood, setMood] = useState("");
   const [ideas, setIdeas] = useState<FormulaIdea[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const typewriter = useTypewriter(IDEA_PROMPTS);
 
   const generate = async (e: FormEvent) => {
     e.preventDefault();
@@ -1250,90 +1300,75 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="border border-border bg-secondary/40 p-5 sm:p-6"
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="bg-[#2563eb] px-6 py-10 sm:px-10 sm:py-12"
     >
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        className="flex w-full items-center justify-between gap-3 text-left"
-        data-testid="button-toggle-idea-generator"
-      >
-        <div className="flex items-center gap-2">
-          <Sparkles size={13} className="text-muted-foreground" />
-          <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Idea generator</p>
-        </div>
-        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown size={14} className="text-muted-foreground" />
-        </motion.div>
-      </button>
+      {/* Header */}
+      <div className="flex items-center gap-2.5 mb-6">
+        <Sparkles size={15} className="text-white/70" />
+        <p className="font-mono-ui text-[10px] uppercase tracking-[.22em] text-white/70">Idea generator</p>
+      </div>
+      <h2 className="font-display text-4xl sm:text-5xl text-white leading-[.9] mb-2">Not sure where to start?</h2>
+      <p className="text-white/60 text-sm leading-6 mb-8">Describe a feeling, a material, a mood — or leave it blank and be surprised.</p>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            key="idea-body"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
+      {/* Input */}
+      <form onSubmit={generate}>
+        <div className={`flex items-center bg-white/10 border transition-colors duration-200 ${focused ? "border-white/60" : "border-white/20"}`}>
+          <input
+            value={mood}
+            onChange={e => setMood(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder={typewriter}
+            data-testid="input-idea-mood"
+            className="min-w-0 flex-1 bg-transparent px-5 py-5 text-base text-white outline-none placeholder:text-white/40"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            data-testid="button-generate-ideas"
+            className="flex h-[60px] shrink-0 items-center gap-2 border-l border-white/20 bg-white px-5 font-mono-ui text-[10px] uppercase tracking-widest text-[#2563eb] transition-opacity disabled:opacity-50 hover:opacity-90"
           >
-            <form onSubmit={generate} className="mt-5 flex items-center gap-0 border border-border bg-card">
-              <input
-                value={mood}
-                onChange={e => setMood(e.target.value)}
-                placeholder="What feeling are you after? (optional)"
-                data-testid="input-idea-mood"
-                className="min-w-0 flex-1 bg-transparent px-4 py-3.5 text-sm outline-none placeholder:text-muted-foreground/50"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                data-testid="button-generate-ideas"
-                className="flex h-[50px] items-center gap-1.5 border-l border-border bg-primary px-4 font-mono-ui text-[9px] uppercase tracking-widest text-primary-foreground disabled:opacity-50"
-              >
-                {loading ? (
-                  <span className="size-3 animate-spin rounded-full border border-primary-foreground/30 border-t-primary-foreground" />
-                ) : (
-                  <Sparkles size={12} />
-                )}
-                {loading ? "Thinking…" : "Generate"}
-              </button>
-            </form>
+            {loading
+              ? <span className="size-3.5 animate-spin rounded-full border-2 border-[#2563eb]/30 border-t-[#2563eb]" />
+              : <Sparkles size={13} />}
+            {loading ? "Thinking…" : "Generate"}
+          </button>
+        </div>
+        {error && <p className="mt-3 text-xs text-white/60" data-testid="status-idea-error">{error}</p>}
+      </form>
 
-            {error && <p className="mt-3 text-xs text-destructive" data-testid="status-idea-error">{error}</p>}
-
-            <AnimatePresence>
-              {ideas.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
+      {/* Results */}
+      <AnimatePresence>
+        {ideas.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="mt-8"
+          >
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-white/50 mb-3">Click an idea to use it</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {ideas.map((idea, i) => (
+                <motion.button
+                  key={i}
+                  type="button"
+                  onClick={() => onSelect(idea.name, idea.brief)}
+                  initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  className="mt-4 space-y-2"
+                  transition={{ delay: i * 0.09, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  data-testid={`button-idea-${i}`}
+                  className="group bg-white/10 border border-white/15 p-5 text-left transition-all hover:bg-white/20 hover:border-white/30"
                 >
-                  <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">Click an idea to use it</p>
-                  {ideas.map((idea, i) => (
-                    <motion.button
-                      key={i}
-                      type="button"
-                      onClick={() => { onSelect(idea.name, idea.brief); setOpen(false); }}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.08, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                      data-testid={`button-idea-${i}`}
-                      className="group w-full border border-border bg-card p-4 text-left transition-colors hover:border-foreground/30 hover:bg-secondary/60"
-                    >
-                      <p className="font-display text-xl leading-tight text-foreground">{idea.name}</p>
-                      <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{idea.brief}</p>
-                      <p className="mt-2 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/60 group-hover:text-muted-foreground transition-colors">{idea.direction}</p>
-                    </motion.button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <p className="font-display text-2xl leading-tight text-white">{idea.name}</p>
+                  <p className="mt-2 text-xs leading-5 text-white/65">{idea.brief}</p>
+                  <p className="mt-3 font-mono-ui text-[8px] uppercase tracking-widest text-white/35 group-hover:text-white/55 transition-colors">{idea.direction}</p>
+                </motion.button>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1347,7 +1382,7 @@ function NewFormula() {
   const qc = useQueryClient();
   const [name, setName] = useState(""); const [brief, setBrief] = useState(""); const [concentration, setConcentration] = useState(20); const [totalMl, setTotalMl] = useState(30); const [notes, setNotes] = useState(""); const [ifraCategory, setIfraCategory] = useState(""); const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>([]);
   const submit = (e: FormEvent) => { e.preventDefault(); create.mutate({ data: { name, brief, status: "draft", concentration, totalMl, notes, ifraCategory: ifraCategory || undefined, ingredients } }, { onSuccess: formula => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }); setLocation(`/formulas/${formula.id}`); } }); };
-  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." action={<Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>} /><FormulaIdeaGenerator onSelect={(n, b) => { setName(n); setBrief(b); }} /><form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span><textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><IfraCategoryPicker value={ifraCategory} onChange={setIfraCategory} testId="select-formula-ifra-category" /><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it’s in the library.</p></div><Button type="submit" disabled={create.isPending || !name} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
+  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." /><FormulaIdeaGenerator onSelect={(n, b) => { setName(n); setBrief(b); }} /><form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span><textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><IfraCategoryPicker value={ifraCategory} onChange={setIfraCategory} testId="select-formula-ifra-category" /><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it's in the library.</p></div><div className="flex items-center gap-2"><Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button><Button type="submit" disabled={create.isPending || !name} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
 }
 
 function FormulaDetail() {
