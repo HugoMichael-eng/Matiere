@@ -2655,6 +2655,10 @@ function Landing() {
   // Card drifts upward at a different rate — creates depth separation
   const cardY = useTransform(scrollY, [0, 700], [0, -70]);
   const smoothCardY = useSpring(cardY, { damping: 16, stiffness: 80 });
+  // Parallax image strip — three planes at independent scroll speeds
+  const para1Y = useTransform(scrollY, [300, 1400], [40, -120]);
+  const para2Y = useTransform(scrollY, [300, 1400], [10,  -60]);
+  const para3Y = useTransform(scrollY, [300, 1400], [80, -160]);
 
   return (
     <div className="min-h-[100dvh] overflow-x-hidden bg-[#000000]">
@@ -2689,7 +2693,7 @@ function Landing() {
               initial={{ opacity: 0, y: 36, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="max-w-3xl font-display tracking-[-.045em] text-[69px] text-[#000000] border-t-[#000000] border-r-[#000000] border-b-[#000000] border-l-[#000000] mb-[46px] pt-[0px] pb-[0px] mt-[172px]"
+              className="max-w-3xl font-display tracking-[-.045em] text-[69px] text-[#000000] mb-0 pt-0 pb-0 mt-4"
             >
               Where instinct meets <em className="text-[#000000] ml-[1px] mr-[1px]">precision.</em>
             </motion.h1>
@@ -2718,25 +2722,71 @@ function Landing() {
           </motion.div>
         </section>
 
-        {/* 01 / 02 / 03 — scroll-triggered zoom reveal */}
-        <section className="border-t border-border text-[#ffffff] bg-[#ffffff] border-t-[#ffffff] border-r-[#ffffff] border-b-[#ffffff] border-l-[#ffffff]">
-          <div className="mx-auto grid max-w-7xl gap-0 sm:grid-cols-3">
+        {/* Parallax image strip — three planes at independent depths */}
+        <section className="relative overflow-hidden bg-[#080808]" style={{ height: "65vh", minHeight: 420 }}>
+          {/* Plane 1 — leftmost, slowest */}
+          <motion.div style={{ y: para1Y }} className="absolute left-0 top-0 h-[110%] w-[42%]">
+            <img src={`${import.meta.env.BASE_URL}images/hero-droplets.jpg`} alt="" aria-hidden className="h-full w-full object-cover opacity-70" style={{ objectPosition: "center" }} />
+          </motion.div>
+          {/* Plane 2 — centre, mid-speed */}
+          <motion.div style={{ y: para2Y }} className="absolute left-[39%] top-[8%] h-[95%] w-[30%]">
+            <img src={`${import.meta.env.BASE_URL}images/flower.jpg`} alt="" aria-hidden className="h-full w-full object-cover opacity-65" style={{ objectPosition: "center top" }} />
+          </motion.div>
+          {/* Plane 3 — rightmost, fastest */}
+          <motion.div style={{ y: para3Y }} className="absolute right-0 top-[-8%] h-[120%] w-[29%]">
+            <img src={`${import.meta.env.BASE_URL}images/spice.jpg`} alt="" aria-hidden className="h-full w-full object-cover opacity-60" style={{ objectPosition: "center" }} />
+          </motion.div>
+          {/* Depth gradients */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#080808]/70 via-transparent to-[#080808]/70" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#080808]/50 via-transparent to-[#080808]/50" />
+          {/* Floating label */}
+          <p className="absolute bottom-6 left-1/2 -translate-x-1/2 font-mono-ui text-[8px] uppercase tracking-[.28em] text-white/30">The palette · raw materials</p>
+        </section>
+
+        {/* 01 / 02 / 03 — editorial row layout on dark */}
+        <section className="bg-[#0c0c0c]">
+          <div className="mx-auto max-w-7xl">
             {[
-              { num: "01", label: "Notice", title: "Keep the brief close.", copy: "A home for the feeling before the formula starts to behave." },
-              { num: "02", label: "Wander", title: "Make room for odd.", copy: "A material library and a creative lab that help you take the less obvious turn." },
-              { num: "03", label: "Return", title: "Trust the record.", copy: "Safety context belongs beside the creative work, not in a separate room." },
-            ].map(({ num, label, title, copy }, i) => (
+              {
+                num: "01",
+                label: "Capture",
+                title: "Every instinct, on record.",
+                copy: "The brief that usually lives in your head — the mood, the reference, the strange thing you smelled on a Tuesday — has a place. Write it before the formula starts behaving.",
+                tag: "Brief → Formula",
+              },
+              {
+                num: "02",
+                label: "Build",
+                title: "A library that works the way you think.",
+                copy: "Search by family, odour profile, or supplier. IFRA limits and allergen flags surface the moment you're making a decision — not buried somewhere else.",
+                tag: "Materials → Safety",
+              },
+              {
+                num: "03",
+                label: "Refine",
+                title: "The record is the whole process.",
+                copy: "Every version is saved. Every note stays next to the work. The formula that finally clicked — and the seven that didn't — are all still there, waiting.",
+                tag: "Iteration → Archive",
+              },
+            ].map(({ num, label, title, copy, tag }, i) => (
               <motion.div
                 key={num}
-                initial={{ opacity: 0, y: 52, scale: 0.95 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, margin: "-70px" }}
-                transition={{ duration: 0.7, delay: i * 0.14, ease: [0.22, 1, 0.36, 1] }}
-                className="border-b border-border p-8 sm:border-b-0 sm:border-r ml-[0px] mr-[0px] pl-[65px] pr-[65px] pt-[24px] pb-[24px] mt-[-2px] mb-[-2px] font-medium bg-[#bdb5c7] border-t-[#38281903] border-r-[#38281903] border-b-[#38281903] border-l-[#38281903]"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.7, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                className="grid items-center gap-6 border-b border-white/[0.07] px-5 py-12 sm:px-10 sm:py-14 lg:grid-cols-[140px_1fr_200px]"
               >
-                <p className="font-mono-ui text-[#ffffff] text-[16px]">{num} / {label}</p>
-                <h2 className="mt-16 font-display text-3xl text-[#ffffff]">{title}</h2>
-                <p className="mt-3 text-sm leading-6 text-[#ffffff]">{copy}</p>
+                {/* Decorative number */}
+                <div className="font-display text-[96px] leading-none text-white/[0.06] lg:text-[120px]">{num}</div>
+                {/* Content */}
+                <div>
+                  <p className="font-mono-ui text-[9px] uppercase tracking-[.26em] text-[#B0AAB8]">{num} / {label}</p>
+                  <h2 className="mt-3 font-display text-[clamp(1.75rem,3.5vw,2.75rem)] leading-[1.05] text-white">{title}</h2>
+                  <p className="mt-4 max-w-2xl text-sm leading-[1.75] text-white/45">{copy}</p>
+                </div>
+                {/* Side tag */}
+                <p className="hidden font-mono-ui text-[8px] uppercase tracking-[.2em] text-white/20 lg:block lg:text-right">{tag}</p>
               </motion.div>
             ))}
           </div>
