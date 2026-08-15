@@ -728,7 +728,10 @@ function Dashboard() {
       <QuickPrompt greeting={greeting} weekday={weekday} />
 
       {/* ── IDEA GENERATOR ────────────────────────────────── */}
-      <FormulaIdeaGenerator onSelect={(n, b) => setLocation(`/formulas/new?name=${encodeURIComponent(n)}&brief=${encodeURIComponent(b)}`)} />
+      <FormulaIdeaGenerator onSelect={(n, b, mats) => {
+        try { sessionStorage.setItem("matiere-blueprint", JSON.stringify(mats)); } catch {}
+        setLocation(`/formulas/new?name=${encodeURIComponent(n)}&brief=${encodeURIComponent(b)}`);
+      }} />
 
       {/* ── STAGE PIPELINE ────────────────────────────────── */}
       {stageTotal > 0 && <StageTrack counts={stageCounts} total={stageTotal} />}
@@ -1229,7 +1232,7 @@ function MaterialBars({ materials }: { materials: FormulaIdeaMaterial[] }) {
   );
 }
 
-function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: () => void; onClose: () => void }) {
+function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: (materials: FormulaIdeaMaterial[]) => void; onClose: () => void }) {
   const { getToken } = useAuth();
   const [materials, setMaterials] = useState<FormulaIdeaMaterial[]>([]);
   const [loadingMats, setLoadingMats] = useState(true);
@@ -1364,7 +1367,7 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: ()
         {/* Sticky CTA */}
         <div className="shrink-0 border-t border-white/10 bg-[#0C0C0C] px-6 py-5 sm:px-8">
           <button
-            onClick={onStart}
+            onClick={() => onStart(materials)}
             data-testid="button-idea-start"
             className="flex w-full items-center justify-center gap-2 bg-white py-4 font-mono-ui text-[11px] uppercase tracking-widest text-black transition-opacity hover:opacity-90 active:opacity-80"
           >
@@ -1383,7 +1386,7 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: ()
   );
 }
 
-function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: string) => void }) {
+function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: string, materials: FormulaIdeaMaterial[]) => void }) {
   const { getToken } = useAuth();
   const [mood, setMood] = useState("");
   const [ideas, setIdeas] = useState<FormulaIdea[]>([]);
@@ -1502,13 +1505,70 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
         <IdeaDrawer
           idea={selectedIdea}
           onClose={() => setSelectedIdea(null)}
-          onStart={() => {
-            onSelect(selectedIdea.name, selectedIdea.brief);
+          onStart={(mats) => {
+            onSelect(selectedIdea.name, selectedIdea.brief, mats);
             setSelectedIdea(null);
           }}
         />
       )}
     </>
+  );
+}
+
+function BlueprintPanel({ materials }: { materials: FormulaIdeaMaterial[] }) {
+  const sorted = [...materials].sort((a, b) => {
+    const order = { top: 0, heart: 1, base: 2 };
+    return (order[a.role] ?? 3) - (order[b.role] ?? 3);
+  });
+  const maxPct = Math.max(...sorted.map(m => m.pct), 1);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="bg-foreground text-background p-6"
+    >
+      <div className="flex items-center gap-2 mb-5">
+        <Sparkles size={12} className="text-background/50" />
+        <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-background/50">AI blueprint — materials &amp; ratios</p>
+      </div>
+      <div className="space-y-4">
+        {sorted.map((mat, i) => {
+          const roleLabel = mat.role.charAt(0).toUpperCase() + mat.role.slice(1);
+          const barWidth = `${Math.round((mat.pct / maxPct) * 100)}%`;
+          const barOpacity = mat.role === "top" ? "opacity-90" : mat.role === "heart" ? "opacity-60" : "opacity-40";
+          return (
+            <motion.div
+              key={mat.name}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.06, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-background/90">{mat.name}</span>
+                  <span className="font-mono-ui text-[8px] uppercase tracking-widest text-background/35">{roleLabel}</span>
+                </div>
+                <span className="font-mono-ui text-[11px] tabular-nums text-background/50">{mat.pct}%</span>
+              </div>
+              <div className="h-[2px] w-full bg-background/15">
+                <motion.div
+                  className={`h-full bg-background ${barOpacity}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: barWidth }}
+                  transition={{ delay: 0.05 + i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                />
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+      <div className="mt-4 border-t border-background/15 pt-3 flex items-center justify-between">
+        <span className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-background/30">Concentrate total</span>
+        <span className="font-mono-ui text-[11px] tabular-nums text-background/50">{sorted.reduce((s, m) => s + m.pct, 0)}%</span>
+      </div>
+      <p className="mt-3 text-[10px] text-background/35 leading-5">Add each material using the ingredient builder below. Match names to your library.</p>
+    </motion.div>
   );
 }
 
@@ -1518,9 +1578,79 @@ function NewFormula() {
   const params = new URLSearchParams(rawSearch);
   const create = useCreateFormula();
   const qc = useQueryClient();
-  const [name, setName] = useState(params.get("name") ?? ""); const [brief, setBrief] = useState(params.get("brief") ?? ""); const [concentration, setConcentration] = useState(20); const [totalMl, setTotalMl] = useState(30); const [notes, setNotes] = useState(""); const [ifraCategory, setIfraCategory] = useState(""); const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>([]);
-  const submit = (e: FormEvent) => { e.preventDefault(); create.mutate({ data: { name, brief, status: "draft", concentration, totalMl, notes, ifraCategory: ifraCategory || undefined, ingredients } }, { onSuccess: formula => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() }); setLocation(`/formulas/${formula.id}`); } }); };
-  return <Shell><PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." /><FormulaIdeaGenerator onSelect={(n, b) => { setName(n); setBrief(b); }} /><form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[.85fr_1.15fr]"><div className="space-y-5"><div className="border border-border bg-card p-6 sm:p-7"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p><label className="mt-5 block text-xs font-medium">Name<input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" /></label><label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span><textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" /></label><div className="mt-7 grid grid-cols-2 gap-4"><label className="text-xs font-medium">Concentration %<input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label><label className="text-xs font-medium">Batch size ml<input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" /></label></div><IfraCategoryPicker value={ifraCategory} onChange={setIfraCategory} testId="select-formula-ifra-category" /><label className="mt-7 block text-xs font-medium">Notebook notes<textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." /></label></div></div><div className="space-y-5"><IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} /><div className="flex items-center justify-between border border-border bg-card p-5"><div><p className="font-display text-2xl">Keep it open.</p><p className="mt-1 text-xs text-muted-foreground">You can revise every field once it's in the library.</p></div><div className="flex items-center gap-2"><Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button><Button type="submit" disabled={create.isPending || !name} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button></div></div>{create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn’t save this formula. Try again.</p>}</div></form></Shell>;
+  const [name, setName] = useState(params.get("name") ?? "");
+  const [brief, setBrief] = useState(params.get("brief") ?? "");
+  const [concentration, setConcentration] = useState(20);
+  const [totalMl, setTotalMl] = useState(30);
+  const [notes, setNotes] = useState("");
+  const [ifraCategory, setIfraCategory] = useState("");
+  const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>([]);
+  const [blueprint, setBlueprint] = useState<FormulaIdeaMaterial[]>(() => {
+    try {
+      const stored = sessionStorage.getItem("matiere-blueprint");
+      if (stored) { sessionStorage.removeItem("matiere-blueprint"); return JSON.parse(stored); }
+    } catch {}
+    return [];
+  });
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    create.mutate(
+      { data: { name, brief, status: "draft", concentration, totalMl, notes, ifraCategory: ifraCategory || undefined, ingredients } },
+      { onSuccess: formula => {
+        qc.invalidateQueries({ queryKey: getListFormulasQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+        setLocation(`/formulas/${formula.id}`);
+      }}
+    );
+  };
+
+  return (
+    <Shell>
+      <PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." />
+      <FormulaIdeaGenerator onSelect={(n, b, mats) => { setName(n); setBrief(b); setBlueprint(mats); }} />
+      <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
+        <div className="space-y-5">
+          <div className="border border-border bg-card p-6 sm:p-7">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p>
+            <label className="mt-5 block text-xs font-medium">Name
+              <input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" />
+            </label>
+            <label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span>
+              <textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" />
+            </label>
+            <div className="mt-7 grid grid-cols-2 gap-4">
+              <label className="text-xs font-medium">Concentration %
+                <input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+              </label>
+              <label className="text-xs font-medium">Batch size ml
+                <input type="number" min="0" value={totalMl} onChange={e => setTotalMl(Number(e.target.value))} data-testid="input-formula-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+              </label>
+            </div>
+            <IfraCategoryPicker value={ifraCategory} onChange={setIfraCategory} testId="select-formula-ifra-category" />
+            <label className="mt-7 block text-xs font-medium">Notebook notes
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
+            </label>
+          </div>
+        </div>
+        <div className="space-y-5">
+          {blueprint.length > 0 && <BlueprintPanel materials={blueprint} />}
+          <IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} />
+          <div className="flex items-center justify-between border border-border bg-card p-5">
+            <div>
+              <p className="font-display text-2xl">Keep it open.</p>
+              <p className="mt-1 text-xs text-muted-foreground">You can revise every field once it's in the library.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>
+              <Button type="submit" disabled={create.isPending || !name} testId="button-save-formula">{create.isPending ? "Saving..." : "Save draft"}</Button>
+            </div>
+          </div>
+          {create.isError && <p className="text-sm text-destructive" data-testid="status-create-error">Couldn't save this formula. Try again.</p>}
+        </div>
+      </form>
+    </Shell>
+  );
 }
 
 function FormulaDetail() {
