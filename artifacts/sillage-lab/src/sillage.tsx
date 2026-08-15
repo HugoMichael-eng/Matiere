@@ -876,11 +876,12 @@ function MaterialCombobox({ materials, value, onChange, index }: {
       ).slice(0, 40)
     : materials.slice(0, 40);
 
-  const selectedName = value.materialId ? value.materialName : "";
+  const isAiSuggested = value.materialId === 0 && value.materialName.length > 0;
+  const selectedName = value.materialName;
 
   return (
     <div ref={ref} className="relative min-w-0">
-      <div className="flex items-center border border-border bg-card">
+      <div className={`flex items-center border bg-card ${isAiSuggested && !open ? "border-accent/40" : "border-border"}`}>
         <Search size={12} className="ml-3 shrink-0 text-muted-foreground" />
         <input
           type="text"
@@ -888,13 +889,16 @@ function MaterialCombobox({ materials, value, onChange, index }: {
           className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs outline-none placeholder:text-muted-foreground/50"
           placeholder="Search material…"
           value={open ? query : selectedName}
-          onFocus={() => { setOpen(true); setQuery(""); }}
+          onFocus={() => { setOpen(true); setQuery(isAiSuggested ? value.materialName : ""); }}
           onChange={e => { setQuery(e.target.value); setOpen(true); }}
         />
-        {value.materialId > 0 && !open && (
+        {!open && value.materialId > 0 && (
           <span className="mr-2 shrink-0 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/60">
             {materials.find(m => m.id === value.materialId)?.family ?? ""}
           </span>
+        )}
+        {!open && isAiSuggested && (
+          <span className="mr-2 shrink-0 font-mono-ui text-[8px] uppercase tracking-widest text-accent/70">AI</span>
         )}
       </div>
       {open && (
@@ -1584,11 +1588,21 @@ function NewFormula() {
   const [totalMl, setTotalMl] = useState(30);
   const [notes, setNotes] = useState("");
   const [ifraCategory, setIfraCategory] = useState("");
-  const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>([]);
-  const [blueprint, setBlueprint] = useState<FormulaIdeaMaterial[]>(() => {
+  const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>(() => {
     try {
       const stored = sessionStorage.getItem("matiere-blueprint");
-      if (stored) { sessionStorage.removeItem("matiere-blueprint"); return JSON.parse(stored); }
+      if (stored) {
+        sessionStorage.removeItem("matiere-blueprint");
+        const mats: FormulaIdeaMaterial[] = JSON.parse(stored);
+        return mats.map(mat => ({
+          materialId: 0,
+          materialName: mat.name,
+          percentage: mat.pct,
+          grams: parseFloat(((mat.pct / 100) * 30).toFixed(3)),
+          dilution: 100,
+          role: mat.role,
+        }));
+      }
     } catch {}
     return [];
   });
@@ -1608,7 +1622,18 @@ function NewFormula() {
   return (
     <Shell>
       <PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." />
-      <FormulaIdeaGenerator onSelect={(n, b, mats) => { setName(n); setBrief(b); setBlueprint(mats); }} />
+      <FormulaIdeaGenerator onSelect={(n, b, mats) => {
+        setName(n);
+        setBrief(b);
+        setIngredients(mats.map(mat => ({
+          materialId: 0,
+          materialName: mat.name,
+          percentage: mat.pct,
+          grams: parseFloat(((mat.pct / 100) * totalMl).toFixed(3)),
+          dilution: 100,
+          role: mat.role,
+        })));
+      }} />
       <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
         <div className="space-y-5">
           <div className="border border-border bg-card p-6 sm:p-7">
@@ -1634,7 +1659,6 @@ function NewFormula() {
           </div>
         </div>
         <div className="space-y-5">
-          {blueprint.length > 0 && <BlueprintPanel materials={blueprint} />}
           <IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} />
           <div className="flex items-center justify-between border border-border bg-card p-5">
             <div>
