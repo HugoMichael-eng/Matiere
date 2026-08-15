@@ -2658,8 +2658,8 @@ function FieldNoteCard() {
     >
       <div className="absolute inset-0 overflow-hidden border border-border p-8 text-foreground pt-[108px] pb-[108px] pl-[64px] pr-[64px]">
         <img
-          src={`${import.meta.env.BASE_URL}images/hero-droplets.jpg`}
-          alt="Macro photograph of perfume oil droplets on brushed steel"
+          src={`${import.meta.env.BASE_URL}images/landing-site.jpg`}
+          alt="Studio material photograph"
           className="absolute inset-0 h-full w-full object-cover"
           data-testid="img-hero-photo"
         />
