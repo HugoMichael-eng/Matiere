@@ -1170,6 +1170,88 @@ function useTypewriter(phrases: string[]) {
   return displayed;
 }
 
+function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: () => void; onClose: () => void }) {
+  // Close on backdrop click
+  return (
+    <AnimatePresence>
+      <motion.div
+        key="backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-40 bg-black/60"
+        onClick={onClose}
+      />
+      <motion.div
+        key="drawer"
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 340, damping: 38, mass: 0.9 }}
+        className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[88vh] flex-col overflow-hidden bg-[#0C0C0C]"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="h-[3px] w-10 bg-white/20" />
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-8">
+          {/* Eyebrow */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Sparkles size={12} className="text-white/50" />
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/50">Formula suggestion</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1 text-white/40 hover:text-white/80 transition-colors"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Name */}
+          <h2 className="font-display text-4xl sm:text-5xl leading-[.92] text-white">{idea.name}</h2>
+
+          {/* Brief */}
+          <div className="mt-7 border-t border-white/10 pt-6">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-3">The brief</p>
+            <p className="text-base leading-7 text-white/85">{idea.brief}</p>
+          </div>
+
+          {/* Direction */}
+          <div className="mt-6 border-t border-white/10 pt-6">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-3">Where to start</p>
+            <p className="text-sm leading-6 text-white/65">{idea.direction}</p>
+          </div>
+        </div>
+
+        {/* Sticky CTA */}
+        <div className="border-t border-white/10 bg-[#0C0C0C] px-6 py-5 sm:px-8">
+          <button
+            onClick={onStart}
+            data-testid="button-idea-start"
+            className="flex w-full items-center justify-center gap-2 bg-white py-4 font-mono-ui text-[11px] uppercase tracking-widest text-black transition-opacity hover:opacity-90 active:opacity-80"
+          >
+            Start this formula
+            <ArrowRight size={13} />
+          </button>
+          <button
+            onClick={onClose}
+            className="mt-3 w-full py-2 font-mono-ui text-[9px] uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors"
+          >
+            ← Back to ideas
+          </button>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: string) => void }) {
   const { getToken } = useAuth();
   const [mood, setMood] = useState("");
@@ -1177,12 +1259,14 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [focused, setFocused] = useState(false);
+  const [selectedIdea, setSelectedIdea] = useState<FormulaIdea | null>(null);
   const typewriter = useTypewriter(IDEA_PROMPTS);
 
   const generate = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setIdeas([]);
     try {
       const token = await getToken();
       const res = await fetch(`${basePath}/api/formulas/ideas`, {
@@ -1205,80 +1289,95 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-[#000000] px-6 py-10 sm:px-10 sm:py-12"
-    >
-      {/* Header */}
-      <div className="flex items-center gap-2.5 mb-6">
-        <Sparkles size={15} className="text-white/70" />
-        <p className="font-mono-ui text-[10px] uppercase tracking-[.22em] text-white/70">Idea generator</p>
-      </div>
-      <h2 className="font-display text-4xl sm:text-5xl text-white leading-[.9] mb-2">Not sure where to start?</h2>
-      <p className="text-white/60 text-sm leading-6 mb-8">Describe a feeling, a material, a mood — or leave it blank and be surprised.</p>
-
-      {/* Input */}
-      <form onSubmit={generate}>
-        <div className={`flex items-center bg-white/10 border transition-colors duration-200 ${focused ? "border-white/60" : "border-white/20"}`}>
-          <input
-            value={mood}
-            onChange={e => setMood(e.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={typewriter}
-            data-testid="input-idea-mood"
-            className="min-w-0 flex-1 bg-transparent px-5 py-5 text-base text-white outline-none placeholder:text-white/40"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            data-testid="button-generate-ideas"
-            className="flex h-[60px] shrink-0 items-center gap-2 border-l border-white/20 bg-white px-5 font-mono-ui text-[10px] uppercase tracking-widest text-black transition-opacity disabled:opacity-50 hover:opacity-90"
-          >
-            {loading
-              ? <span className="size-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black" />
-              : <Sparkles size={13} />}
-            {loading ? "Thinking…" : "Generate"}
-          </button>
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="bg-[#000000] px-6 py-10 sm:px-10 sm:py-12"
+      >
+        {/* Header */}
+        <div className="flex items-center gap-2.5 mb-6">
+          <Sparkles size={15} className="text-white/70" />
+          <p className="font-mono-ui text-[10px] uppercase tracking-[.22em] text-white/70">Idea generator</p>
         </div>
-        {error && <p className="mt-3 text-xs text-white/60" data-testid="status-idea-error">{error}</p>}
-      </form>
+        <h2 className="font-display text-4xl sm:text-5xl text-white leading-[.9] mb-2">Not sure where to start?</h2>
+        <p className="text-white/60 text-sm leading-6 mb-8">Describe a feeling, a material, a mood — or leave it blank and be surprised.</p>
 
-      {/* Results */}
-      <AnimatePresence>
-        {ideas.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-8"
-          >
-            <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-white/50 mb-3">Click an idea to use it</p>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {ideas.map((idea, i) => (
-                <motion.button
-                  key={i}
-                  type="button"
-                  onClick={() => onSelect(idea.name, idea.brief)}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.09, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                  data-testid={`button-idea-${i}`}
-                  className="group bg-white/10 border border-white/15 p-5 text-left transition-all hover:bg-white/20 hover:border-white/30"
-                >
-                  <p className="font-display text-2xl leading-tight text-white">{idea.name}</p>
-                  <p className="mt-2 text-xs leading-5 text-white/65">{idea.brief}</p>
-                  <p className="mt-3 font-mono-ui text-[8px] uppercase tracking-widest text-white/35 group-hover:text-white/55 transition-colors">{idea.direction}</p>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+        {/* Input */}
+        <form onSubmit={generate}>
+          <div className={`flex items-center bg-white/10 border transition-colors duration-200 ${focused ? "border-white/60" : "border-white/20"}`}>
+            <input
+              value={mood}
+              onChange={e => setMood(e.target.value)}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              placeholder={typewriter}
+              data-testid="input-idea-mood"
+              className="min-w-0 flex-1 bg-transparent px-5 py-5 text-base text-white outline-none placeholder:text-white/40"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              data-testid="button-generate-ideas"
+              className="flex h-[60px] shrink-0 items-center gap-2 border-l border-white/20 bg-white px-5 font-mono-ui text-[10px] uppercase tracking-widest text-black transition-opacity disabled:opacity-50 hover:opacity-90"
+            >
+              {loading
+                ? <span className="size-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black" />
+                : <Sparkles size={13} />}
+              {loading ? "Thinking…" : "Generate"}
+            </button>
+          </div>
+          {error && <p className="mt-3 text-xs text-white/60" data-testid="status-idea-error">{error}</p>}
+        </form>
+
+        {/* Results */}
+        <AnimatePresence>
+          {ideas.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-8"
+            >
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-white/50 mb-3">Tap an idea to explore it</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {ideas.map((idea, i) => (
+                  <motion.button
+                    key={i}
+                    type="button"
+                    onClick={() => setSelectedIdea(idea)}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.09, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    data-testid={`button-idea-${i}`}
+                    className="group relative bg-white/10 border border-white/15 p-5 text-left transition-all hover:bg-white/20 hover:border-white/30 active:scale-[.98]"
+                  >
+                    <p className="font-display text-2xl leading-tight text-white pr-6">{idea.name}</p>
+                    <p className="mt-2 text-xs leading-5 text-white/65 line-clamp-3">{idea.brief}</p>
+                    {/* Arrow affordance */}
+                    <ArrowRight size={13} className="absolute top-5 right-5 text-white/30 transition-all group-hover:text-white/70 group-hover:translate-x-0.5" />
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Idea detail drawer */}
+      {selectedIdea && (
+        <IdeaDrawer
+          idea={selectedIdea}
+          onClose={() => setSelectedIdea(null)}
+          onStart={() => {
+            onSelect(selectedIdea.name, selectedIdea.brief);
+            setSelectedIdea(null);
+          }}
+        />
+      )}
+    </>
   );
 }
 
