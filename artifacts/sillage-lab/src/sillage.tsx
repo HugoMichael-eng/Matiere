@@ -2338,17 +2338,6 @@ function Coach() {
     );
   };
 
-  // Date bucket helper
-  const dateBucket = (dateStr: string) => {
-    const now = new Date();
-    const d = new Date(dateStr);
-    const diffMs = now.getTime() - d.getTime();
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    if (diffDays < 1) return "Today";
-    if (diffDays < 7) return "This week";
-    return "Earlier";
-  };
-
   const relativeDate = (dateStr: string) => {
     const now = new Date();
     const d = new Date(dateStr);
@@ -2363,326 +2352,366 @@ function Coach() {
     !sessionSearch.trim() || c.title.toLowerCase().includes(sessionSearch.toLowerCase())
   );
 
-  const grouped = (["Today", "This week", "Earlier"] as const).map(bucket => ({
-    bucket,
-    items: filteredConversations.filter(c => dateBucket(c.updatedAt) === bucket),
-  })).filter(g => g.items.length > 0);
+  // ── Mood definitions ──
+  const MOODS = [
+    { name: "Clean",  prompt: "A clean, transparent skin scent — no soap, just presence",  style: "bg-zinc-100" },
+    { name: "Warm",   prompt: "A warm, resinous amber with depth and sensuality",            style: "bg-amber-100" },
+    { name: "Dark",   prompt: "A dark, smoky, almost feral composition",                    style: "bg-stone-800" },
+    { name: "Fresh",  prompt: "A luminous fresh green accord — dew, herbs, cut stems",      style: "bg-teal-50" },
+    { name: "Floral", prompt: "A romantic, heady white floral that lingers",                style: "bg-rose-100" },
+    { name: "Woody",  prompt: "A dry, cerebral woody accord — sandalwood, cedar, vetiver",  style: "bg-stone-200" },
+  ] as const;
 
-  // Mobile: show list or chat pane
-  const showChatOnMobile = !!selectedConvId && !creatingNew;
+  // ── Accord definitions ──
+  const ACCORDS = [
+    { name: "Clean Musk",       desc: "Soft. Transparent. Skin-like.",   icon: Sparkles },
+    { name: "Amber Woods",      desc: "Warm. Resinous. Addictive.",       icon: Leaf },
+    { name: "Fresh Citrus",     desc: "Bright. Zesty. Uplifting.",        icon: Beaker },
+    { name: "Modern Patchouli", desc: "Earthy. Textured. Refined.",       icon: Leaf },
+    { name: "White Florals",    desc: "Luminous. Heady. Sensual.",        icon: Sparkles },
+    { name: "Chypre",           desc: "Mossy. Elegant. Complex.",         icon: Beaker },
+  ] as const;
+
+  // ── View: hub vs chat ──
+  const inChat = !!selectedConvId;
 
   return (
     <Shell>
-      {/* ── Compact page header ── */}
-      <div className="flex items-center gap-4 border-b border-border py-4">
-        <div className="min-w-0">
-          <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-muted-foreground">Creative lab</p>
-          <h1 className="mt-0.5 font-display text-3xl leading-none tracking-tight">What are you working on?</h1>
-        </div>
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => { setCreatingNew(true); setSelectedConvId(null); }}
-          data-testid="button-new-session"
-          className="ml-auto shrink-0 border border-foreground bg-foreground px-4 py-2 font-mono-ui text-[9px] uppercase tracking-widest text-background transition-opacity hover:opacity-75"
-        >
-          + New
-        </motion.button>
-      </div>
+      {/* ════════════════════════════════════════
+          HUB VIEW  (no session selected)
+      ════════════════════════════════════════ */}
+      {!inChat && (
+        <div className="-mx-5 sm:-mx-8 lg:-mx-12 overflow-y-auto" style={{ height: "calc(100dvh - 3.5rem)" }}>
+          <div className="mx-auto max-w-2xl px-5 pb-20 pt-8 sm:px-8">
 
-      {/* ── Full-height two-column layout — breaks out of Shell's horizontal padding ── */}
-      <div
-        className="-mx-5 sm:-mx-8 lg:-mx-12 flex overflow-hidden border-t border-border"
-        style={{ height: "calc(100dvh - 9rem)" }}
-      >
-
-        {/* ══ Session sidebar ══ */}
-        <div className={`flex w-full flex-col border-border lg:w-[280px] lg:flex-none lg:border-r ${showChatOnMobile ? "hidden lg:flex" : "flex"}`}>
-
-          {/* Sidebar top bar: search + session count */}
-          <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
-            <input
-              value={sessionSearch}
-              onChange={e => setSessionSearch(e.target.value)}
-              placeholder="Search sessions…"
-              className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-muted-foreground/40"
-            />
-            {conversations.length > 0 && (
-              <span className="shrink-0 font-mono-ui text-[7px] text-muted-foreground/40">
-                {filteredConversations.length}/{conversations.length}
-              </span>
-            )}
-          </div>
-
-          {/* New-session form */}
-          {creatingNew && (
-            <form onSubmit={handleCreate} className="border-b border-border bg-secondary/15 px-4 py-4">
-              <p className="mb-2.5 font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">New session</p>
-              <input
-                autoFocus
-                value={newTitle}
-                onChange={e => setNewTitle(e.target.value)}
-                placeholder="Name this thread…"
-                data-testid="input-session-title"
-                className="w-full border-b border-border bg-transparent pb-2 text-sm outline-none placeholder:text-muted-foreground/40"
-              />
-              <div className="mt-3 flex gap-2">
-                <Button type="submit" disabled={createConv.isPending} testId="button-create-conv">
-                  {createConv.isPending ? "Creating…" : "Create"}
-                </Button>
-                <Button onClick={() => { setCreatingNew(false); setNewTitle(""); }} variant="quiet" testId="button-cancel-create">Cancel</Button>
+            {/* ── Header ── */}
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-muted-foreground">Creative lab</p>
+                <h1 className="mt-2 font-display text-5xl leading-[1.0] tracking-tight sm:text-6xl">
+                  What are you<br />working on?
+                </h1>
               </div>
-            </form>
-          )}
-
-          {/* Scrollable session list */}
-          <div className="flex-1 overflow-y-auto">
-            {convsQuery.isLoading && (
-              <div className="space-y-px p-4">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
-              </div>
-            )}
-
-            {!convsQuery.isLoading && conversations.length === 0 && (
-              <div className="px-5 py-10 text-center">
-                <p className="font-display text-xl">No threads yet.</p>
-                <p className="mt-1.5 text-xs text-muted-foreground">Pick a prompt on the right, or tap «+ New».</p>
-              </div>
-            )}
-
-            {!convsQuery.isLoading && conversations.length > 0 && filteredConversations.length === 0 && (
-              <p className="px-4 py-5 text-xs text-muted-foreground">No sessions match "{sessionSearch}".</p>
-            )}
-
-            <nav>
-              {grouped.map(({ bucket, items }) => (
-                <div key={bucket}>
-                  <div className="sticky top-0 z-10 border-b border-border bg-card/90 px-4 py-1.5 backdrop-blur-sm">
-                    <p className="font-mono-ui text-[7px] uppercase tracking-[.26em] text-muted-foreground/40">{bucket}</p>
-                  </div>
-                  {items.map((conv, i) => {
-                    const isActive = selectedConvId === conv.id;
-                    const msgCount = conv.messageCount ?? 0;
-                    return (
-                      <motion.button
-                        key={conv.id}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.035, duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                        onClick={() => { setSelectedConvId(conv.id); setCreatingNew(false); }}
-                        data-testid={`button-session-${conv.id}`}
-                        className={`group relative w-full border-b border-border/50 px-4 py-3.5 text-left transition-colors duration-150 ${
-                          isActive ? "bg-foreground" : "hover:bg-secondary/25"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <p className={`line-clamp-2 flex-1 text-[13px] font-medium leading-snug ${isActive ? "text-background" : "text-foreground"}`}>
-                            {conv.title}
-                          </p>
-                          <button
-                            onClick={e => { e.stopPropagation(); handleDelete(conv.id); }}
-                            aria-label="Delete session"
-                            className={`mt-0.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 ${isActive ? "text-background/60 hover:text-background" : "text-muted-foreground hover:text-destructive"}`}
-                          >
-                            <X size={10} />
-                          </button>
-                        </div>
-                        <div className="mt-1.5 flex items-center gap-2">
-                          {msgCount > 0 && (
-                            <span className={`font-mono-ui text-[7px] ${isActive ? "text-background/50" : "text-muted-foreground/50"}`}>
-                              {msgCount} {msgCount === 1 ? "msg" : "msgs"} ·
-                            </span>
-                          )}
-                          <span className={`font-mono-ui text-[7px] ${isActive ? "text-background/50" : "text-muted-foreground/40"}`}>
-                            {relativeDate(conv.updatedAt)}
-                          </span>
-                        </div>
-                      </motion.button>
-                    );
-                  })}
-                </div>
-              ))}
-            </nav>
-          </div>
-        </div>
-
-        {/* ══ Conversation pane ══ */}
-        <div className={`flex min-w-0 flex-1 flex-col ${showChatOnMobile ? "flex" : "hidden lg:flex"}`}>
-
-          {!selectedConvId ? (
-            /* ── Empty / prompt state ── */
-            <div className="flex flex-1 flex-col items-center justify-center overflow-y-auto p-8 text-center sm:p-14">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                className="mb-6 grid size-14 place-items-center border border-dashed border-border text-muted-foreground"
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={() => setCreatingNew(v => !v)}
+                data-testid="button-new-session"
+                className="mt-1 shrink-0 bg-foreground px-5 py-2.5 font-mono-ui text-[9px] uppercase tracking-widest text-background transition-opacity hover:opacity-75"
               >
-                <MessageCircle size={20} strokeWidth={1.3} />
-              </motion.div>
-              <p className="font-display text-3xl">
-                {conversations.length ? "Select a session." : "Start your first session."}
-              </p>
-              <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-                {conversations.length
-                  ? "Pick up a thread on the left — or open a new line of questioning."
-                  : "Pull a thread below, or start from scratch with «+ New»."}
-              </p>
-              <div className="mt-10 w-full max-w-sm">
-                <p className="mb-3 font-mono-ui text-[7px] uppercase tracking-[.26em] text-muted-foreground/50">Open a thread</p>
-                <div className="flex flex-col gap-px border border-border bg-border">
-                  {[
-                    "Why does my base note disappear after an hour?",
-                    "Make a clean musk less obvious",
-                    "The opening is too linear — how do I break it?",
-                    "A modern chypre without oakmoss",
-                  ].map((prompt, i) => (
-                    <motion.button
-                      key={prompt}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.12 + i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                      onClick={() => createWithTitle(prompt)}
-                      disabled={createConv.isPending}
-                      data-testid={`button-starter-prompt-${i}`}
-                      className="group flex items-center justify-between gap-3 bg-card px-4 py-3.5 text-left text-sm transition-colors hover:bg-secondary/25 disabled:opacity-50"
+                + New
+              </motion.button>
+            </div>
+
+            {/* ── New-session inline form ── */}
+            <AnimatePresence>
+              {creatingNew && (
+                <motion.form
+                  key="new-form"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  onSubmit={handleCreate}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-5 border border-border bg-secondary/15 px-5 py-4">
+                    <input
+                      autoFocus
+                      value={newTitle}
+                      onChange={e => setNewTitle(e.target.value)}
+                      placeholder="Name this thread…"
+                      data-testid="input-session-title"
+                      className="w-full border-b border-border bg-transparent pb-2 text-sm outline-none placeholder:text-muted-foreground/40"
+                    />
+                    <div className="mt-3 flex gap-2">
+                      <Button type="submit" disabled={createConv.isPending} testId="button-create-conv">
+                        {createConv.isPending ? "Creating…" : "Create"}
+                      </Button>
+                      <Button onClick={() => { setCreatingNew(false); setNewTitle(""); }} variant="quiet" testId="button-cancel-create">Cancel</Button>
+                    </div>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+
+            {/* ── Search bar ── */}
+            <div className="mt-7 flex items-center gap-3 rounded-full border border-border bg-secondary/30 px-4 py-3">
+              <Search size={14} className="shrink-0 text-muted-foreground/50" />
+              <input
+                value={sessionSearch}
+                onChange={e => setSessionSearch(e.target.value)}
+                placeholder="Search inspiration, accords, notes…"
+                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/40"
+              />
+            </div>
+
+            {/* ── Search results (when searching) ── */}
+            <AnimatePresence>
+              {sessionSearch.trim() && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="mt-4 space-y-px border border-border"
+                >
+                  {filteredConversations.length === 0 ? (
+                    <p className="px-4 py-5 text-sm text-muted-foreground">No sessions match "{sessionSearch}".</p>
+                  ) : filteredConversations.map(conv => (
+                    <button
+                      key={conv.id}
+                      onClick={() => { setSelectedConvId(conv.id); setSessionSearch(""); }}
+                      className="group flex w-full items-center justify-between gap-3 bg-card px-4 py-3.5 text-left transition-colors hover:bg-secondary/25"
                     >
-                      <span className="truncate">{prompt}</span>
-                      <ArrowUpRight size={11} className="shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </motion.button>
+                      <div>
+                        <p className="text-sm font-medium">{conv.title}</p>
+                        <p className="mt-0.5 font-mono-ui text-[7px] text-muted-foreground/50">
+                          {conv.messageCount ?? 0} msgs · {relativeDate(conv.updatedAt)}
+                        </p>
+                      </div>
+                      <ArrowRight size={12} className="shrink-0 text-muted-foreground" />
+                    </button>
                   ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Explore by mood ── */}
+            {!sessionSearch.trim() && (
+              <>
+                <div className="mt-10">
+                  <div className="mb-5 flex items-center justify-between">
+                    <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-foreground">Explore by mood</p>
+                  </div>
+                  <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-none">
+                    {MOODS.map((mood, i) => (
+                      <motion.button
+                        key={mood.name}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        onClick={() => createWithTitle(mood.prompt)}
+                        disabled={createConv.isPending}
+                        className="group flex shrink-0 flex-col items-center gap-2.5 disabled:opacity-50"
+                      >
+                        <div className={`relative size-[72px] overflow-hidden rounded-full ${mood.style} ring-1 ring-border transition-all duration-200 group-hover:ring-2 group-hover:ring-foreground/30`}>
+                          <div className="absolute inset-0 rounded-full bg-foreground/0 transition-colors duration-200 group-hover:bg-foreground/5" />
+                        </div>
+                        <span className="text-[11px] text-muted-foreground group-hover:text-foreground transition-colors">{mood.name}</span>
+                      </motion.button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              {activeFormula && (
-                <p className="mt-6 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/60">
-                  Formula context ready: {activeFormula.name}
-                </p>
+
+                {/* ── Popular accords ── */}
+                <div className="mt-10">
+                  <p className="mb-4 font-mono-ui text-[9px] uppercase tracking-[.22em] text-foreground">Popular accords</p>
+                  <div className="space-y-2">
+                    {ACCORDS.map((accord, i) => {
+                      const Icon = accord.icon;
+                      return (
+                        <motion.button
+                          key={accord.name}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.1 + i * 0.05, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                          onClick={() => createWithTitle(`${accord.name}: ${accord.desc.replaceAll(".", "").split(". ").join(", ")}`)}
+                          disabled={createConv.isPending}
+                          className="group flex w-full items-center gap-4 rounded-xl border border-border bg-secondary/20 px-4 py-3.5 transition-colors hover:bg-secondary/40 disabled:opacity-50"
+                        >
+                          <div className="grid size-9 shrink-0 place-items-center rounded-full bg-background">
+                            <Icon size={14} strokeWidth={1.5} className="text-muted-foreground" />
+                          </div>
+                          <div className="min-w-0 flex-1 text-left">
+                            <p className="text-[13px] font-medium">{accord.name}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{accord.desc}</p>
+                          </div>
+                          <ArrowRight size={13} className="shrink-0 text-muted-foreground/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ── Recent inspiration (sessions) ── */}
+                {conversations.length > 0 && (
+                  <div className="mt-10">
+                    <p className="mb-4 font-mono-ui text-[9px] uppercase tracking-[.22em] text-foreground">Recent inspiration</p>
+                    {convsQuery.isLoading ? (
+                      <div className="space-y-3">
+                        {[1, 2].map(i => <Skeleton key={i} className="h-[72px] w-full rounded-xl" />)}
+                      </div>
+                    ) : (
+                      <div className="space-y-px border-t border-border">
+                        {conversations.slice(0, 8).map((conv, i) => (
+                          <motion.button
+                            key={conv.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: i * 0.04 }}
+                            onClick={() => setSelectedConvId(conv.id)}
+                            data-testid={`button-session-${conv.id}`}
+                            className="group flex w-full items-start justify-between gap-4 border-b border-border py-5 text-left transition-colors hover:bg-secondary/10"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <p className="text-base font-medium leading-snug group-hover:text-foreground">{conv.title}</p>
+                              <p className="mt-1.5 font-mono-ui text-[8px] text-muted-foreground/50">
+                                {conv.messageCount ?? 0} {(conv.messageCount ?? 0) === 1 ? "msg" : "msgs"} · {relativeDate(conv.updatedAt)}
+                              </p>
+                            </div>
+                            <div className="mt-0.5 flex shrink-0 items-center gap-3">
+                              <button
+                                onClick={e => { e.stopPropagation(); handleDelete(conv.id); }}
+                                aria-label="Delete session"
+                                className="opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground/40 hover:text-destructive"
+                              >
+                                <X size={11} />
+                              </button>
+                              <ArrowRight size={13} className="text-muted-foreground/30 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
+                            </div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Empty state — no sessions yet */}
+                {conversations.length === 0 && !convsQuery.isLoading && (
+                  <div className="mt-12 border border-dashed border-border px-6 py-10 text-center">
+                    <p className="font-display text-2xl">No threads yet.</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Tap a mood, an accord, or «+ New» to start your first session.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════
+          CHAT VIEW  (session selected)
+      ════════════════════════════════════════ */}
+      {inChat && (
+        <div className="-mx-5 sm:-mx-8 lg:-mx-12 flex flex-col overflow-hidden" style={{ height: "calc(100dvh - 3.5rem)" }}>
+
+          {/* Top bar */}
+          <div className="flex shrink-0 items-center gap-3 border-b border-border px-5 py-3 sm:px-8">
+            <button
+              onClick={() => setSelectedConvId(null)}
+              className="grid size-8 shrink-0 place-items-center text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Back to lab"
+            >
+              <ArrowLeft size={15} />
+            </button>
+            <div className="min-w-0 flex-1">
+              {activeConv ? (
+                <p className="truncate text-sm font-medium">{activeConv.title}</p>
+              ) : (
+                <Skeleton className="h-4 w-48" />
               )}
             </div>
-          ) : (
-            /* ── Active session ── */
-            <>
-              {/* Conversation top bar */}
-              <div className="flex shrink-0 items-center gap-2 border-b border-border px-5 py-2.5">
-                {/* Mobile back button */}
-                <button
-                  onClick={() => setSelectedConvId(null)}
-                  className="lg:hidden mr-2 text-muted-foreground hover:text-foreground"
-                  aria-label="Back to sessions"
+            {activeFormula && (
+              <Link
+                href={`/formulas/${activeFormula.id}`}
+                data-testid="link-active-formula"
+                className="flex shrink-0 items-center gap-1.5 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <FlaskConical size={9} />
+                {activeFormula.name} ↗
+              </Link>
+            )}
+            <button
+              onClick={() => handleDelete(selectedConvId!)}
+              aria-label="Delete session"
+              className="shrink-0 text-muted-foreground/40 transition-colors hover:text-destructive"
+            >
+              <X size={13} />
+            </button>
+          </div>
+
+          {/* Scrollable messages */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="mx-auto max-w-2xl space-y-7 px-5 py-8 sm:px-8">
+              {convQuery.isLoading && <Skeleton className="h-24 w-full" />}
+
+              {activeConv?.messages.length === 0 && !convQuery.isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="py-16 text-center"
                 >
-                  <ArrowLeft size={14} />
-                </button>
-                {activeConv && (
-                  <p className="min-w-0 flex-1 truncate font-mono-ui text-[8px] uppercase tracking-[.18em] text-muted-foreground">
-                    {activeConv.title}
+                  <p className="font-display text-4xl">What are you working on?</p>
+                  <p className="mt-4 text-sm text-muted-foreground">
+                    {activeFormula
+                      ? `The lab knows about ${activeFormula.name}. Ask about its structure, a material, or what to try next.`
+                      : "A difficult material, a flat drydown, a brief that won't settle. Bring the unfinished thought."}
                   </p>
-                )}
-                {activeFormula && (
-                  <>
-                    <FlaskConical size={9} className="shrink-0 text-muted-foreground/60" />
-                    <Link
-                      href={`/formulas/${activeFormula.id}`}
-                      data-testid="link-active-formula"
-                      className="shrink-0 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground hover:text-foreground"
-                    >
-                      {activeFormula.name} ↗
-                    </Link>
-                  </>
-                )}
-              </div>
+                </motion.div>
+              )}
 
-              {/* Scrollable messages */}
-              <div className="flex-1 overflow-y-auto">
-                <div className="space-y-6 px-5 py-6 sm:px-8">
-                  {convQuery.isLoading && <Skeleton className="h-20 w-full" />}
-
-                  {activeConv?.messages.length === 0 && !convQuery.isLoading && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="py-14 text-center"
-                    >
-                      <p className="font-display text-3xl">What are you working on?</p>
-                      <p className="mt-3 text-sm text-muted-foreground">
-                        {activeFormula
-                          ? `The lab knows about ${activeFormula.name}. Ask about its structure, a material, or what to try next.`
-                          : "A difficult material, a flat drydown, a brief that won't settle. Bring the unfinished thought."}
-                      </p>
-                    </motion.div>
-                  )}
-
-                  {activeConv?.messages.map(msg => (
-                    <div key={msg.id} className={msg.role === "user" ? "pl-8 sm:pl-14" : "pr-4 sm:pr-10"}>
-                      <p className="mb-1.5 font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/60">
-                        {msg.role === "user" ? "You" : "Lab"} ·{" "}
-                        {new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
-                      </p>
-                      <div className={
-                        msg.role === "user"
-                          ? "border border-border bg-secondary/25 px-4 py-3 text-sm leading-6"
-                          : "border-l-2 border-accent pl-5 text-sm leading-7 text-foreground"
-                      }>
-                        {msg.role === "user" ? msg.content : <MarkdownMessage content={msg.content} />}
-                      </div>
-                    </div>
-                  ))}
-
-                  {streamMsg.isPending && (
-                    <div className="pr-4 sm:pr-10">
-                      <p className="mb-1.5 font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/60">Lab · now</p>
-                      <div className="border-l-2 border-accent pl-5 text-sm leading-7 text-foreground">
-                        {streamMsg.streamingContent ? (
-                          <MarkdownMessage content={streamMsg.streamingContent} />
-                        ) : (
-                          <div className="flex gap-1.5 py-2">
-                            {[0, 1, 2].map(i => (
-                              <span
-                                key={i}
-                                className="size-1.5 rounded-full bg-accent/60 animate-pulse"
-                                style={{ animationDelay: `${i * 150}ms` }}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
+              {activeConv?.messages.map(msg => (
+                <div key={msg.id} className={msg.role === "user" ? "pl-8 sm:pl-16" : "pr-2"}>
+                  <p className="mb-2 font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/50">
+                    {msg.role === "user" ? "You" : "Lab"} · {new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                  <div className={msg.role === "user"
+                    ? "rounded-2xl rounded-tr-sm border border-border bg-secondary/30 px-4 py-3 text-sm leading-6"
+                    : "border-l-2 border-accent pl-5 text-sm leading-7"
+                  }>
+                    {msg.role === "user" ? msg.content : <MarkdownMessage content={msg.content} />}
+                  </div>
                 </div>
-              </div>
+              ))}
 
-              {/* Pinned input bar */}
-              <div className="shrink-0 border-t border-border px-5 py-3.5 sm:px-8">
-                <form onSubmit={handleSend} className="flex items-center gap-2 border border-border bg-secondary/20 px-3 py-1.5">
-                  <input
-                    value={message}
-                    onChange={e => setMessage(e.target.value)}
-                    disabled={streamMsg.isPending || !activeConv}
-                    data-testid="input-coach-message"
-                    className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none"
-                    placeholder={activeFormula ? `Ask about ${activeFormula.name}…` : "I'm working on…"}
-                  />
-                  <button
-                    type="submit"
-                    disabled={streamMsg.isPending || !message.trim() || !activeConv}
-                    data-testid="button-send-coach"
-                    className="grid size-8 shrink-0 place-items-center bg-foreground text-background disabled:opacity-30"
-                  >
-                    {streamMsg.isPending
-                      ? <span className="size-3.5 animate-spin rounded-full border-2 border-background/30 border-t-background" />
-                      : <Send size={13} />}
-                  </button>
-                </form>
-                {streamMsg.error && (
-                  <p className="mt-2 text-xs text-destructive" data-testid="status-coach-error">
-                    {streamMsg.error}
-                  </p>
-                )}
-              </div>
-            </>
-          )}
+              {streamMsg.isPending && (
+                <div className="pr-2">
+                  <p className="mb-2 font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/50">Lab · now</p>
+                  <div className="border-l-2 border-accent pl-5 text-sm leading-7">
+                    {streamMsg.streamingContent
+                      ? <MarkdownMessage content={streamMsg.streamingContent} />
+                      : (
+                        <div className="flex gap-1.5 py-2">
+                          {[0, 1, 2].map(i => (
+                            <span key={i} className="size-1.5 animate-pulse rounded-full bg-accent/60" style={{ animationDelay: `${i * 150}ms` }} />
+                          ))}
+                        </div>
+                      )}
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+
+          {/* Pinned input */}
+          <div className="shrink-0 border-t border-border px-5 py-4 sm:px-8">
+            <form onSubmit={handleSend} className="mx-auto flex max-w-2xl items-center gap-3 rounded-full border border-border bg-secondary/20 px-5 py-2.5">
+              <input
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                disabled={streamMsg.isPending || !activeConv}
+                data-testid="input-coach-message"
+                className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+                placeholder={activeFormula ? `Ask about ${activeFormula.name}…` : "I'm working on…"}
+              />
+              <button
+                type="submit"
+                disabled={streamMsg.isPending || !message.trim() || !activeConv}
+                data-testid="button-send-coach"
+                className="grid size-8 shrink-0 place-items-center rounded-full bg-foreground text-background disabled:opacity-30"
+              >
+                {streamMsg.isPending
+                  ? <span className="size-3.5 animate-spin rounded-full border-2 border-background/30 border-t-background" />
+                  : <Send size={13} />}
+              </button>
+            </form>
+            {streamMsg.error && (
+              <p className="mt-2 text-center text-xs text-destructive" data-testid="status-coach-error">{streamMsg.error}</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </Shell>
   );
 }
