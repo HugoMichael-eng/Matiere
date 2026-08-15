@@ -6,6 +6,7 @@ import materialsRouter from "./materials";
 import coachingRouter from "./coaching";
 import conversationsRouter from "./conversations";
 import activityRouter from "./activity";
+import formulaIdeasRouter from "./formula-ideas";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(materialsRouter);
 router.use(coachingRouter);
 router.use(conversationsRouter);
 router.use(activityRouter);
+router.use(formulaIdeasRouter);
 
 export default router;
