@@ -2431,220 +2431,101 @@ function Coach() {
       ════════════════════════════════════════ */}
       {!inChat && (
         <div className="-mx-5 sm:-mx-8 lg:-mx-12 overflow-y-auto" style={{ height: "calc(100dvh - 3.5rem)" }}>
-          <div className="mx-auto max-w-2xl px-5 pb-20 pt-8 sm:px-8">
+          <div className="mx-auto max-w-xl px-5 pb-20 pt-16 sm:px-8 sm:pt-24">
 
             {/* ── Header ── */}
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-muted-foreground">Creative lab</p>
-                <h1 className="mt-2 font-display text-5xl leading-[1.0] tracking-tight sm:text-6xl">
-                  What are you<br />working on?
-                </h1>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-muted-foreground">Creative lab</p>
+              <h1 className="mt-3 font-display text-5xl leading-[1.0] tracking-tight sm:text-6xl">
+                What are you<br />working on?
+              </h1>
+            </motion.div>
+
+            {/* ── Single prompt input ── */}
+            <motion.form
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-10"
+              onSubmit={e => {
+                e.preventDefault();
+                const val = newTitle.trim();
+                if (!val || createConv.isPending) return;
+                setNewTitle("");
+                createWithTitle(val, val);
+              }}
+            >
+              <div className="flex items-center gap-3 border border-border bg-secondary/20 px-5 py-4 focus-within:border-foreground/30 transition-colors">
+                <input
+                  value={newTitle}
+                  onChange={e => setNewTitle(e.target.value)}
+                  placeholder="A difficult material, a flat drydown, a brief that won't settle…"
+                  data-testid="input-session-title"
+                  className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/40"
+                  autoComplete="off"
+                />
+                <button
+                  type="submit"
+                  disabled={!newTitle.trim() || createConv.isPending}
+                  data-testid="button-create-conv"
+                  className="grid size-8 shrink-0 place-items-center bg-foreground text-background disabled:opacity-25 transition-opacity"
+                >
+                  {createConv.isPending
+                    ? <span className="size-3.5 animate-spin rounded-full border-2 border-background/30 border-t-background" />
+                    : <ArrowRight size={14} />}
+                </button>
               </div>
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                onClick={() => setCreatingNew(v => !v)}
-                data-testid="button-new-session"
-                className="mt-1 shrink-0 bg-foreground px-5 py-2.5 font-mono-ui text-[9px] uppercase tracking-widest text-background transition-opacity hover:opacity-75"
+            </motion.form>
+
+            {/* ── Recent sessions ── */}
+            {(conversations.length > 0 || convsQuery.isLoading) && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+                className="mt-12"
               >
-                + New
-              </motion.button>
-            </div>
-
-            {/* ── New-session inline form ── */}
-            <AnimatePresence>
-              {creatingNew && (
-                <motion.form
-                  key="new-form"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                  onSubmit={handleCreate}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-5 border border-border bg-secondary/15 px-5 py-4">
-                    <input
-                      autoFocus
-                      value={newTitle}
-                      onChange={e => setNewTitle(e.target.value)}
-                      placeholder="Name this thread…"
-                      data-testid="input-session-title"
-                      className="w-full border-b border-border bg-transparent pb-2 text-sm outline-none placeholder:text-muted-foreground/40"
-                    />
-                    <div className="mt-3 flex gap-2">
-                      <Button type="submit" disabled={createConv.isPending} testId="button-create-conv">
-                        {createConv.isPending ? "Creating…" : "Create"}
-                      </Button>
-                      <Button onClick={() => { setCreatingNew(false); setNewTitle(""); }} variant="quiet" testId="button-cancel-create">Cancel</Button>
+                <p className="mb-1 font-mono-ui text-[8px] uppercase tracking-[.22em] text-muted-foreground/50">Recent</p>
+                <div className="border-t border-border">
+                  {convsQuery.isLoading ? (
+                    <div className="space-y-px pt-px">
+                      {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 w-full" />)}
                     </div>
-                  </div>
-                </motion.form>
-              )}
-            </AnimatePresence>
-
-            {/* ── Search bar ── */}
-            <div className="mt-7 flex items-center gap-3 rounded-full border border-border bg-secondary/30 px-4 py-3">
-              <Search size={14} className="shrink-0 text-muted-foreground/50" />
-              <input
-                value={sessionSearch}
-                onChange={e => setSessionSearch(e.target.value)}
-                placeholder="Search inspiration, accords, notes…"
-                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/40"
-              />
-            </div>
-
-            {/* ── Search results (when searching) ── */}
-            <AnimatePresence>
-              {sessionSearch.trim() && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-4 space-y-px border border-border"
-                >
-                  {filteredConversations.length === 0 ? (
-                    <p className="px-4 py-5 text-sm text-muted-foreground">No sessions match "{sessionSearch}".</p>
-                  ) : filteredConversations.map(conv => (
-                    <button
-                      key={conv.id}
-                      onClick={() => { setSelectedConvId(conv.id); setSessionSearch(""); }}
-                      className="group flex w-full items-center justify-between gap-3 bg-card px-4 py-3.5 text-left transition-colors hover:bg-secondary/25"
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{conv.title}</p>
-                        <p className="mt-0.5 font-mono-ui text-[7px] text-muted-foreground/50">
-                          {conv.messageCount ?? 0} msgs · {relativeDate(conv.updatedAt)}
-                        </p>
-                      </div>
-                      <ArrowRight size={12} className="shrink-0 text-muted-foreground" />
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* ── Explore by mood ── */}
-            {!sessionSearch.trim() && (
-              <>
-                <div className="mt-10">
-                  <div className="mb-5 flex items-center justify-between">
-                    <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-foreground">Explore by mood</p>
-                  </div>
-                  <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-none">
-                    {MOODS.map((mood, i) => (
-                      <motion.button
-                        key={mood.name}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.06, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                        onClick={() => createWithTitle(mood.name, `Give me a creative brief for a ${mood.name.toLowerCase()} fragrance direction — describe the feeling, the key materials that define it, and two or three specific accord ideas I could explore.`)}
-                        disabled={createConv.isPending}
-                        className="group flex shrink-0 flex-col items-center gap-2.5 disabled:opacity-50"
-                      >
-                        <div className="relative size-[72px] overflow-hidden rounded-full ring-1 ring-border transition-all duration-200 group-hover:ring-2 group-hover:ring-foreground/30">
-                          <img src={mood.img} alt={mood.name} className="size-full object-cover" />
-                          <div className="absolute inset-0 rounded-full bg-foreground/0 transition-colors duration-200 group-hover:bg-foreground/5" />
-                        </div>
-                        <span className="text-[11px] text-muted-foreground group-hover:text-foreground transition-colors">{mood.name}</span>
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ── Popular accords ── */}
-                <div className="mt-10">
-                  <p className="mb-4 font-mono-ui text-[9px] uppercase tracking-[.22em] text-foreground">Popular accords</p>
-                  <div className="space-y-2">
-                    {ACCORDS.map((accord, i) => {
-                      const Icon = accord.icon;
+                  ) : (
+                    [...conversations.filter(c => pinnedIds.has(c.id)), ...conversations.filter(c => !pinnedIds.has(c.id))].slice(0, 8).map((conv, i) => {
+                      const isPinned = pinnedIds.has(conv.id);
                       return (
                         <motion.button
-                          key={accord.name}
-                          initial={{ opacity: 0, x: -8 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.1 + i * 0.05, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                          onClick={() => createWithTitle(accord.name, `Tell me about the ${accord.name} accord — what defines it (${accord.desc}), which raw materials are essential to building it, and what's a modern take I could explore?`)}
-                          disabled={createConv.isPending}
-                          className="group flex w-full items-center gap-4 rounded-xl border border-border bg-secondary/20 px-4 py-3.5 transition-colors hover:bg-secondary/40 disabled:opacity-50"
+                          key={conv.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: i * 0.03 }}
+                          onClick={() => setSelectedConvId(conv.id)}
+                          data-testid={`button-session-${conv.id}`}
+                          className="group flex w-full items-center justify-between gap-4 border-b border-border py-4 text-left transition-colors hover:bg-secondary/10"
                         >
-                          <div className="grid size-9 shrink-0 place-items-center rounded-full bg-background">
-                            <Icon size={14} strokeWidth={1.5} className="text-muted-foreground" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium">{conv.title}</p>
+                            <p className="mt-0.5 font-mono-ui text-[7px] text-muted-foreground/40">
+                              {isPinned && "📌 "}
+                              {conv.messageCount ?? 0} {(conv.messageCount ?? 0) === 1 ? "msg" : "msgs"} · {relativeDate(conv.updatedAt)}
+                            </p>
                           </div>
-                          <div className="min-w-0 flex-1 text-left">
-                            <p className="text-[13px] font-medium">{accord.name}</p>
-                            <p className="mt-0.5 text-xs text-muted-foreground">{accord.desc}</p>
+                          <div className="flex shrink-0 items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                            <button onClick={e => { e.stopPropagation(); togglePin(conv.id); }} aria-label={isPinned ? "Unpin" : "Pin"} className="text-muted-foreground/50 hover:text-foreground">
+                              <Bookmark size={11} className={isPinned ? "fill-foreground text-foreground" : ""} />
+                            </button>
+                            <button onClick={e => { e.stopPropagation(); handleDelete(conv.id); }} aria-label="Delete" className="text-muted-foreground/50 hover:text-destructive">
+                              <X size={11} />
+                            </button>
                           </div>
-                          <ArrowRight size={13} className="shrink-0 text-muted-foreground/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
+                          <ArrowRight size={12} className="shrink-0 text-muted-foreground/20 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground/60" />
                         </motion.button>
                       );
-                    })}
-                  </div>
+                    })
+                  )}
                 </div>
-
-                {/* ── Recent inspiration (sessions) ── */}
-                {conversations.length > 0 && (
-                  <div className="mt-10">
-                    <p className="mb-4 font-mono-ui text-[9px] uppercase tracking-[.22em] text-foreground">Recent inspiration</p>
-                    {convsQuery.isLoading ? (
-                      <div className="space-y-3">
-                        {[1, 2].map(i => <Skeleton key={i} className="h-[72px] w-full rounded-xl" />)}
-                      </div>
-                    ) : (
-                      <div className="space-y-px border-t border-border">
-                        {[...conversations.filter(c => pinnedIds.has(c.id)), ...conversations.filter(c => !pinnedIds.has(c.id))].slice(0, 8).map((conv, i) => {
-                          const isPinned = pinnedIds.has(conv.id);
-                          return (
-                          <motion.button
-                            key={conv.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: i * 0.04 }}
-                            onClick={() => setSelectedConvId(conv.id)}
-                            data-testid={`button-session-${conv.id}`}
-                            className="group flex w-full items-start justify-between gap-4 border-b border-border py-5 text-left transition-colors hover:bg-secondary/10"
-                          >
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                {isPinned && <span className="font-mono-ui text-[7px] uppercase tracking-widest text-accent-foreground/60">Pinned</span>}
-                                <p className="text-base font-medium leading-snug group-hover:text-foreground">{conv.title}</p>
-                              </div>
-                              <p className="mt-1.5 font-mono-ui text-[8px] text-muted-foreground/50">
-                                {conv.messageCount ?? 0} {(conv.messageCount ?? 0) === 1 ? "msg" : "msgs"} · {relativeDate(conv.updatedAt)}
-                              </p>
-                            </div>
-                            <div className="mt-0.5 flex shrink-0 items-center gap-2">
-                              <button
-                                onClick={e => { e.stopPropagation(); togglePin(conv.id); }}
-                                aria-label={isPinned ? "Unpin session" : "Pin session"}
-                                className={`transition-opacity ${isPinned ? "opacity-100 text-foreground" : "opacity-0 group-hover:opacity-100 text-muted-foreground/40 hover:text-foreground"}`}
-                              >
-                                <Bookmark size={12} className={isPinned ? "fill-foreground" : ""} />
-                              </button>
-                              <button
-                                onClick={e => { e.stopPropagation(); handleDelete(conv.id); }}
-                                aria-label="Delete session"
-                                className="opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground/40 hover:text-destructive"
-                              >
-                                <X size={11} />
-                              </button>
-                              <ArrowRight size={13} className="text-muted-foreground/30 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
-                            </div>
-                          </motion.button>
-                        );})}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Empty state — no sessions yet */}
-                {conversations.length === 0 && !convsQuery.isLoading && (
-                  <div className="mt-12 border border-dashed border-border px-6 py-10 text-center">
-                    <p className="font-display text-2xl">No threads yet.</p>
-                    <p className="mt-2 text-sm text-muted-foreground">Tap a mood, an accord, or «+ New» to start your first session.</p>
-                  </div>
-                )}
-              </>
+              </motion.div>
             )}
           </div>
         </div>
