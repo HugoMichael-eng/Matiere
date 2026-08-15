@@ -2641,11 +2641,51 @@ function Shop() {
   );
 }
 
+const FIELD_NOTE_SCENES = [
+  {
+    fieldNote: "014", date: "03.14",
+    bg: "landing-site.jpg",
+    name: "salt / iris", nameEm: "old wood",
+    description: "A little mineral. A soft refusal. Something that stays after the room is empty.",
+    concentration: "20%", unit: "eau de parfum",
+  },
+  {
+    fieldNote: "007", date: "11.02",
+    bg: "rose.jpg",
+    name: "rose / amber", nameEm: "musk",
+    description: "Full-bodied without sweetness. A rose that smells like it was just cut.",
+    concentration: "22%", unit: "eau de parfum",
+  },
+  {
+    fieldNote: "021", date: "07.28",
+    bg: "vetiver.jpg",
+    name: "cedar / smoke", nameEm: "vetiver",
+    description: "Rooted and unhurried. The kind of dry that feels earned.",
+    concentration: "15%", unit: "eau de parfum",
+  },
+  {
+    fieldNote: "033", date: "01.09",
+    bg: "resin.jpg",
+    name: "labdanum / oud", nameEm: "benzoin",
+    description: "Resinous and warm. Something ancient without being obvious about it.",
+    concentration: "18%", unit: "extrait de parfum",
+  },
+];
+
 function FieldNoteCard() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const rotateX = useSpring(useTransform(mouseY, [-160, 160], [7, -7]), { damping: 22, stiffness: 180 });
   const rotateY = useSpring(useTransform(mouseX, [-160, 160], [-7, 7]), { damping: 22, stiffness: 180 });
+
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setActive(i => (i + 1) % FIELD_NOTE_SCENES.length), 4400);
+    return () => clearInterval(t);
+  }, []);
+
+  const base = import.meta.env.BASE_URL + "images/";
+
   return (
     <motion.div
       style={{ rotateX, rotateY, transformPerspective: 1100 }}
@@ -2656,36 +2696,62 @@ function FieldNoteCard() {
       transition={{ delay: 0.22, duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
       className="relative min-h-[420px] cursor-default lg:min-h-[540px]"
     >
-      <div className="absolute inset-0 overflow-hidden border border-border p-8 text-foreground pt-[108px] pb-[108px] pl-[64px] pr-[64px]">
-        <img
-          src={`${import.meta.env.BASE_URL}images/landing-site.jpg`}
-          alt="Studio material photograph"
-          className="absolute inset-0 h-full w-full object-cover"
-          data-testid="img-hero-photo"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#ffffffd9] via-[#ffffff66] to-transparent" />
-        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#ffffffb8] to-transparent" />
-        <div className="relative flex justify-between font-mono-ui text-[9px] uppercase tracking-[.16em] text-[#3a3a3f]">
-          <span>Field note 014</span><span>03.14</span>
-        </div>
-        <div className="absolute bottom-10 left-8 right-8 z-[1]">
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="font-display text-6xl leading-[.82] text-[#423838]"
-          >
-            salt / iris<br /><em>old wood</em>
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.72, duration: 0.6 }}
-            className="mt-7 flex items-end justify-between"
-          >
-            <p className="max-w-[180px] text-sm leading-6 text-muted-foreground">A little mineral. A soft refusal. Something that stays after the room is empty.</p>
-            <div className="grid size-20 place-items-center border border-border font-mono-ui text-[9px] text-center uppercase leading-3">20%<br />eau de parfum</div>
-          </motion.div>
+      <div className="absolute inset-0 overflow-hidden border border-border text-foreground">
+
+        {/* ── Crossfading scene layer (bg + text together) ── */}
+        <AnimatePresence mode="sync">
+          {FIELD_NOTE_SCENES.map((scene, i) => i !== active ? null : (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.0, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              {/* Background */}
+              <img
+                src={base + scene.bg}
+                alt="Studio material photograph"
+                className="absolute inset-0 h-full w-full object-cover"
+                data-testid={i === 0 ? "img-hero-photo" : undefined}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#ffffffd9] via-[#ffffff55] to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#ffffffb8] to-transparent" />
+
+              {/* Field note header */}
+              <div className="relative flex justify-between px-8 pt-8 font-mono-ui text-[9px] uppercase tracking-[.16em] text-[#3a3a3f]">
+                <span>Field note {scene.fieldNote}</span><span>{scene.date}</span>
+              </div>
+
+              {/* Bottom content */}
+              <div className="absolute bottom-10 left-8 right-8 z-[1]">
+                <p className="font-display text-6xl leading-[.82] text-[#423838]">
+                  {scene.name}<br /><em>{scene.nameEm}</em>
+                </p>
+                <div className="mt-7 flex items-end justify-between">
+                  <p className="max-w-[180px] text-sm leading-6 text-muted-foreground">{scene.description}</p>
+                  <div className="grid size-20 place-items-center border border-border font-mono-ui text-[9px] text-center uppercase leading-3">
+                    {scene.concentration}<br />{scene.unit}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* ── Dot indicators ── */}
+        <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+          {FIELD_NOTE_SCENES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              aria-label={`Scene ${i + 1}`}
+              className={`h-[3px] rounded-full transition-all duration-500 ${
+                i === active ? "w-5 bg-foreground/50" : "w-[3px] bg-foreground/20 hover:bg-foreground/35"
+              }`}
+            />
+          ))}
         </div>
       </div>
     </motion.div>
