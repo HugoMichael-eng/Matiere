@@ -69,12 +69,12 @@ router.post("/formulas/idea-materials", async (req, res): Promise<void> => {
 
   const response = await openai.chat.completions.create({
     model: "gpt-5.6-terra",
-    max_completion_tokens: 600,
+    max_completion_tokens: 1100,
     messages: [
       {
         role: "system",
         content:
-          'You are a master perfumer. Given a formula concept, suggest 5–7 specific aromatic materials that would build it. Return valid JSON only — no markdown, no code fences — in this shape: { "materials": [ { "name": "Bergamot", "role": "top", "pct": 12 } ] }. ROLE must be exactly "top", "heart", or "base". PCT must be an integer. All pct values must sum between 70 and 90. Use real, specific perfumery materials (e.g. iso e super, hedione, ambroxan, linalool, vetiver, musks, orris, etc.). The selection must serve the brief.',
+          'You are a master perfumer composing a working formula. Given a concept, suggest 10–14 specific aromatic materials that build it with real structural depth. Return valid JSON only — no markdown, no code fences — in this shape: { "materials": [ { "name": "Bergamot", "role": "top", "pct": 12 } ] }. Rules: ROLE must be exactly "top", "heart", or "base". PCT must be a positive integer. All pct values must sum between 90 and 110 (a complete concentrate). Coverage rules: include at least 2 top notes (citrus, green, aromatic), at least 3–4 heart notes (florals, spices, resins, woods), at least 3 base notes (musks, ambers, woods, animalics), and 1–2 modifiers or diffusants (e.g. hedione, iso e super, ambroxan, linalool, ethylene brassylate, galaxolide). Use real, specific perfumery materials — IUPAC names or trade names both fine (e.g. "Iso E Super", "Ambroxan", "Hedione HC", "Cashmeran", "Clearwood", "Benzyl salicylate"). No vague generics like "musk" alone. The blend must serve the brief coherently.',
       },
       {
         role: "user",
