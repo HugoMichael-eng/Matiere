@@ -1519,6 +1519,32 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
   );
 }
 
+/** Match AI-suggested blueprint ingredients against the material library.
+ *  Strategy: 1) case-insensitive exact, 2) substring fuzzy (either direction).
+ *  Matched rows get their real materialId; unmatched stay at 0 with the AI badge. */
+function matchBlueprintToLibrary(
+  ingredients: FormulaIngredientInput[],
+  materials: Material[],
+): FormulaIngredientInput[] {
+  if (!materials.length) return ingredients;
+  return ingredients.map(ing => {
+    if (ing.materialId !== 0 || !ing.materialName) return ing;
+    const nameLower = ing.materialName.toLowerCase();
+    // 1. Case-insensitive exact match
+    let match = materials.find(m => m.name.toLowerCase() === nameLower);
+    // 2. Fuzzy fallback: library name contains AI name, or vice-versa
+    if (!match) {
+      match = materials.find(
+        m =>
+          m.name.toLowerCase().includes(nameLower) ||
+          nameLower.includes(m.name.toLowerCase()),
+      );
+    }
+    if (match) return { ...ing, materialId: match.id, materialName: match.name };
+    return ing;
+  });
+}
+
 function BlueprintPanel({ materials }: { materials: FormulaIdeaMaterial[] }) {
   const sorted = [...materials].sort((a, b) => {
     const order = { top: 0, heart: 1, base: 2 };
@@ -1607,6 +1633,20 @@ function NewFormula() {
     return [];
   });
 
+  // Fetch the material library so we can auto-match blueprint ingredients.
+  // React Query deduplicates this request — IngredientBuilder makes the same call.
+  const libraryQuery = useListMaterials();
+  const libraryMaterials = libraryQuery.data ?? [];
+
+  // One-shot auto-match: fires once when the library first loads. Guards via ref
+  // so it won't re-run if the user manually edits ingredients afterwards.
+  const blueprintMatchedRef = useRef(false);
+  useEffect(() => {
+    if (blueprintMatchedRef.current || !libraryMaterials.length) return;
+    blueprintMatchedRef.current = true;
+    setIngredients(prev => matchBlueprintToLibrary(prev, libraryMaterials));
+  }, [libraryMaterials]);
+
   const submit = (e: FormEvent) => {
     e.preventDefault();
     create.mutate(
@@ -1625,14 +1665,18 @@ function NewFormula() {
       <FormulaIdeaGenerator onSelect={(n, b, mats) => {
         setName(n);
         setBrief(b);
-        setIngredients(mats.map(mat => ({
+        const rawIngs: FormulaIngredientInput[] = mats.map(mat => ({
           materialId: 0,
           materialName: mat.name,
           percentage: mat.pct,
           grams: parseFloat(((mat.pct / 100) * totalMl).toFixed(3)),
           dilution: 100,
           role: mat.role,
-        })));
+        }));
+        // Library is already fetched by this point — match immediately.
+        // Also reset the guard so the useEffect won't re-run a stale match.
+        blueprintMatchedRef.current = true;
+        setIngredients(matchBlueprintToLibrary(rawIngs, libraryMaterials));
       }} />
       <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
         <div className="space-y-5">
