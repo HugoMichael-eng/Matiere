@@ -6,7 +6,7 @@ import { experimental__simple } from "@clerk/themes";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useMotionTemplate, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import {
-  ArrowLeft, ArrowRight, ArrowUpRight, Beaker, BookOpen, ChevronDown, ChevronRight, CircleAlert,
+  ArrowLeft, ArrowRight, ArrowUpRight, Beaker, Bookmark, BookOpen, ChevronDown, ChevronRight, CircleAlert,
   FlaskConical, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
   Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, X, ShoppingBag
 } from "lucide-react";
@@ -1924,7 +1924,7 @@ function FormulaDetail() {
   if (query.isLoading) return <Shell><Skeleton className="h-72" /></Shell>;
   if (query.isError || !formula) return <Shell><ErrorState retry={() => query.refetch()} /></Shell>;
   return (
-    <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex gap-2"><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><div className="flex items-center gap-3 pt-1"><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p><button onClick={begin} data-testid="button-edit-inline" className="border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:bg-secondary">Edit</button></div></div><div className="mt-5 space-y-1">{(() => { const unlinkCount = formula.ingredients.filter(i => i.materialId === 0).length; return unlinkCount > 0 ? (<div className="mb-4 flex items-start gap-2.5 border border-accent/30 bg-accent/10 px-4 py-3" data-testid="banner-unlinked-ingredients"><CircleAlert size={13} className="mt-0.5 shrink-0 text-accent-foreground/70" /><p className="font-mono-ui text-[10px] uppercase tracking-[.1em] leading-5 text-accent-foreground/70">{unlinkCount} ingredient{unlinkCount > 1 ? "s" : ""} not yet linked to your library — open Edit to resolve</p></div>) : null; })()}{formula.ingredients.map((item, i) => { const unlinked = item.materialId === 0; return (<div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className={`grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t py-4 ${unlinked ? "border-accent/30" : "border-border"}`}><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{item.materialName}</p>{unlinked && <span className="inline-flex items-center border border-accent/40 px-1.5 py-0.5 font-mono-ui text-[8px] uppercase tracking-widest text-accent-foreground/70" data-testid={`badge-unlinked-${i}`}>Unlinked</span>}</div><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>); })}</div></div>{editing && (
+    <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex flex-wrap gap-2"><Button href={`/coach?formula=${formula.id}`} variant="outline" testId="button-discuss-lab">Discuss in lab ↗</Button><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><div className="flex items-center gap-3 pt-1"><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p><button onClick={begin} data-testid="button-edit-inline" className="border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:bg-secondary">Edit</button></div></div><div className="mt-5 space-y-1">{(() => { const unlinkCount = formula.ingredients.filter(i => i.materialId === 0).length; return unlinkCount > 0 ? (<div className="mb-4 flex items-start gap-2.5 border border-accent/30 bg-accent/10 px-4 py-3" data-testid="banner-unlinked-ingredients"><CircleAlert size={13} className="mt-0.5 shrink-0 text-accent-foreground/70" /><p className="font-mono-ui text-[10px] uppercase tracking-[.1em] leading-5 text-accent-foreground/70">{unlinkCount} ingredient{unlinkCount > 1 ? "s" : ""} not yet linked to your library — open Edit to resolve</p></div>) : null; })()}{formula.ingredients.map((item, i) => { const unlinked = item.materialId === 0; return (<div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className={`grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t py-4 ${unlinked ? "border-accent/30" : "border-border"}`}><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{item.materialName}</p>{unlinked && <span className="inline-flex items-center border border-accent/40 px-1.5 py-0.5 font-mono-ui text-[8px] uppercase tracking-widest text-accent-foreground/70" data-testid={`badge-unlinked-${i}`}>Unlinked</span>}</div><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>); })}</div></div>{editing && (
                                                                                                         <div className="fixed inset-0 z-40 overflow-y-auto bg-background">
                                                                                                           <div className="mx-auto max-w-5xl px-5 pb-20 pt-6 sm:px-10">
                                                                                                             <div className="mb-8 flex items-center justify-between">
@@ -2167,6 +2167,18 @@ function Coach() {
   const [creatingNew, setCreatingNew] = useState(false);
   const [message, setMessage] = useState("");
   const [sessionSearch, setSessionSearch] = useState("");
+  const [pinnedIds, setPinnedIds] = useState<Set<number>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("matiere-pinned-sessions") ?? "[]")); }
+    catch { return new Set(); }
+  });
+  const togglePin = (id: number) => {
+    setPinnedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      localStorage.setItem("matiere-pinned-sessions", JSON.stringify([...next]));
+      return next;
+    });
+  };
 
   const convsQuery = useListConversations();
   const convQuery = useGetConversation(selectedConvId ?? 0, {
@@ -2354,12 +2366,12 @@ function Coach() {
 
   // ── Mood definitions ──
   const MOODS = [
-    { name: "Clean",  prompt: "A clean, transparent skin scent — no soap, just presence",  style: "bg-zinc-100" },
-    { name: "Warm",   prompt: "A warm, resinous amber with depth and sensuality",            style: "bg-amber-100" },
-    { name: "Dark",   prompt: "A dark, smoky, almost feral composition",                    style: "bg-stone-800" },
-    { name: "Fresh",  prompt: "A luminous fresh green accord — dew, herbs, cut stems",      style: "bg-teal-50" },
-    { name: "Floral", prompt: "A romantic, heady white floral that lingers",                style: "bg-rose-100" },
-    { name: "Woody",  prompt: "A dry, cerebral woody accord — sandalwood, cedar, vetiver",  style: "bg-stone-200" },
+    { name: "Clean",  prompt: "A clean, transparent skin scent — no soap, just presence",  img: "/images/mood-clean.jpg" },
+    { name: "Warm",   prompt: "A warm, resinous amber with depth and sensuality",            img: "/images/mood-warm.jpg" },
+    { name: "Dark",   prompt: "A dark, smoky, almost feral composition",                    img: "/images/mood-dark.jpg" },
+    { name: "Fresh",  prompt: "A luminous fresh green accord — dew, herbs, cut stems",      img: "/images/mood-fresh.jpg" },
+    { name: "Floral", prompt: "A romantic, heady white floral that lingers",                img: "/images/mood-floral.jpg" },
+    { name: "Woody",  prompt: "A dry, cerebral woody accord — sandalwood, cedar, vetiver",  img: "/images/mood-woody.jpg" },
   ] as const;
 
   // ── Accord definitions ──
@@ -2493,7 +2505,8 @@ function Coach() {
                         disabled={createConv.isPending}
                         className="group flex shrink-0 flex-col items-center gap-2.5 disabled:opacity-50"
                       >
-                        <div className={`relative size-[72px] overflow-hidden rounded-full ${mood.style} ring-1 ring-border transition-all duration-200 group-hover:ring-2 group-hover:ring-foreground/30`}>
+                        <div className="relative size-[72px] overflow-hidden rounded-full ring-1 ring-border transition-all duration-200 group-hover:ring-2 group-hover:ring-foreground/30">
+                          <img src={mood.img} alt={mood.name} className="size-full object-cover" />
                           <div className="absolute inset-0 rounded-full bg-foreground/0 transition-colors duration-200 group-hover:bg-foreground/5" />
                         </div>
                         <span className="text-[11px] text-muted-foreground group-hover:text-foreground transition-colors">{mood.name}</span>
@@ -2542,7 +2555,9 @@ function Coach() {
                       </div>
                     ) : (
                       <div className="space-y-px border-t border-border">
-                        {conversations.slice(0, 8).map((conv, i) => (
+                        {[...conversations.filter(c => pinnedIds.has(c.id)), ...conversations.filter(c => !pinnedIds.has(c.id))].slice(0, 8).map((conv, i) => {
+                          const isPinned = pinnedIds.has(conv.id);
+                          return (
                           <motion.button
                             key={conv.id}
                             initial={{ opacity: 0 }}
@@ -2553,12 +2568,22 @@ function Coach() {
                             className="group flex w-full items-start justify-between gap-4 border-b border-border py-5 text-left transition-colors hover:bg-secondary/10"
                           >
                             <div className="min-w-0 flex-1">
-                              <p className="text-base font-medium leading-snug group-hover:text-foreground">{conv.title}</p>
+                              <div className="flex items-center gap-2">
+                                {isPinned && <span className="font-mono-ui text-[7px] uppercase tracking-widest text-accent-foreground/60">Pinned</span>}
+                                <p className="text-base font-medium leading-snug group-hover:text-foreground">{conv.title}</p>
+                              </div>
                               <p className="mt-1.5 font-mono-ui text-[8px] text-muted-foreground/50">
                                 {conv.messageCount ?? 0} {(conv.messageCount ?? 0) === 1 ? "msg" : "msgs"} · {relativeDate(conv.updatedAt)}
                               </p>
                             </div>
-                            <div className="mt-0.5 flex shrink-0 items-center gap-3">
+                            <div className="mt-0.5 flex shrink-0 items-center gap-2">
+                              <button
+                                onClick={e => { e.stopPropagation(); togglePin(conv.id); }}
+                                aria-label={isPinned ? "Unpin session" : "Pin session"}
+                                className={`transition-opacity ${isPinned ? "opacity-100 text-foreground" : "opacity-0 group-hover:opacity-100 text-muted-foreground/40 hover:text-foreground"}`}
+                              >
+                                <Bookmark size={12} className={isPinned ? "fill-foreground" : ""} />
+                              </button>
                               <button
                                 onClick={e => { e.stopPropagation(); handleDelete(conv.id); }}
                                 aria-label="Delete session"
@@ -2569,7 +2594,7 @@ function Coach() {
                               <ArrowRight size={13} className="text-muted-foreground/30 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
                             </div>
                           </motion.button>
-                        ))}
+                        );})}
                       </div>
                     )}
                   </div>
