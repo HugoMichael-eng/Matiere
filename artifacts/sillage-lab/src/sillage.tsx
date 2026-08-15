@@ -115,10 +115,10 @@ function IfraCategoryPicker({ value, onChange, testId }: { value: string; onChan
 }
 
 const navItems = [
+  { href: "/coach", label: "Creative lab", icon: MessageCircle },
   { href: "/dashboard", label: "Studio desk", icon: Gauge },
   { href: "/formulas", label: "Formula library", icon: BookOpen },
   { href: "/materials", label: "Materials", icon: Leaf },
-  { href: "/coach", label: "Creative lab", icon: MessageCircle },
   { href: "/shop", label: "Shop & source", icon: ShoppingBag },
 ];
 
@@ -1568,7 +1568,7 @@ function Coach() {
     <Shell>
       <PageHeader
         eyebrow="Studio companion · creative lab"
-        title="What are you circling?"
+        title="What are you working on?"
         description="Persistent coaching sessions — pick up a thread, or start a new one."
       />
 
