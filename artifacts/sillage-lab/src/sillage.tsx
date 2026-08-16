@@ -3113,28 +3113,38 @@ function Landing() {
         </section>
 
         {/* Precision — scroll-triggered slide + zoom */}
-        <section className="mx-auto max-w-7xl border-t border-border px-5 py-24 sm:px-10">
-          <div className="grid gap-8 lg:grid-cols-[.8fr_1.2fr]">
-            <motion.div
-              initial={{ opacity: 0, x: -32, scale: 0.97 }}
-              whileInView={{ opacity: 1, x: 0, scale: 1 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">A studio practice</p>
-              <h2 className="mt-5 font-display text-5xl leading-[.9]">Precision can feel personal.</h2>
-              <motion.img
-                src={`${import.meta.env.BASE_URL}images/studio-practice.jpg`}
-                alt="Perfumer's studio with curved shelves of fragrance materials"
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-8 w-full max-w-md border border-border object-cover"
-                data-testid="img-precision-flower"
-              />
-            </motion.div>
-            <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
+        <section className="border-t border-border py-24">
+          {/* Eyebrow + heading */}
+          <motion.div
+            className="mx-auto max-w-7xl px-5 sm:px-10"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">A studio practice</p>
+            <h2 className="mt-5 font-display text-5xl leading-[.9]">Precision can feel personal.</h2>
+          </motion.div>
+
+          {/* Full-width landscape image */}
+          <motion.div
+            className="mt-10 overflow-hidden border-y border-border"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <img
+              src={`${import.meta.env.BASE_URL}images/studio-practice.jpg`}
+              alt="Perfumer's studio with curved shelves of fragrance materials"
+              data-testid="img-precision-flower"
+              className="h-[55vh] w-full object-cover object-top"
+            />
+          </motion.div>
+
+          {/* Feature grid */}
+          <div className="mx-auto mt-16 max-w-7xl px-5 sm:px-10">
+            <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 {
                   index: "01",
