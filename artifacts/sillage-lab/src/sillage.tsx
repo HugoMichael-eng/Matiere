@@ -3126,20 +3126,22 @@ function Landing() {
             <h2 className="mt-5 font-display text-5xl leading-[.9]">Precision can feel personal.</h2>
           </motion.div>
 
-          {/* Full-width landscape image */}
+          {/* Landscape image — 75% width */}
           <motion.div
-            className="mt-10 overflow-hidden border-y border-border"
+            className="mx-auto mt-10 max-w-7xl px-5 sm:px-10"
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           >
-            <img
-              src={`${import.meta.env.BASE_URL}images/studio-practice.jpg`}
-              alt="Perfumer's studio with curved shelves of fragrance materials"
-              data-testid="img-precision-flower"
-              className="h-[55vh] w-full object-cover object-top"
-            />
+            <div className="overflow-hidden border border-border" style={{ width: "75%" }}>
+              <img
+                src={`${import.meta.env.BASE_URL}images/studio-practice.jpg`}
+                alt="Perfumer's studio with curved shelves of fragrance materials"
+                data-testid="img-precision-flower"
+                className="aspect-[4/3] w-full object-cover object-top"
+              />
+            </div>
           </motion.div>
 
           {/* Feature grid */}
