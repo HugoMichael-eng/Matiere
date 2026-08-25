@@ -220,6 +220,22 @@ paths:
       responses:
         "302":
           description: Redirect to secure object storage download
+  /uploads/{id}/analyze:
+    post:
+      operationId: analyzeUploadedFormula
+      tags: [uploads]
+      summary: Analyze an uploaded formula file
+      parameters:
+        - $ref: "#/components/parameters/UploadId"
+      responses:
+        "200":
+          description: Formula analysis with matched allergens and IFRA warnings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FormulaFileAnalysis"
+        "422":
+          description: Formula content could not be read
   /coaching/messages:
     post:
       operationId: sendCoachingMessage
@@ -574,6 +590,40 @@ components:
         createdAt:
           type: string
           format: date-time
+    FormulaFileAnalysis:
+      type: object
+      required: [sourceFile, formulaName, ingredientCount, ingredients, allergens, unknownMaterials, ifraWarnings, interpretation]
+      properties:
+        sourceFile:
+          type: string
+        formulaName:
+          type: string
+        concentration:
+          type: [number, "null"]
+        totalMl:
+          type: [number, "null"]
+        ingredientCount:
+          type: integer
+        ingredients:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        allergens:
+          type: array
+          items:
+            type: string
+        unknownMaterials:
+          type: array
+          items:
+            type: string
+        ifraWarnings:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        interpretation:
+          type: string
     UploadRequestInput:
       type: object
       required: [name, size, contentType]
