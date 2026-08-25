@@ -185,6 +185,66 @@ export interface Material {
   safetyStatus: MaterialSafetyStatus;
 }
 
+export type UploadedFileCategory = typeof UploadedFileCategory[keyof typeof UploadedFileCategory];
+
+
+export const UploadedFileCategory = {
+  formula: 'formula',
+  image: 'image',
+  document: 'document',
+  other: 'other',
+} as const;
+
+export interface UploadedFile {
+  id: number;
+  name: string;
+  contentType: string;
+  size: number;
+  category: UploadedFileCategory;
+  createdAt: string;
+}
+
+export interface UploadRequestInput {
+  name: string;
+  /**
+     * @minimum 1
+     * @maximum 26214400
+     */
+  size: number;
+  contentType: string;
+}
+
+export type UploadRequestUrlCategory = typeof UploadRequestUrlCategory[keyof typeof UploadRequestUrlCategory];
+
+
+export const UploadRequestUrlCategory = {
+  formula: 'formula',
+  image: 'image',
+  document: 'document',
+  other: 'other',
+} as const;
+
+export interface UploadRequestUrl {
+  uploadUrl: string;
+  objectKey: string;
+  category: UploadRequestUrlCategory;
+}
+
+export type CompleteUploadInputCategory = typeof CompleteUploadInputCategory[keyof typeof CompleteUploadInputCategory];
+
+
+export const CompleteUploadInputCategory = {
+  formula: 'formula',
+  image: 'image',
+  document: 'document',
+  other: 'other',
+} as const;
+
+export type CompleteUploadInput = UploadRequestInput & {
+  objectKey: string;
+  category: CompleteUploadInputCategory;
+};
+
 export interface DashboardSummary {
   formulaCount: number;
   materialCount: number;

@@ -151,6 +151,75 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Material"
+  /uploads:
+    get:
+      operationId: listUploads
+      tags: [uploads]
+      summary: List the signed-in user's uploaded files
+      responses:
+        "200":
+          description: Uploaded files
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UploadedFile"
+    post:
+      operationId: completeUpload
+      tags: [uploads]
+      summary: Save metadata for an uploaded file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteUploadInput"
+      responses:
+        "201":
+          description: Uploaded file saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadedFile"
+  /uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [uploads]
+      summary: Request a signed URL for a private file upload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadRequestInput"
+      responses:
+        "200":
+          description: Signed upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadRequestUrl"
+  /uploads/{id}:
+    delete:
+      operationId: deleteUpload
+      tags: [uploads]
+      summary: Delete an uploaded file
+      parameters:
+        - $ref: "#/components/parameters/UploadId"
+      responses:
+        "204":
+          description: File deleted
+  /uploads/{id}/download:
+    get:
+      operationId: downloadUpload
+      tags: [uploads]
+      summary: Get a time-limited download for an uploaded file
+      parameters:
+        - $ref: "#/components/parameters/UploadId"
+      responses:
+        "302":
+          description: Redirect to secure object storage download
   /coaching/messages:
     post:
       operationId: sendCoachingMessage
@@ -284,6 +353,12 @@ paths:
 components:
   parameters:
     FormulaId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: number
+    UploadId:
       name: id
       in: path
       required: true
@@ -481,6 +556,58 @@ components:
         safetyStatus:
           type: string
           enum: [low, medium, high]
+    UploadedFile:
+      type: object
+      required: [id, name, contentType, size, category, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        contentType:
+          type: string
+        size:
+          type: number
+        category:
+          type: string
+          enum: [formula, image, document, other]
+        createdAt:
+          type: string
+          format: date-time
+    UploadRequestInput:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name:
+          type: string
+        size:
+          type: number
+          minimum: 1
+          maximum: 26214400
+        contentType:
+          type: string
+    UploadRequestUrl:
+      type: object
+      required: [uploadUrl, objectKey, category]
+      properties:
+        uploadUrl:
+          type: string
+        objectKey:
+          type: string
+        category:
+          type: string
+          enum: [formula, image, document, other]
+    CompleteUploadInput:
+      allOf:
+        - $ref: "#/components/schemas/UploadRequestInput"
+        - type: object
+          required: [objectKey, category]
+          properties:
+            objectKey:
+              type: string
+            category:
+              type: string
+              enum: [formula, image, document, other]
     DashboardSummary:
       type: object
       required: [formulaCount, materialCount, reviewCount, allergenCount, recentFormulas, focusPrompt]

@@ -8,6 +8,7 @@ export const formulaIngredientsSchema = z.array(
     materialName: z.string(),
     percentage: z.number(),
     grams: z.number(),
+    dilution: z.number().optional(),
     role: z.enum(["top", "heart", "base", "modifier"]),
     allergenFlags: z.array(z.string()).optional(),
   }),

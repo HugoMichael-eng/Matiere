@@ -176,11 +176,8 @@ export const CreateFormulaResponse = zod.object({
 /**
  * @summary Get a formula
  */
-
-
-
 export const GetFormulaParams = zod.object({
-  "id": zod.coerce.number().min(1)
+  "id": zod.coerce.number()
 })
 
 export const getFormulaResponseIngredientsItemDilutionDefault = 100;
@@ -219,11 +216,8 @@ export const GetFormulaResponse = zod.object({
 /**
  * @summary Update a formula
  */
-
-
-
 export const UpdateFormulaParams = zod.object({
-  "id": zod.coerce.number().min(1)
+  "id": zod.coerce.number()
 })
 
 
@@ -297,11 +291,8 @@ export const UpdateFormulaResponse = zod.object({
 /**
  * @summary Delete a formula
  */
-
-
-
 export const DeleteFormulaParams = zod.object({
-  "id": zod.coerce.number().min(1)
+  "id": zod.coerce.number()
 })
 
 export const DeleteFormulaResponse = zod.void()
@@ -328,6 +319,92 @@ export const ListMaterialsResponseItem = zod.object({
   "safetyStatus": zod.enum(['low', 'medium', 'high'])
 })
 export const ListMaterialsResponse = zod.array(ListMaterialsResponseItem)
+
+
+/**
+ * @summary List the signed-in user's uploaded files
+ */
+export const ListUploadsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "contentType": zod.string(),
+  "size": zod.number(),
+  "category": zod.enum(['formula', 'image', 'document', 'other']),
+  "createdAt": zod.coerce.date()
+})
+export const ListUploadsResponse = zod.array(ListUploadsResponseItem)
+
+
+/**
+ * @summary Save metadata for an uploaded file
+ */
+export const completeUploadBodyOneSizeMax = 26214400;
+
+
+
+export const CompleteUploadBody = zod.object({
+  "name": zod.string(),
+  "size": zod.number().min(1).max(completeUploadBodyOneSizeMax),
+  "contentType": zod.string()
+}).and(zod.object({
+  "objectKey": zod.string(),
+  "category": zod.enum(['formula', 'image', 'document', 'other'])
+}))
+
+export const CompleteUploadResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "contentType": zod.string(),
+  "size": zod.number(),
+  "category": zod.enum(['formula', 'image', 'document', 'other']),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Request a signed URL for a private file upload
+ */
+export const requestUploadUrlBodySizeMax = 26214400;
+
+
+
+export const RequestUploadUrlBody = zod.object({
+  "name": zod.string(),
+  "size": zod.number().min(1).max(requestUploadUrlBodySizeMax),
+  "contentType": zod.string()
+})
+
+export const RequestUploadUrlResponse = zod.object({
+  "uploadUrl": zod.string(),
+  "objectKey": zod.string(),
+  "category": zod.enum(['formula', 'image', 'document', 'other'])
+})
+
+
+/**
+ * @summary Delete an uploaded file
+ */
+
+
+
+export const DeleteUploadParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const DeleteUploadResponse = zod.void()
+
+
+/**
+ * @summary Get a time-limited download for an uploaded file
+ */
+
+
+
+export const DownloadUploadParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const DownloadUploadResponse = zod.void()
 
 
 /**
@@ -465,11 +542,8 @@ export const SendConversationMessageResponse = zod.object({
 /**
  * @summary Get formula change log
  */
-
-
-
 export const GetFormulaEventsParams = zod.object({
-  "id": zod.coerce.number().min(1)
+  "id": zod.coerce.number()
 })
 
 export const GetFormulaEventsResponseItem = zod.object({

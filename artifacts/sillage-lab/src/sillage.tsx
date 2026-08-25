@@ -3,12 +3,12 @@ import type { FormEvent, ReactNode } from "react";
 import { ClerkProvider, SignIn, SignUp, useAuth, useClerk, useUser } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { experimental__simple } from "@clerk/themes";
-import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useMotionTemplate, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Beaker, Bookmark, BookOpen, ChevronDown, ChevronRight, CircleAlert,
-  FlaskConical, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
-  Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, X, ShoppingBag
+  Download, File, FileImage, FileText, FlaskConical, FolderUp, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
+  Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, Upload, X, ShoppingBag
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link, Redirect, Route, Switch, useLocation, useParams, useSearch, Router as WouterRouter } from "wouter";
@@ -119,6 +119,7 @@ const navItems = [
   { href: "/dashboard", label: "Studio desk", icon: Gauge },
   { href: "/formulas", label: "Formula library", icon: BookOpen },
   { href: "/materials", label: "Materials", icon: Leaf },
+  { href: "/files", label: "File drawer", icon: FolderUp },
   { href: "/shop", label: "Shop & source", icon: ShoppingBag },
 ];
 
@@ -972,6 +973,185 @@ function Materials() {
     <div className="mb-6 flex items-center gap-3"><div className="relative max-w-md flex-1"><Search size={16} className="absolute left-4 top-3.5 text-muted-foreground" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search materials, families, origins..." data-testid="input-material-search" className="w-full border border-border bg-card py-3 pl-11 pr-4 text-sm outline-none focus:border-foreground/40" /></div><span className="hidden font-mono-ui text-[10px] text-muted-foreground sm:block" data-testid="text-material-count">{materials.length} indexed</span></div>
     {query.isLoading ? <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-56" />)}</div> : query.isError ? <ErrorState retry={() => query.refetch()} /> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{materials.map(material => <MaterialCard key={material.id} material={material} />)}{!materials.length && <div className="col-span-full"><EmptyState title="No materials in that drawer." copy="Try a different search term." href="/materials" label="Clear search" /></div>}</div>}
   </Shell>;
+}
+
+type StudioFile = {
+  id: number;
+  name: string;
+  contentType: string;
+  size: number;
+  category: "formula" | "image" | "document" | "other";
+  createdAt: string;
+};
+
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+const FILE_ACCEPT = ".json,.csv,.pdf,.txt,.rtf,.doc,.docx,.xls,.xlsx,image/*";
+
+function fileSize(bytes: number) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function FileCategoryIcon({ category }: { category: StudioFile["category"] }) {
+  const Icon = category === "image" ? FileImage : category === "formula" ? FlaskConical : category === "document" ? FileText : File;
+  return <Icon size={17} strokeWidth={1.5} />;
+}
+
+function FileDrawer() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const qc = useQueryClient();
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState<string[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const filesQuery = useQuery({
+    queryKey: ["studio-files"],
+    queryFn: async (): Promise<StudioFile[]> => {
+      const response = await fetch("/api/uploads", { credentials: "include" });
+      if (!response.ok) throw new Error("Could not load your files.");
+      return response.json();
+    },
+  });
+  const deleteFile = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/uploads/${id}`, { method: "DELETE", credentials: "include" });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error ?? "Could not delete this file.");
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["studio-files"] }),
+  });
+
+  const uploadFiles = useCallback(async (files: File[]) => {
+    const validFiles = files.filter(file => file.size > 0 && file.size <= MAX_UPLOAD_BYTES);
+    const rejected = files.length - validFiles.length;
+    setUploadError(rejected ? "Files must be between 1 byte and 25 MB." : null);
+    if (!validFiles.length) return;
+
+    setUploading(validFiles.map(file => file.name));
+    for (const file of validFiles) {
+      try {
+        const requestResponse = await fetch("/api/uploads/request-url", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type || "application/octet-stream" }),
+        });
+        if (!requestResponse.ok) {
+          const data = await requestResponse.json().catch(() => ({}));
+          throw new Error(data.error ?? "Could not prepare this upload.");
+        }
+        const requested = await requestResponse.json() as { uploadUrl: string; objectKey: string; category: StudioFile["category"] };
+        const stored = await fetch(requested.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type || "application/octet-stream" },
+          body: file,
+        });
+        if (!stored.ok) throw new Error("The file could not be saved to storage.");
+
+        const completeResponse = await fetch("/api/uploads", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: file.name,
+            size: file.size,
+            contentType: file.type || "application/octet-stream",
+            objectKey: requested.objectKey,
+            category: requested.category,
+          }),
+        });
+        if (!completeResponse.ok) throw new Error("The upload finished, but could not be added to your file drawer.");
+      } catch (error) {
+        setUploadError(error instanceof Error ? error.message : "This upload could not be completed.");
+      } finally {
+        setUploading(current => current.filter(name => name !== file.name));
+      }
+    }
+    qc.invalidateQueries({ queryKey: ["studio-files"] });
+  }, [qc]);
+
+  return (
+    <Shell>
+      <PageHeader eyebrow="Studio archive" title="File drawer" description="Keep formula exports, evaluation photos, supplier sheets, and every useful reference close to the work." />
+      <section className="py-8">
+        <input
+          ref={inputRef}
+          type="file"
+          className="sr-only"
+          accept={FILE_ACCEPT}
+          multiple
+          onChange={event => {
+            void uploadFiles(Array.from(event.target.files ?? []));
+            event.target.value = "";
+          }}
+          data-testid="input-file-upload"
+        />
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => inputRef.current?.click()}
+          onKeyDown={event => { if (event.key === "Enter" || event.key === " ") inputRef.current?.click(); }}
+          onDragOver={event => { event.preventDefault(); setIsDragging(true); }}
+          onDragLeave={event => { if (event.currentTarget === event.target) setIsDragging(false); }}
+          onDrop={event => {
+            event.preventDefault();
+            setIsDragging(false);
+            void uploadFiles(Array.from(event.dataTransfer.files));
+          }}
+          className={`group grid cursor-pointer place-items-center border px-6 py-14 text-center transition-colors ${isDragging ? "border-foreground bg-secondary/40" : "border-dashed border-border bg-secondary/15 hover:border-foreground/40 hover:bg-secondary/30"}`}
+          data-testid="dropzone-file-upload"
+          aria-label="Upload files"
+        >
+          <div className="grid size-12 place-items-center border border-border bg-background transition-transform duration-200 group-hover:-translate-y-0.5">
+            <Upload size={18} strokeWidth={1.5} />
+          </div>
+          <p className="mt-5 font-display text-3xl">Add to the drawer.</p>
+          <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">Drop files here or browse. Formula exports, photos, PDFs, spreadsheets, and studio notes are all welcome.</p>
+          <p className="mt-4 font-mono-ui text-[8px] uppercase tracking-[.18em] text-muted-foreground/70">Images · PDF · CSV · JSON · Word · Excel · text · 25 MB each</p>
+        </div>
+
+        {(uploading.length > 0 || uploadError) && (
+          <div className="mt-4 border border-border bg-card px-5 py-4">
+            {uploading.map(name => <p key={name} className="flex items-center gap-2 text-sm"><span className="size-2 animate-pulse bg-foreground" /> Uploading {name}…</p>)}
+            {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
+          </div>
+        )}
+      </section>
+
+      <SectionRule label="Saved files" />
+      {filesQuery.isLoading ? (
+        <div className="space-y-px border border-border">{[1, 2, 3].map(item => <Skeleton key={item} className="h-20 w-full" />)}</div>
+      ) : filesQuery.isError ? <ErrorState retry={() => filesQuery.refetch()} /> : filesQuery.data?.length ? (
+        <div className="border border-border bg-card">
+          {filesQuery.data.map((file, index) => (
+            <div key={file.id} className={`group flex items-center gap-4 px-5 py-4 ${index ? "border-t border-border" : ""}`}>
+              <div className="grid size-10 shrink-0 place-items-center border border-border bg-secondary/30 text-muted-foreground"><FileCategoryIcon category={file.category} /></div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{file.name}</p>
+                <p className="mt-1 font-mono-ui text-[8px] uppercase tracking-[.12em] text-muted-foreground">{file.category} · {fileSize(file.size)} · {new Date(file.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</p>
+              </div>
+              <a href={`/api/uploads/${file.id}/download`} className="grid size-9 place-items-center text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" aria-label={`Download ${file.name}`} data-testid={`button-download-file-${file.id}`}><Download size={15} strokeWidth={1.5} /></a>
+              <button
+                onClick={() => {
+                  if (window.confirm(`Delete “${file.name}”? This cannot be undone.`)) deleteFile.mutate(file.id);
+                }}
+                disabled={deleteFile.isPending}
+                className="grid size-9 place-items-center text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 group-hover:opacity-100 focus:opacity-100"
+                aria-label={`Delete ${file.name}`}
+                data-testid={`button-delete-file-${file.id}`}
+              ><Trash2 size={14} strokeWidth={1.5} /></button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="border border-dashed border-border px-6 py-14 text-center">
+          <p className="font-display text-3xl">Nothing filed yet.</p>
+          <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">Start with a formula export, a reference image, or the evaluation notes from your last trial.</p>
+        </div>
+      )}
+    </Shell>
+  );
 }
 
 const BASE_MOODS = [
@@ -3325,7 +3505,7 @@ function NotFoundView() {
 
 export function SillageApp() {
   return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={{ theme: experimental__simple, options: { logoPlacement: "inside", logoLinkUrl: basePath || "/", logoImageUrl: `${window.location.origin}${basePath}/logo.svg` }, variables: { colorPrimary: "hsl(0 0% 7%)", colorForeground: "hsl(0 0% 7%)", colorMutedForeground: "hsl(0 0% 45%)", colorBackground: "hsl(0 0% 100%)", colorInput: "hsl(0 0% 94%)", colorInputForeground: "hsl(0 0% 7%)", colorDanger: "hsl(0 58% 48%)", colorNeutral: "hsl(0 0% 86%)", fontFamily: "Inter", borderRadius: "0rem" }, elements: { cardBox: "bg-card border border-border w-[440px] max-w-full", card: "!shadow-none !border-0 !bg-transparent", footer: "!shadow-none !border-0 !bg-transparent", headerTitle: "text-foreground font-medium", headerSubtitle: "text-muted-foreground", formFieldLabel: "text-foreground", formFieldInput: "bg-secondary text-foreground border border-border", formButtonPrimary: "bg-primary text-primary-foreground hover:opacity-80 rounded-none uppercase tracking-widest text-[11px]", footerActionLink: "text-foreground underline", socialButtonsBlockButtonText: "text-foreground", socialButtonsBlockButton__google: "!hidden", dividerRow: "!hidden", dividerText: "text-muted-foreground", footerActionText: "text-muted-foreground" } }} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{ signIn: { start: { title: "Return to the studio", subtitle: "Your next idea is still on the page." } }, signUp: { start: { title: "Open your studio", subtitle: "A place for the work between first thought and final blotter." } } }}>
-    <QueryClientProvider client={queryClient}><WouterRouter base={basePath}><Switch><Route path="/sign-in/*?" component={() => <AuthPage kind="in" />} /><Route path="/sign-up/*?" component={() => <AuthPage kind="up" />} /><Route path="/"><HomeRedirect /></Route><Route path="/dashboard"><Protected><Dashboard /></Protected></Route><Route path="/formulas/new"><Protected><NewFormula /></Protected></Route><Route path="/formulas/:id"><Protected><FormulaDetail /></Protected></Route><Route path="/formulas"><Protected><Formulas /></Protected></Route><Route path="/materials"><Protected><Materials /></Protected></Route><Route path="/coach"><Protected><Coach /></Protected></Route><Route path="/shop"><Protected><Shop /></Protected></Route><Route><NotFoundView /></Route></Switch></WouterRouter></QueryClientProvider>
+    <QueryClientProvider client={queryClient}><WouterRouter base={basePath}><Switch><Route path="/sign-in/*?" component={() => <AuthPage kind="in" />} /><Route path="/sign-up/*?" component={() => <AuthPage kind="up" />} /><Route path="/"><HomeRedirect /></Route><Route path="/dashboard"><Protected><Dashboard /></Protected></Route><Route path="/formulas/new"><Protected><NewFormula /></Protected></Route><Route path="/formulas/:id"><Protected><FormulaDetail /></Protected></Route><Route path="/formulas"><Protected><Formulas /></Protected></Route><Route path="/materials"><Protected><Materials /></Protected></Route><Route path="/files"><Protected><FileDrawer /></Protected></Route><Route path="/coach"><Protected><Coach /></Protected></Route><Route path="/shop"><Protected><Shop /></Protected></Route><Route><NotFoundView /></Route></Switch></WouterRouter></QueryClientProvider>
   </ClerkProvider>;
 }
 

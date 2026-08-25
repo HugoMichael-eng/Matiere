@@ -22,6 +22,7 @@ import type {
 import type {
   CoachingMessage,
   CoachingMessageInput,
+  CompleteUploadInput,
   Conversation,
   ConversationDetail,
   CreateConversationInput,
@@ -35,7 +36,10 @@ import type {
   ListFormulasParams,
   ListMaterialsParams,
   Material,
-  SendConversationMessageInput
+  SendConversationMessageInput,
+  UploadRequestInput,
+  UploadRequestUrl,
+  UploadedFile
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -667,6 +671,373 @@ export function useListMaterials<TData = Awaited<ReturnType<typeof listMaterials
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListMaterialsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListUploadsUrl = () => {
+
+
+
+
+  return `/api/uploads`
+}
+
+/**
+ * @summary List the signed-in user's uploaded files
+ */
+export const listUploads = async ( options?: Parameters<typeof customFetch>[1]): Promise<UploadedFile[]> => {
+
+  return customFetch<UploadedFile[]>(getListUploadsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListUploadsQueryKey = () => {
+    return [
+    `/api/uploads`
+    ] as const;
+    }
+
+
+export const getListUploadsQueryOptions = <TData = Awaited<ReturnType<typeof listUploads>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUploads>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListUploadsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listUploads>>> = ({ signal }) => listUploads({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listUploads>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListUploadsQueryResult = NonNullable<Awaited<ReturnType<typeof listUploads>>>
+export type ListUploadsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List the signed-in user's uploaded files
+ */
+
+export function useListUploads<TData = Awaited<ReturnType<typeof listUploads>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listUploads>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListUploadsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCompleteUploadUrl = () => {
+
+
+
+
+  return `/api/uploads`
+}
+
+/**
+ * @summary Save metadata for an uploaded file
+ */
+export const completeUpload = async (completeUploadInput: CompleteUploadInput, options?: Parameters<typeof customFetch>[1]): Promise<UploadedFile> => {
+
+  return customFetch<UploadedFile>(getCompleteUploadUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(completeUploadInput)
+  }
+);}
+
+
+
+
+
+export const getCompleteUploadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeUpload>>, TError,{data: BodyType<CompleteUploadInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeUpload>>, TError,{data: BodyType<CompleteUploadInput>}, TContext> => {
+
+const mutationKey = ['completeUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeUpload>>, {data: BodyType<CompleteUploadInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  completeUpload(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteUploadMutationResult = NonNullable<Awaited<ReturnType<typeof completeUpload>>>
+    export type CompleteUploadMutationBody = BodyType<CompleteUploadInput>
+    export type CompleteUploadMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save metadata for an uploaded file
+ */
+export const useCompleteUpload = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeUpload>>, TError,{data: BodyType<CompleteUploadInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completeUpload>>,
+        TError,
+        {data: BodyType<CompleteUploadInput>},
+        TContext
+      > => {
+      return useMutation(getCompleteUploadMutationOptions(options));
+    }
+
+export const getRequestUploadUrlUrl = () => {
+
+
+
+
+  return `/api/uploads/request-url`
+}
+
+/**
+ * @summary Request a signed URL for a private file upload
+ */
+export const requestUploadUrl = async (uploadRequestInput: UploadRequestInput, options?: Parameters<typeof customFetch>[1]): Promise<UploadRequestUrl> => {
+
+  return customFetch<UploadRequestUrl>(getRequestUploadUrlUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(uploadRequestInput)
+  }
+);}
+
+
+
+
+
+export const getRequestUploadUrlMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestUploadUrl>>, TError,{data: BodyType<UploadRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestUploadUrl>>, TError,{data: BodyType<UploadRequestInput>}, TContext> => {
+
+const mutationKey = ['requestUploadUrl'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestUploadUrl>>, {data: BodyType<UploadRequestInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestUploadUrl(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestUploadUrlMutationResult = NonNullable<Awaited<ReturnType<typeof requestUploadUrl>>>
+    export type RequestUploadUrlMutationBody = BodyType<UploadRequestInput>
+    export type RequestUploadUrlMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Request a signed URL for a private file upload
+ */
+export const useRequestUploadUrl = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestUploadUrl>>, TError,{data: BodyType<UploadRequestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestUploadUrl>>,
+        TError,
+        {data: BodyType<UploadRequestInput>},
+        TContext
+      > => {
+      return useMutation(getRequestUploadUrlMutationOptions(options));
+    }
+
+export const getDeleteUploadUrl = (id: number,) => {
+
+
+
+
+  return `/api/uploads/${id}`
+}
+
+/**
+ * @summary Delete an uploaded file
+ */
+export const deleteUpload = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteUploadUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteUploadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUpload>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteUpload>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteUpload'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteUpload>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteUpload(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteUploadMutationResult = NonNullable<Awaited<ReturnType<typeof deleteUpload>>>
+
+    export type DeleteUploadMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an uploaded file
+ */
+export const useDeleteUpload = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteUpload>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteUpload>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteUploadMutationOptions(options));
+    }
+
+export const getDownloadUploadUrl = (id: number,) => {
+
+
+
+
+  return `/api/uploads/${id}/download`
+}
+
+/**
+ * @summary Get a time-limited download for an uploaded file
+ */
+export const downloadUpload = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<unknown> => {
+
+  return customFetch<unknown>(getDownloadUploadUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadUploadQueryKey = (id: number,) => {
+    return [
+    `/api/uploads/${id}/download`
+    ] as const;
+    }
+
+
+export const getDownloadUploadQueryOptions = <TData = Awaited<ReturnType<typeof downloadUpload>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadUpload>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadUploadQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadUpload>>> = ({ signal }) => downloadUpload(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadUpload>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadUploadQueryResult = NonNullable<Awaited<ReturnType<typeof downloadUpload>>>
+export type DownloadUploadQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a time-limited download for an uploaded file
+ */
+
+export function useDownloadUpload<TData = Awaited<ReturnType<typeof downloadUpload>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadUpload>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadUploadQueryOptions(id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

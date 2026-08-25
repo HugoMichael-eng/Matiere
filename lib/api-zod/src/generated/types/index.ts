@@ -8,6 +8,8 @@
 
 export * from './coachingMessage';
 export * from './coachingMessageInput';
+export * from './completeUploadInput';
+export * from './completeUploadInputCategory';
 export * from './conversation';
 export * from './conversationDetail';
 export * from './conversationMessage';
@@ -35,3 +37,8 @@ export * from './listMaterialsParams';
 export * from './material';
 export * from './materialSafetyStatus';
 export * from './sendConversationMessageInput';
+export * from './uploadedFile';
+export * from './uploadedFileCategory';
+export * from './uploadRequestInput';
+export * from './uploadRequestUrl';
+export * from './uploadRequestUrlCategory';
