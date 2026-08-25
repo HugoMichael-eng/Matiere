@@ -47,7 +47,7 @@ function TypingIndicator({ colors }: { colors: ReturnType<typeof useColors> }) {
 }
 
 export default function ConversationScreen() {
-  const { id: rawId } = useLocalSearchParams<{ id: string }>();
+  const { id: rawId, seed } = useLocalSearchParams<{ id: string; seed?: string }>();
   const conversationId = Number(rawId);
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -84,11 +84,9 @@ export default function ConversationScreen() {
     }
   }, [conversation, initialized]);
 
-  const sendMessage = useCallback(async () => {
-    const text = input.trim();
+  const sendText = useCallback(async (text: string) => {
     if (!text || isStreaming) return;
 
-    setInput('');
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     // Optimistic user message
@@ -184,7 +182,28 @@ export default function ConversationScreen() {
       setShowTyping(false);
       inputRef.current?.focus();
     }
-  }, [input, isStreaming, messages, formulaContext, conversationId, getToken]);
+  }, [isStreaming, formulaContext, conversationId, getToken]);
+
+  const sendMessage = useCallback(() => {
+    const text = input.trim();
+    if (!text) return;
+    setInput('');
+    sendText(text);
+  }, [input, sendText]);
+
+  // Auto-seed: when the hub creates a session from a mood or accord, it passes
+  // the first message as a `seed` param. Send it once the (empty) conversation
+  // has loaded — same behaviour as the web hub.
+  const seededRef = useRef(false);
+  React.useEffect(() => {
+    if (seededRef.current || !seed || !initialized) return;
+    if (messages.length > 0) {
+      seededRef.current = true;
+      return;
+    }
+    seededRef.current = true;
+    sendText(seed);
+  }, [seed, initialized, messages.length, sendText]);
 
   const topPad = insets.top + (Platform.OS === 'web' ? 67 : 0);
   const bottomPad = insets.bottom + (Platform.OS === 'web' ? 34 : 0);
