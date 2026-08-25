@@ -976,7 +976,12 @@ function Formulas() {
 }
 
 function Materials() {
-  const [search, setSearch] = useState("");
+  const rawSearch = useSearch();
+  const urlSearch = new URLSearchParams(rawSearch).get("search") ?? "";
+  const [search, setSearch] = useState(urlSearch);
+  useEffect(() => {
+    setSearch(urlSearch);
+  }, [urlSearch]);
   const query = useListMaterials({ search: search || undefined });
   const materials = query.data ?? [];
   return <Shell><PageHeader eyebrow="Library · raw materials" title="Materials" description="A tactile index of the things that make a formula feel alive." />
@@ -2734,13 +2739,14 @@ function Coach() {
     const accordList = BASE_ACCORDS.map(accord => {
       const names = owned(accord.families);
       const buildable = accord.families.length > 0 && accord.families.every(f => has([f]));
+      const missingFamilies = accord.families.filter(f => !has([f]));
       const familyLabel = accord.families[0] ?? "";
       const hint = names.length > 0
         ? (names.length === 1
             ? `You have ${names[0]} — a starting point.`
             : `You have ${names.length} ${familyLabel} materials to build with.`)
         : null;
-      return { ...accord, ownedNames: names, buildable, hint };
+      return { ...accord, ownedNames: names, buildable, missingFamilies, hint };
     });
 
     // Buildable accords first, so suggestions lead with what the studio actually owns
@@ -2844,36 +2850,51 @@ function Coach() {
                 {accords.map((accord, i) => {
                   const Icon = accord.icon;
                   return (
-                    <motion.button
+                    <motion.div
                       key={accord.name}
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 + i * 0.05, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                      onClick={() => createWithTitle(accord.name, accord.ownedNames.length > 0
-                        ? `Tell me about the ${accord.name} accord — what defines it (${accord.desc}), and how I could build it starting from materials I already own: ${accord.ownedNames.slice(0, 6).join(", ")}. What would I still need to add?`
-                        : `Tell me about the ${accord.name} accord — what defines it (${accord.desc}), which raw materials are essential to building it, and what's a modern take I could explore?`)}
-                      disabled={createConv.isPending}
-                      className="group flex w-full items-center gap-4 rounded-xl border border-border bg-secondary/20 px-4 py-3.5 transition-colors hover:bg-secondary/40 disabled:opacity-50"
                     >
-                      <div className="grid size-9 shrink-0 place-items-center rounded-full bg-background">
-                        <Icon size={14} strokeWidth={1.5} className="text-muted-foreground" />
+                      <div className="group flex w-full items-center gap-4 rounded-xl border border-border bg-secondary/20 px-4 py-3.5 transition-colors hover:bg-secondary/40">
+                        <button
+                          type="button"
+                          onClick={() => createWithTitle(accord.name, accord.ownedNames.length > 0
+                            ? `Tell me about the ${accord.name} accord — what defines it (${accord.desc}), and how I could build it starting from materials I already own: ${accord.ownedNames.slice(0, 6).join(", ")}. What would I still need to add?`
+                            : `Tell me about the ${accord.name} accord — what defines it (${accord.desc}), which raw materials are essential to building it, and what's a modern take I could explore?`)}
+                          disabled={createConv.isPending}
+                          className="flex min-w-0 flex-1 items-center gap-4 text-left disabled:opacity-50"
+                        >
+                          <div className="grid size-9 shrink-0 place-items-center rounded-full bg-background">
+                            <Icon size={14} strokeWidth={1.5} className="text-muted-foreground" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-[13px] font-medium">{accord.name}</p>
+                              {accord.buildable && (
+                                <span
+                                  className="inline-flex shrink-0 items-center border border-accent/40 bg-accent/10 px-1.5 py-0.5 font-mono-ui text-[7px] uppercase tracking-widest text-accent-foreground/70"
+                                  data-testid={`badge-buildable-${accord.name.toLowerCase().replaceAll(" ", "-")}`}
+                                >
+                                  You have the materials
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{accord.hint ?? accord.desc}</p>
+                          </div>
+                          <ArrowRight size={13} className="shrink-0 text-muted-foreground/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
+                        </button>
+                        {accord.missingFamilies.length === 1 && (
+                          <Link
+                            href={`/materials?search=${encodeURIComponent(accord.missingFamilies[0])}`}
+                            data-testid={`link-missing-family-${accord.name.toLowerCase().replaceAll(" ", "-")}`}
+                            className="shrink-0 border-l border-border pl-4 font-mono-ui text-[8px] uppercase tracking-[.12em] text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            Missing: {accord.missingFamilies[0]}
+                          </Link>
+                        )}
                       </div>
-                      <div className="min-w-0 flex-1 text-left">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-[13px] font-medium">{accord.name}</p>
-                          {accord.buildable && (
-                            <span
-                              className="inline-flex shrink-0 items-center border border-accent/40 bg-accent/10 px-1.5 py-0.5 font-mono-ui text-[7px] uppercase tracking-widest text-accent-foreground/70"
-                              data-testid={`badge-buildable-${accord.name.toLowerCase().replaceAll(" ", "-")}`}
-                            >
-                              You have the materials
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-0.5 text-xs text-muted-foreground">{accord.hint ?? accord.desc}</p>
-                      </div>
-                      <ArrowRight size={13} className="shrink-0 text-muted-foreground/40 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
-                    </motion.button>
+                    </motion.div>
                   );
                 })}
               </div>
