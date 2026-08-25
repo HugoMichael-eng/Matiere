@@ -267,23 +267,29 @@ router.post("/uploads/:id/analyze", async (req, res): Promise<void> => {
       unknownMaterials,
       ifraWarnings,
     };
-    const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.4-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are a careful perfumery formula analyst. Explain what the formula appears to do, summarize its olfactive structure, and interpret the provided allergen and IFRA findings. Never invent safety data; clearly distinguish matched library data from unknown materials. Keep the response concise and practical for a perfumer.",
-        },
-        {
-          role: "user",
-          content: JSON.stringify(structured),
-        },
-      ],
-      max_completion_tokens: 700,
-    });
+    let interpretation = "The formula was read successfully. Review the matched materials and safety findings below.";
+    try {
+      const aiResponse = await openai.chat.completions.create({
+        model: "gpt-5.4-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a careful perfumery formula analyst. Explain what the formula appears to do, summarize its olfactive structure, and interpret the provided allergen and IFRA findings. Never invent safety data; clearly distinguish matched library data from unknown materials. Keep the response concise and practical for a perfumer.",
+          },
+          {
+            role: "user",
+            content: JSON.stringify(structured),
+          },
+        ],
+        max_completion_tokens: 700,
+      });
+      interpretation = aiResponse.choices[0]?.message?.content?.trim() || interpretation;
+    } catch (error) {
+      req.log.warn({ err: error }, "Formula analysis interpretation was unavailable");
+    }
     res.json({
       ...structured,
-      interpretation: aiResponse.choices[0]?.message?.content?.trim() ?? "The formula was read successfully. Review the matched materials and safety findings below.",
+      interpretation,
     });
   } catch (error) {
     if (error instanceof SyntaxError) {
