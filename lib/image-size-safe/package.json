@@ -1,0 +1,6 @@
+{
+  "name": "image-size",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Bounded image dimension reader for Metro asset processing"
+}
