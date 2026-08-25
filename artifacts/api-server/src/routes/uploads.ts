@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import { Router, type IRouter } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { db, uploadedFilesTable } from "@workspace/db";
+import { db, materialsTable, uploadedFilesTable } from "@workspace/db";
+import { openai } from "@workspace/integrations-openai-ai-server";
 import { requireAuth, type AuthenticatedRequest } from "../middlewares/auth";
 
 const router: IRouter = Router();
@@ -32,6 +33,81 @@ function classifyFile(name: string, contentType: string): "formula" | "image" | 
     ["doc", "docx", "pdf", "xls", "xlsx", "txt", "rtf"].includes(extension)
   ) return "document";
   return "other";
+}
+
+type ParsedIngredient = {
+  materialName: string;
+  percentage?: number;
+  grams?: number;
+  dilution?: number;
+  role?: string;
+};
+
+function numberValue(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string") return undefined;
+  const parsed = Number(value.replace("%", "").trim());
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function parseCsv(text: string): { formulaName?: string; ingredients: ParsedIngredient[] } {
+  const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  if (lines.length < 2) return { ingredients: [] };
+  const split = (line: string) => line.split(",").map(value => value.trim().replace(/^["']|["']$/g, ""));
+  const headers = split(lines[0]).map(value => value.toLowerCase().replace(/[\s_-]+/g, ""));
+  const nameIndex = headers.findIndex(value => ["material", "materialname", "name", "ingredient", "rawmaterial"].includes(value));
+  const percentageIndex = headers.findIndex(value => ["percentage", "percent", "pct", "proportion"].includes(value));
+  const gramsIndex = headers.findIndex(value => ["grams", "gram", "weight", "g"].includes(value));
+  const dilutionIndex = headers.findIndex(value => ["dilution", "dilutionpercent"].includes(value));
+  const roleIndex = headers.findIndex(value => value === "role");
+  return {
+    ingredients: lines.slice(1).map(line => {
+      const values = split(line);
+      return {
+        materialName: values[nameIndex >= 0 ? nameIndex : 0] ?? "",
+        percentage: numberValue(values[percentageIndex]),
+        grams: numberValue(values[gramsIndex]),
+        dilution: numberValue(values[dilutionIndex]),
+        role: values[roleIndex >= 0 ? roleIndex : -1],
+      };
+    }).filter(item => item.materialName),
+  };
+}
+
+function parseFormulaText(text: string, contentType: string, name: string): {
+  formulaName?: string;
+  concentration?: number;
+  totalMl?: number;
+  ingredients: ParsedIngredient[];
+} {
+  if (contentType.includes("csv") || name.toLowerCase().endsWith(".csv")) {
+    return parseCsv(text);
+  }
+  const parsed = JSON.parse(text) as unknown;
+  const root = (parsed && typeof parsed === "object" ? parsed : {}) as Record<string, unknown>;
+  const rawIngredients = Array.isArray(parsed)
+    ? parsed
+    : Array.isArray(root.ingredients)
+      ? root.ingredients
+      : Array.isArray((root.formula as Record<string, unknown> | undefined)?.ingredients)
+        ? (root.formula as Record<string, unknown>).ingredients
+        : [];
+  const ingredients = rawIngredients.map((item): ParsedIngredient => {
+    const value = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
+    return {
+      materialName: String(value.materialName ?? value.material ?? value.name ?? value.ingredient ?? ""),
+      percentage: numberValue(value.percentage ?? value.percent ?? value.pct),
+      grams: numberValue(value.grams ?? value.weight ?? value.g),
+      dilution: numberValue(value.dilution),
+      role: typeof value.role === "string" ? value.role : undefined,
+    };
+  }).filter(item => item.materialName);
+  return {
+    formulaName: typeof root.name === "string" ? root.name : typeof root.formulaName === "string" ? root.formulaName : undefined,
+    concentration: numberValue(root.concentration),
+    totalMl: numberValue(root.totalMl ?? root.batchSize ?? root.volume),
+    ingredients,
+  };
 }
 
 function privateObjectPath(objectKey: string): { bucketName: string; objectName: string } {
@@ -119,6 +195,100 @@ router.get("/uploads/:id/download", async (req, res): Promise<void> => {
   } catch (error) {
     req.log.error({ err: error }, "Could not create download URL");
     res.status(500).json({ error: "Could not prepare this download." });
+  }
+});
+
+router.post("/uploads/:id/analyze", async (req, res): Promise<void> => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: "Invalid file ID." });
+    return;
+  }
+  const userId = (req as unknown as AuthenticatedRequest).userId;
+  const [file] = await db.select().from(uploadedFilesTable).where(and(eq(uploadedFilesTable.id, id), eq(uploadedFilesTable.ownerId, userId)));
+  if (!file) {
+    res.status(404).json({ error: "File not found." });
+    return;
+  }
+  if (file.category !== "formula") {
+    res.status(400).json({ error: "Formula analysis currently supports JSON and CSV formula files." });
+    return;
+  }
+  try {
+    const downloadUrl = await signObjectUrl(file.objectKey, "GET");
+    const download = await fetch(downloadUrl, { signal: AbortSignal.timeout(30_000) });
+    if (!download.ok) throw new Error(`Could not read stored file (${download.status})`);
+    const text = new TextDecoder().decode(await download.arrayBuffer()).slice(0, 250_000);
+    const parsed = parseFormulaText(text, file.contentType, file.name);
+    if (!parsed.ingredients.length) {
+      res.status(422).json({ error: "I couldn't find an ingredients table. Use JSON with an ingredients array or CSV with a material and percentage column." });
+      return;
+    }
+
+    const materials = await db.select().from(materialsTable);
+    const normalizedMaterials = materials.map(material => ({
+      material,
+      name: material.name.toLowerCase().trim(),
+    }));
+    const ingredients = parsed.ingredients.map(ingredient => {
+      const needle = ingredient.materialName.toLowerCase().trim();
+      const match = normalizedMaterials.find(item => item.name === needle)
+        ?? normalizedMaterials.find(item => item.name.includes(needle) || needle.includes(item.name));
+      const effectivePct = (ingredient.percentage ?? 0) * ((ingredient.dilution ?? 100) / 100);
+      const ifraWarning = match && effectivePct > match.material.ifraLimit
+        ? `Estimated use ${effectivePct.toFixed(2)}% exceeds the library IFRA limit of ${match.material.ifraLimit}%.`
+        : null;
+      return {
+        ...ingredient,
+        materialId: match?.material.id ?? null,
+        matchedName: match?.material.name ?? null,
+        allergens: match?.material.allergens ?? [],
+        ifraLimit: match?.material.ifraLimit ?? null,
+        ifraWarning,
+      };
+    });
+    const allergens = [...new Set(ingredients.flatMap(item => item.allergens))];
+    const unknownMaterials = ingredients.filter(item => !item.materialId).map(item => item.materialName);
+    const ifraWarnings = ingredients.filter(item => item.ifraWarning).map(item => ({
+      material: item.matchedName ?? item.materialName,
+      warning: item.ifraWarning,
+    }));
+    const structured = {
+      sourceFile: file.name,
+      formulaName: parsed.formulaName ?? file.name.replace(/\.[^.]+$/, ""),
+      concentration: parsed.concentration ?? null,
+      totalMl: parsed.totalMl ?? null,
+      ingredientCount: ingredients.length,
+      ingredients,
+      allergens,
+      unknownMaterials,
+      ifraWarnings,
+    };
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-5.4-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a careful perfumery formula analyst. Explain what the formula appears to do, summarize its olfactive structure, and interpret the provided allergen and IFRA findings. Never invent safety data; clearly distinguish matched library data from unknown materials. Keep the response concise and practical for a perfumer.",
+        },
+        {
+          role: "user",
+          content: JSON.stringify(structured),
+        },
+      ],
+      max_tokens: 700,
+    });
+    res.json({
+      ...structured,
+      interpretation: aiResponse.choices[0]?.message?.content?.trim() ?? "The formula was read successfully. Review the matched materials and safety findings below.",
+    });
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      res.status(422).json({ error: "This formula file is not valid JSON or CSV." });
+      return;
+    }
+    req.log.error({ err: error }, "Could not analyze formula upload");
+    res.status(500).json({ error: "I couldn't analyze this formula file. Please try again." });
   }
 });
 
