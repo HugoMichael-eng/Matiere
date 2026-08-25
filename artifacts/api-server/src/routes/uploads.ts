@@ -279,7 +279,7 @@ router.post("/uploads/:id/analyze", async (req, res): Promise<void> => {
           content: JSON.stringify(structured),
         },
       ],
-      max_tokens: 700,
+      max_completion_tokens: 700,
     });
     res.json({
       ...structured,
