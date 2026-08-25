@@ -1013,7 +1013,7 @@ type FormulaFileAnalysis = {
 };
 
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
-const FILE_ACCEPT = ".json,.csv,.pdf,.txt,.rtf,.doc,.docx,.xls,.xlsx,image/*";
+const FILE_ACCEPT = "*/*";
 
 function fileSize(bytes: number) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -2397,6 +2397,7 @@ function Coach() {
   const attachStartedRef = useRef(false);
   const [isAnalyzingFile, setIsAnalyzingFile] = useState(false);
   const [fileAnalysis, setFileAnalysis] = useState<FormulaFileAnalysis | null>(null);
+  const [attachedFile, setAttachedFile] = useState<StudioFile | null>(null);
   const [fileAnalysisError, setFileAnalysisError] = useState<string | null>(null);
   const [sessionSearch, setSessionSearch] = useState("");
   const [pinnedIds, setPinnedIds] = useState<Set<number>>(() => {
@@ -2561,13 +2562,8 @@ function Coach() {
   }, [attachIntent, selectedConvId, createConv, qc]);
 
   const analyzeFile = async (file: File) => {
-    const extension = file.name.split(".").pop()?.toLowerCase();
-    if (!["json", "csv"].includes(extension ?? "")) {
-      setFileAnalysisError("Choose a JSON or CSV formula export. Image and document uploads stay available in the File Drawer.");
-      return;
-    }
     if (!file.size || file.size > MAX_UPLOAD_BYTES) {
-      setFileAnalysisError("Choose a formula file between 1 byte and 25 MB.");
+      setFileAnalysisError("Choose a file between 1 byte and 25 MB.");
       return;
     }
     setIsAnalyzingFile(true);
@@ -2602,6 +2598,12 @@ function Coach() {
       });
       const saved = await completed.json().catch(() => ({})) as StudioFile & { error?: string };
       if (!completed.ok || !saved.id) throw new Error(saved.error ?? "The upload finished but could not be filed.");
+      setAttachedFile(saved);
+      if (requested.category !== "formula") {
+        setMessage(`I attached “${saved.name}”. It is saved in the File Drawer. Tell me what you want to explore from this reference.`);
+        qc.invalidateQueries({ queryKey: ["studio-files"] });
+        return;
+      }
       const analysisResponse = await fetch(`${basePath}/api/uploads/${saved.id}/analyze`, {
         method: "POST",
         credentials: "include",
@@ -3059,6 +3061,19 @@ function Coach() {
                   </div>
                 </div>
               )}
+              {attachedFile && !fileAnalysis && (
+                <div className="border border-border bg-secondary/15 p-5" data-testid="panel-file-attachment">
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-9 shrink-0 place-items-center border border-border bg-background text-muted-foreground"><FileCategoryIcon category={attachedFile.category} /></div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">File attached</p>
+                      <p className="truncate text-sm font-medium">{attachedFile.name}</p>
+                    </div>
+                    <Link href="/files" className="shrink-0 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground hover:text-foreground">Open drawer ↗</Link>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-muted-foreground">This reference is filed and ready to discuss. JSON and CSV formula exports also receive ingredient, allergen, and IFRA analysis here.</p>
+                </div>
+              )}
               {fileAnalysis && (
                 <div className="border border-border bg-secondary/15 p-5" data-testid="panel-formula-file-analysis">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -3097,7 +3112,7 @@ function Coach() {
             <input
               ref={attachmentInputRef}
               type="file"
-              accept=".json,.csv,application/json,text/csv"
+              accept={FILE_ACCEPT}
               className="sr-only"
               data-testid="input-coach-formula-upload"
               onChange={event => {
