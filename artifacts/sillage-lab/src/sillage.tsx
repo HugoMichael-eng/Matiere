@@ -21,6 +21,7 @@ import {
   useSendConversationMessage, useUpdateFormula,
 } from "@workspace/api-client-react";
 import type { Formula, FormulaIngredientInput, Material } from "@workspace/api-client-react";
+import { normalizeMaterialFamilies } from "@workspace/material-families";
 import { MarkdownMessage } from "./components/MarkdownMessage";
 
 const queryClient = new QueryClient();
@@ -1213,7 +1214,7 @@ const FAMILY_WASH: Record<string, { bg: string; img: string; pos: string }> = {
 
 function MaterialCard({ material }: { material: Material }) {
   const [expanded, setExpanded] = useState(false);
-  const familyKey = material.family?.toLowerCase() ?? "";
+  const familyKey = normalizeMaterialFamilies(material.family)[0] ?? "";
   const wash = FAMILY_WASH[familyKey] ?? { bg: "bg-secondary", img: "botanicals.jpg", pos: "center" };
   return (
     <article className="group relative border border-border bg-card overflow-hidden p-5" data-testid={`card-material-${material.id}`}>
@@ -2717,14 +2718,15 @@ function Coach() {
   const libraryMaterials = materialsQuery.data ?? [];
 
   const { moods, accords } = useMemo(() => {
-    // Group the library by (lowercased) olfactive family
+    // Group the library by canonical olfactive family aliases. A material can
+    // belong to more than one family when its value is composite.
     const byFamily = new Map<string, Material[]>();
     for (const m of libraryMaterials) {
-      const key = m.family?.toLowerCase().trim() ?? "";
-      if (!key) continue;
-      const list = byFamily.get(key) ?? [];
-      list.push(m);
-      byFamily.set(key, list);
+      for (const key of normalizeMaterialFamilies(m.family)) {
+        const list = byFamily.get(key) ?? [];
+        list.push(m);
+        byFamily.set(key, list);
+      }
     }
     const has = (fams: readonly string[]) => fams.some(f => (byFamily.get(f)?.length ?? 0) > 0);
     const owned = (fams: readonly string[]) =>

@@ -185,6 +185,9 @@ importers:
       '@workspace/integrations-openai-ai-server':
         specifier: workspace:*
         version: link:../../lib/integrations-openai-ai-server
+      '@workspace/material-families':
+        specifier: workspace:*
+        version: link:../../lib/material-families
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -909,6 +912,9 @@ importers:
       '@workspace/api-client-react':
         specifier: workspace:*
         version: link:../../lib/api-client-react
+      '@workspace/material-families':
+        specifier: workspace:*
+        version: link:../../lib/material-families
       '@workspace/s1':
         specifier: workspace:*
         version: link:../s1
@@ -1189,6 +1195,8 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.5
+
+  lib/material-families: {}
 
   scripts:
     dependencies:
