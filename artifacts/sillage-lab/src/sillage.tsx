@@ -1006,7 +1006,17 @@ type FormulaFileAnalysis = {
   concentration: number | null;
   totalMl: number | null;
   ingredientCount: number;
-  ingredients: Array<{ materialName: string; percentage?: number; matchedName: string | null; allergens: string[]; ifraWarning: string | null }>;
+  ingredients: Array<{
+    materialName: string;
+    materialId: number | null;
+    matchedName: string | null;
+    percentage?: number;
+    grams?: number;
+    dilution?: number;
+    role?: string;
+    allergens: string[];
+    ifraWarning: string | null;
+  }>;
   allergens: string[];
   unknownMaterials: string[];
   ifraWarnings: Array<{ material: string; warning: string }>;
@@ -1026,12 +1036,193 @@ function FileCategoryIcon({ category }: { category: StudioFile["category"] }) {
   return <Icon size={17} strokeWidth={1.5} />;
 }
 
+function normaliseImportRole(role?: string): FormulaIngredientInput["role"] {
+  return role === "top" || role === "heart" || role === "base" || role === "modifier" ? role : "modifier";
+}
+
+function canAnalyzeFormulaFile(file: StudioFile) {
+  return file.category === "formula"
+    || file.contentType.includes("pdf")
+    || file.contentType.startsWith("text/")
+    || /\.(pdf|txt)$/i.test(file.name);
+}
+
+function FormulaImportReview({
+  analysis,
+  onClose,
+}: {
+  analysis: FormulaFileAnalysis;
+  onClose: () => void;
+}) {
+  const [, setLocation] = useLocation();
+  const qc = useQueryClient();
+  const materialsQuery = useListMaterials();
+  const materials = materialsQuery.data ?? [];
+  const create = useCreateFormula();
+  const [name, setName] = useState(analysis.formulaName);
+  const [concentration, setConcentration] = useState(analysis.concentration ?? 20);
+  const [totalMl, setTotalMl] = useState(analysis.totalMl ?? 30);
+  const [confirmUnlinked, setConfirmUnlinked] = useState(false);
+  const [ingredients, setIngredients] = useState<FormulaIngredientInput[]>(() => analysis.ingredients.map((ingredient) => {
+    const percentage = Math.max(0, ingredient.percentage ?? (ingredient.grams && totalMl > 0 ? (ingredient.grams / totalMl) * 100 : 0));
+    const grams = Math.max(0, ingredient.grams ?? ((percentage / 100) * totalMl));
+    return {
+      materialId: ingredient.materialId ?? 0,
+      materialName: ingredient.matchedName ?? ingredient.materialName,
+      percentage: Number(percentage.toFixed(4)),
+      grams: Number(grams.toFixed(3)),
+      dilution: ingredient.dilution ?? 100,
+      role: normaliseImportRole(ingredient.role),
+      allergenFlags: ingredient.allergens,
+    };
+  }));
+  const unmapped = ingredients.filter(ingredient => ingredient.materialId === 0);
+  const totalPercentage = ingredients.reduce((total, ingredient) => total + ingredient.percentage, 0);
+  const updateIngredient = (index: number, patch: Partial<FormulaIngredientInput>) => {
+    setIngredients(current => current.map((ingredient, ingredientIndex) => {
+      if (ingredientIndex !== index) return ingredient;
+      const next = { ...ingredient, ...patch };
+      if (patch.grams !== undefined) next.percentage = totalMl > 0 ? Number(((next.grams / totalMl) * 100).toFixed(4)) : 0;
+      if (patch.percentage !== undefined) next.grams = Number(((next.percentage / 100) * totalMl).toFixed(3));
+      return next;
+    }));
+  };
+  const saveDraft = () => {
+    if (!name.trim() || !ingredients.length || unmapped.length && !confirmUnlinked) return;
+    create.mutate({
+      data: {
+        name: name.trim(),
+        brief: `Imported from ${analysis.sourceFile}`,
+        status: "draft",
+        concentration,
+        totalMl,
+        notes: `Imported from ${analysis.sourceFile}.\n\nFormula file analysis:\n${analysis.interpretation}`,
+        ingredients,
+      },
+    }, {
+      onSuccess: formula => {
+        qc.invalidateQueries({ queryKey: getListFormulasQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+        setLocation(`/formulas/${formula.id}`);
+      },
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-background/95 px-4 py-6 backdrop-blur-sm sm:px-8" data-testid="modal-formula-import-review">
+      <div className="mx-auto max-w-5xl border border-border bg-card shadow-2xl">
+        <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5 sm:px-8">
+          <div>
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">Formula import · review before saving</p>
+            <h2 className="mt-1 font-display text-4xl">Make it editable.</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Source file: {analysis.sourceFile}. The original stays safely filed.</p>
+          </div>
+          <button onClick={onClose} aria-label="Close formula import" className="grid size-9 place-items-center border border-border text-muted-foreground hover:bg-secondary hover:text-foreground"><X size={16} /></button>
+        </div>
+
+        <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[.78fr_1.22fr]">
+          <div className="space-y-5">
+            <div className="border border-border bg-secondary/20 p-5">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground">Coach reading</p>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{analysis.interpretation}</p>
+              <div className="mt-4 grid gap-2 text-xs text-muted-foreground">
+                <p><span className="text-foreground">{analysis.allergens.length}</span> known allergen note{analysis.allergens.length === 1 ? "" : "s"}</p>
+                <p><span className="text-foreground">{analysis.ifraWarnings.length}</span> IFRA item{analysis.ifraWarnings.length === 1 ? "" : "s"} to review</p>
+              </div>
+            </div>
+            <label className="block text-xs font-medium">Formula name
+              <input value={name} onChange={event => setName(event.target.value)} data-testid="input-import-formula-name" className="mt-2 w-full border border-border bg-background px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block text-xs font-medium">Concentration %
+                <input type="number" min="0" max="100" value={concentration} onChange={event => setConcentration(Number(event.target.value))} className="mt-2 w-full border border-border bg-background px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+              </label>
+              <label className="block text-xs font-medium">Batch size ml
+                <input type="number" min="0" value={totalMl} onChange={event => setTotalMl(Number(event.target.value))} className="mt-2 w-full border border-border bg-background px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+              </label>
+            </div>
+            {analysis.ifraWarnings.length > 0 && <div className="border-l-2 border-destructive/60 bg-destructive/5 px-4 py-3 text-xs leading-5 text-muted-foreground">{analysis.ifraWarnings.map(item => <p key={item.material}><strong className="text-foreground">{item.material}:</strong> {item.warning}</p>)}</div>}
+          </div>
+
+          <div>
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Confirm the palette</p>
+                <h3 className="mt-1 font-display text-3xl">Map each material.</h3>
+              </div>
+              <p className="font-mono-ui text-[10px] text-muted-foreground">{totalPercentage.toFixed(1)}%</p>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">Match each imported name to your material library, or intentionally keep it unlinked so you can resolve it in the Formula Builder.</p>
+            <div className="mt-5 space-y-2">
+              {ingredients.map((ingredient, index) => (
+                <div key={`${ingredient.materialName}-${index}`} className="border border-border bg-secondary/20 p-3">
+                  <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_88px_76px_88px]">
+                    <label className="min-w-0">
+                      <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Material</span>
+                      <select
+                        value={ingredient.materialId}
+                        onChange={event => {
+                          const materialId = Number(event.target.value);
+                          const material = materials.find(item => item.id === materialId);
+                          updateIngredient(index, { materialId, materialName: material?.name ?? ingredient.materialName, allergenFlags: material?.allergens ?? [] });
+                        }}
+                        data-testid={`select-import-material-${index}`}
+                        className="mt-1 w-full truncate border border-border bg-background px-2 py-2 text-xs outline-none focus:border-foreground/40"
+                      >
+                        <option value={0}>Unlinked · {ingredient.materialName}</option>
+                        {materials.map(material => <option key={material.id} value={material.id}>{material.name}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">%</span>
+                      <input type="number" min="0" step="0.001" value={ingredient.percentage} onChange={event => updateIngredient(index, { percentage: Number(event.target.value) })} className="mt-1 w-full border border-border bg-background px-2 py-2 text-xs outline-none focus:border-foreground/40" />
+                    </label>
+                    <label>
+                      <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">g</span>
+                      <input type="number" min="0" step="0.001" value={ingredient.grams} onChange={event => updateIngredient(index, { grams: Number(event.target.value) })} className="mt-1 w-full border border-border bg-background px-2 py-2 text-xs outline-none focus:border-foreground/40" />
+                    </label>
+                    <label>
+                      <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Role</span>
+                      <select value={ingredient.role} onChange={event => updateIngredient(index, { role: event.target.value as FormulaIngredientInput["role"] })} className="mt-1 w-full border border-border bg-background px-2 py-2 text-xs outline-none focus:border-foreground/40">
+                        <option value="top">Top</option><option value="heart">Heart</option><option value="base">Base</option><option value="modifier">Modifier</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {unmapped.length > 0 && <label className="mt-4 flex items-start gap-3 border border-accent/30 bg-accent/10 p-4 text-xs leading-5">
+              <input type="checkbox" checked={confirmUnlinked} onChange={event => setConfirmUnlinked(event.target.checked)} className="mt-0.5" data-testid="checkbox-confirm-unlinked-import" />
+              <span><strong className="text-foreground">{unmapped.length} material{unmapped.length === 1 ? "" : "s"} remain unlinked.</strong> I understand they will be saved as editable names and need resolving in the Formula Builder.</span>
+            </label>}
+            {create.isError && <p className="mt-3 text-sm text-destructive" data-testid="status-import-formula-error">The draft could not be saved. Check the amounts and try again.</p>}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-5 sm:px-8">
+          <p className="text-xs text-muted-foreground">Saving creates a new editable draft and never deletes {analysis.sourceFile}.</p>
+          <div className="flex gap-2">
+            <Button onClick={onClose} variant="quiet" testId="button-cancel-formula-import">Cancel</Button>
+            <Button onClick={saveDraft} disabled={!name.trim() || !ingredients.length || (!!unmapped.length && !confirmUnlinked) || create.isPending} testId="button-save-imported-formula">{create.isPending ? "Saving draft…" : "Save editable draft"}</Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FileDrawer() {
   const inputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<FormulaFileAnalysis | null>(null);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [analyzingFileId, setAnalyzingFileId] = useState<number | null>(null);
+  const search = useSearch();
+  const autoAnalyzeId = Number(new URLSearchParams(search).get("analyze")) || null;
+  const autoAnalyzedRef = useRef<number | null>(null);
   const filesQuery = useQuery({
     queryKey: ["studio-files"],
     queryFn: async (): Promise<StudioFile[]> => {
@@ -1050,6 +1241,29 @@ function FileDrawer() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["studio-files"] }),
   });
+  const analyzeFile = useCallback(async (file: StudioFile) => {
+    setAnalysisError(null);
+    setAnalyzingFileId(file.id);
+    try {
+      const response = await fetch(`/api/uploads/${file.id}/analyze`, { method: "POST", credentials: "include" });
+      const data = await response.json().catch(() => ({})) as FormulaFileAnalysis & { error?: string };
+      if (!response.ok) throw new Error(data.error ?? "This file could not be analyzed.");
+      setAnalysis(data);
+    } catch (error) {
+      setAnalysisError(error instanceof Error ? error.message : "This file could not be analyzed.");
+    } finally {
+      setAnalyzingFileId(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!autoAnalyzeId || autoAnalyzedRef.current === autoAnalyzeId || !filesQuery.data) return;
+    const file = filesQuery.data.find(item => item.id === autoAnalyzeId);
+    if (!file) return;
+    autoAnalyzedRef.current = autoAnalyzeId;
+    if (canAnalyzeFormulaFile(file)) void analyzeFile(file);
+    else setAnalysisError(`${file.name} is saved in the drawer, but only JSON, CSV, text, and text-based PDF formula files can be turned into editable drafts.`);
+  }, [analyzeFile, autoAnalyzeId, filesQuery.data]);
 
   const uploadFiles = useCallback(async (files: File[]) => {
     const validFiles = files.filter(file => file.size > 0 && file.size <= MAX_UPLOAD_BYTES);
@@ -1149,6 +1363,7 @@ function FileDrawer() {
       </section>
 
       <SectionRule label="Saved files" />
+      {analysisError && <div className="mb-4 flex items-start justify-between gap-4 border border-destructive/30 bg-destructive/5 px-5 py-4 text-sm text-destructive" data-testid="status-file-analysis-error"><span>{analysisError}</span><button onClick={() => setAnalysisError(null)} aria-label="Dismiss file analysis error"><X size={14} /></button></div>}
       {filesQuery.isLoading ? (
         <div className="space-y-px border border-border">{[1, 2, 3].map(item => <Skeleton key={item} className="h-20 w-full" />)}</div>
       ) : filesQuery.isError ? <ErrorState retry={() => filesQuery.refetch()} /> : filesQuery.data?.length ? (
@@ -1160,6 +1375,12 @@ function FileDrawer() {
                 <p className="truncate text-sm font-medium">{file.name}</p>
                 <p className="mt-1 font-mono-ui text-[8px] uppercase tracking-[.12em] text-muted-foreground">{file.category} · {fileSize(file.size)} · {new Date(file.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</p>
               </div>
+               {canAnalyzeFormulaFile(file) && <button
+                 onClick={() => void analyzeFile(file)}
+                 disabled={analyzingFileId === file.id}
+                 className="shrink-0 border border-border px-3 py-2 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground transition-colors hover:border-foreground hover:text-foreground disabled:opacity-50"
+                 data-testid={`button-analyze-file-${file.id}`}
+               >{analyzingFileId === file.id ? "Reading…" : "Analyze & draft"}</button>}
               <a href={`/api/uploads/${file.id}/download`} className="grid size-9 place-items-center text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground" aria-label={`Download ${file.name}`} data-testid={`button-download-file-${file.id}`}><Download size={15} strokeWidth={1.5} /></a>
               <button
                 onClick={() => {
@@ -1179,7 +1400,92 @@ function FileDrawer() {
           <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted-foreground">Start with a formula export, a reference image, or the evaluation notes from your last trial.</p>
         </div>
       )}
+      {analysis && <FormulaImportReview key={analysis.sourceFile} analysis={analysis} onClose={() => setAnalysis(null)} />}
     </Shell>
+  );
+}
+
+async function uploadStudioFile(file: File): Promise<StudioFile> {
+  if (!file.size || file.size > MAX_UPLOAD_BYTES) throw new Error("Choose a file between 1 byte and 25 MB.");
+  const requestResponse = await fetch("/api/uploads/request-url", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type || "application/octet-stream" }),
+  });
+  const requested = await requestResponse.json().catch(() => ({})) as { uploadUrl?: string; objectKey?: string; category?: StudioFile["category"]; error?: string };
+  if (!requestResponse.ok || !requested.uploadUrl || !requested.objectKey || !requested.category) throw new Error(requested.error ?? "Could not prepare this upload.");
+
+  const stored = await fetch(requested.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type || "application/octet-stream" },
+    body: file,
+  });
+  if (!stored.ok) throw new Error("The file could not be saved to storage.");
+
+  const completeResponse = await fetch("/api/uploads", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: file.name,
+      size: file.size,
+      contentType: file.type || "application/octet-stream",
+      objectKey: requested.objectKey,
+      category: requested.category,
+    }),
+  });
+  const saved = await completeResponse.json().catch(() => ({})) as StudioFile & { error?: string };
+  if (!completeResponse.ok || !saved.id) throw new Error(saved.error ?? "The upload finished, but could not be added to your file drawer.");
+  return saved;
+}
+
+function FormulaToolFileUpload({ testId }: { testId: string }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const qc = useQueryClient();
+  const [saved, setSaved] = useState<StudioFile | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const selectFile = async (file: File) => {
+    setStatus(null);
+    setSaved(null);
+    setIsUploading(true);
+    try {
+      const fileRecord = await uploadStudioFile(file);
+      setSaved(fileRecord);
+      qc.invalidateQueries({ queryKey: ["studio-files"] });
+      setStatus(canAnalyzeFormulaFile(fileRecord)
+        ? "Formula source filed. Review it before making the editable draft."
+        : "Reference filed. It is available in your File Drawer and Creative Lab.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "This file could not be uploaded.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="text-right">
+      <input
+        ref={inputRef}
+        type="file"
+        accept={FILE_ACCEPT}
+        className="sr-only"
+        data-testid={`${testId}-input`}
+        onChange={event => {
+          const [file] = Array.from(event.target.files ?? []);
+          if (file) void selectFile(file);
+          event.target.value = "";
+        }}
+      />
+      <Button onClick={() => inputRef.current?.click()} variant="outline" disabled={isUploading} testId={testId}>
+        <Paperclip size={13} /> {isUploading ? "Filing…" : "Upload a file"}
+      </Button>
+      {status && <p className={`mt-2 max-w-xs text-xs leading-5 ${saved ? "text-muted-foreground" : "text-destructive"}`} data-testid={`${testId}-status`}>{status}</p>}
+      {saved && <Link href={canAnalyzeFormulaFile(saved) ? `/files?analyze=${saved.id}` : "/files"} className="mt-2 inline-block text-[10px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid={`${testId}-review`}>
+        {canAnalyzeFormulaFile(saved) ? "Review & make draft ↗" : "Open File Drawer ↗"}
+      </Link>}
+    </div>
   );
 }
 
@@ -2065,7 +2371,12 @@ function NewFormula() {
 
   return (
     <Shell>
-      <PageHeader eyebrow="New page · formula" title="Make a beginning." description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back." />
+      <PageHeader
+        eyebrow="New page · formula"
+        title="Make a beginning."
+        description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back."
+        action={<FormulaToolFileUpload testId="button-new-formula-upload-file" />}
+      />
       <FormulaIdeaGenerator onSelect={(n, b, mats) => {
         setName(n);
         setBrief(b);
@@ -2151,7 +2462,7 @@ function FormulaDetail() {
   if (query.isLoading) return <Shell><Skeleton className="h-72" /></Shell>;
   if (query.isError || !formula) return <Shell><ErrorState retry={() => query.refetch()} /></Shell>;
   return (
-    <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex flex-wrap gap-2"><Button href={`/coach?formula=${formula.id}`} variant="outline" testId="button-discuss-lab">Discuss in lab ↗</Button><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><div className="flex items-center gap-3 pt-1"><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p><button onClick={begin} data-testid="button-edit-inline" className="border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:bg-secondary">Edit</button></div></div><div className="mt-5 space-y-1">{(() => { const unlinkCount = formula.ingredients.filter(i => i.materialId === 0).length; return unlinkCount > 0 ? (<div className="mb-4 flex items-start gap-2.5 border border-accent/30 bg-accent/10 px-4 py-3" data-testid="banner-unlinked-ingredients"><CircleAlert size={13} className="mt-0.5 shrink-0 text-accent-foreground/70" /><p className="font-mono-ui text-[10px] uppercase tracking-[.1em] leading-5 text-accent-foreground/70">{unlinkCount} ingredient{unlinkCount > 1 ? "s" : ""} not yet linked to your library — open Edit to resolve</p></div>) : null; })()}{formula.ingredients.map((item, i) => { const unlinked = item.materialId === 0; return (<div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className={`grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t py-4 ${unlinked ? "border-accent/30" : "border-border"}`}><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{item.materialName}</p>{unlinked && <span className="inline-flex items-center border border-accent/40 px-1.5 py-0.5 font-mono-ui text-[8px] uppercase tracking-widest text-accent-foreground/70" data-testid={`badge-unlinked-${i}`}>Unlinked</span>}</div><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>); })}</div></div>{editing && (
+    <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex flex-wrap gap-2"><FormulaToolFileUpload testId="button-formula-upload-file" /><Button href={`/coach?formula=${formula.id}`} variant="outline" testId="button-discuss-lab">Discuss in lab ↗</Button><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><div className="flex items-center gap-3 pt-1"><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p><button onClick={begin} data-testid="button-edit-inline" className="border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:bg-secondary">Edit</button></div></div><div className="mt-5 space-y-1">{(() => { const unlinkCount = formula.ingredients.filter(i => i.materialId === 0).length; return unlinkCount > 0 ? (<div className="mb-4 flex items-start gap-2.5 border border-accent/30 bg-accent/10 px-4 py-3" data-testid="banner-unlinked-ingredients"><CircleAlert size={13} className="mt-0.5 shrink-0 text-accent-foreground/70" /><p className="font-mono-ui text-[10px] uppercase tracking-[.1em] leading-5 text-accent-foreground/70">{unlinkCount} ingredient{unlinkCount > 1 ? "s" : ""} not yet linked to your library — open Edit to resolve</p></div>) : null; })()}{formula.ingredients.map((item, i) => { const unlinked = item.materialId === 0; return (<div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className={`grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t py-4 ${unlinked ? "border-accent/30" : "border-border"}`}><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{item.materialName}</p>{unlinked && <span className="inline-flex items-center border border-accent/40 px-1.5 py-0.5 font-mono-ui text-[8px] uppercase tracking-widest text-accent-foreground/70" data-testid={`badge-unlinked-${i}`}>Unlinked</span>}</div><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>); })}</div></div>{editing && (
                                                                                                           <div className="fixed inset-0 z-40 overflow-y-auto bg-background">
                                                                                                             <div className="mx-auto max-w-5xl px-5 pb-20 pt-6 sm:px-10">
                                                                                                               <div className="mb-8 flex items-center justify-between">
@@ -2600,7 +2911,7 @@ function Coach() {
       const saved = await completed.json().catch(() => ({})) as StudioFile & { error?: string };
       if (!completed.ok || !saved.id) throw new Error(saved.error ?? "The upload finished but could not be filed.");
       setAttachedFile(saved);
-      if (requested.category !== "formula") {
+      if (!canAnalyzeFormulaFile(saved)) {
         setMessage(`I attached “${saved.name}”. It is saved in the File Drawer. Tell me what you want to explore from this reference.`);
         qc.invalidateQueries({ queryKey: ["studio-files"] });
         return;
@@ -2619,6 +2930,26 @@ function Coach() {
     } finally {
       setIsAnalyzingFile(false);
     }
+  };
+
+  const beginHubAttachment = (file: File) => {
+    if (selectedConvId) {
+      void analyzeFile(file);
+      return;
+    }
+    setFileAnalysisError(null);
+    createConv.mutate(
+      { data: { title: "File analysis" } },
+      {
+        onSuccess: conversation => {
+          qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+          setSelectedConvId(conversation.id);
+          setCreatingNew(false);
+          void analyzeFile(file);
+        },
+        onError: () => setFileAnalysisError("Couldn't create a session for this file. Please try again."),
+      },
+    );
   };
 
   const handleSend = (e: FormEvent) => {
@@ -2779,14 +3110,38 @@ function Coach() {
                   What are you<br />working on?
                 </h1>
               </div>
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                onClick={() => setCreatingNew(v => !v)}
-                data-testid="button-new-session"
-                className="mt-1 shrink-0 bg-foreground px-5 py-2.5 font-mono-ui text-[9px] uppercase tracking-widest text-background transition-opacity hover:opacity-75"
-              >
-                + New
-              </motion.button>
+              <div className="mt-1 flex shrink-0 items-center gap-2">
+                <input
+                  ref={attachmentInputRef}
+                  type="file"
+                  accept={FILE_ACCEPT}
+                  className="sr-only"
+                  data-testid="input-coach-formula-upload"
+                  onChange={event => {
+                    const [file] = Array.from(event.target.files ?? []);
+                    if (file) beginHubAttachment(file);
+                    event.target.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => attachmentInputRef.current?.click()}
+                  disabled={isAnalyzingFile || createConv.isPending}
+                  data-testid="button-attach-formula-file"
+                  aria-label="Upload a studio file"
+                  className="grid size-9 place-items-center border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50"
+                >
+                  {isAnalyzingFile ? <span className="size-3.5 animate-spin rounded-full border-2 border-foreground/30 border-t-foreground" /> : <Paperclip size={15} />}
+                </button>
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setCreatingNew(v => !v)}
+                  data-testid="button-new-session"
+                  className="bg-foreground px-5 py-2.5 font-mono-ui text-[9px] uppercase tracking-widest text-background transition-opacity hover:opacity-75"
+                >
+                  + New
+                </motion.button>
+              </div>
             </div>
 
             {/* ── New-session inline form ── */}
@@ -3102,7 +3457,12 @@ function Coach() {
                     </div>
                   </div>
                   {fileAnalysis.ifraWarnings.length > 0 && <ul className="mt-4 space-y-1 border-l-2 border-destructive/60 pl-3 text-xs leading-5 text-muted-foreground">{fileAnalysis.ifraWarnings.map(item => <li key={item.material}><strong className="text-foreground">{item.material}:</strong> {item.warning}</li>)}</ul>}
-                  <p className="mt-4 text-xs text-muted-foreground">A ready-to-send question has been added to the prompt below so you can continue with the AI coach.</p>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-xs text-muted-foreground">A ready-to-send question has been added to the prompt below so you can continue with the AI coach.</p>
+                    {attachedFile && <Link href={`/files?analyze=${attachedFile.id}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="link-save-coach-analysis">
+                      Review &amp; save as draft ↗
+                    </Link>}
+                  </div>
                 </div>
               )}
               <div ref={messagesEndRef} />

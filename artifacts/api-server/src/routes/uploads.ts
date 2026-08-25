@@ -1,4 +1,9 @@
 import { randomUUID } from "node:crypto";
+import { execFile } from "node:child_process";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import { Router, type IRouter } from "express";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -8,6 +13,7 @@ import { requireAuth, type AuthenticatedRequest } from "../middlewares/auth";
 
 const router: IRouter = Router();
 router.use(requireAuth);
+const execFileAsync = promisify(execFile);
 
 const MAX_FILE_BYTES = 25 * 1024 * 1024;
 const uploadRequestSchema = z.object({
@@ -74,6 +80,39 @@ function parseCsv(text: string): { formulaName?: string; ingredients: ParsedIngr
   };
 }
 
+function parseFormulaTable(text: string): { ingredients: ParsedIngredient[] } {
+  const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  const headerIndex = lines.findIndex(line => {
+    const header = line.toLowerCase();
+    return /material|ingredient|raw material|name/.test(header) && /percentage|percent|%|grams|weight/.test(header);
+  });
+  if (headerIndex < 0) return { ingredients: [] };
+
+  const split = (line: string) => line.includes("\t")
+    ? line.split("\t").map(value => value.trim())
+    : line.split(/\s{2,}/).map(value => value.trim());
+  const headers = split(lines[headerIndex]).map(value => value.toLowerCase().replace(/[\s_-]+/g, ""));
+  const nameIndex = headers.findIndex(value => ["material", "materialname", "name", "ingredient", "rawmaterial"].includes(value));
+  const percentageIndex = headers.findIndex(value => ["percentage", "percent", "pct", "proportion"].includes(value));
+  const gramsIndex = headers.findIndex(value => ["grams", "gram", "weight", "g"].includes(value));
+  const dilutionIndex = headers.findIndex(value => ["dilution", "dilutionpercent"].includes(value));
+  const roleIndex = headers.findIndex(value => value === "role");
+  if (nameIndex < 0) return { ingredients: [] };
+
+  return {
+    ingredients: lines.slice(headerIndex + 1).map(line => {
+      const values = split(line);
+      return {
+        materialName: values[nameIndex] ?? "",
+        percentage: numberValue(values[percentageIndex]),
+        grams: numberValue(values[gramsIndex]),
+        dilution: numberValue(values[dilutionIndex]),
+        role: values[roleIndex],
+      };
+    }).filter(item => item.materialName),
+  };
+}
+
 function parseFormulaText(text: string, contentType: string, name: string): {
   formulaName?: string;
   concentration?: number;
@@ -82,6 +121,10 @@ function parseFormulaText(text: string, contentType: string, name: string): {
 } {
   if (contentType.includes("csv") || name.toLowerCase().endsWith(".csv")) {
     return parseCsv(text);
+  }
+  if (contentType.includes("pdf") || name.toLowerCase().endsWith(".pdf") || contentType.startsWith("text/")) {
+    const table = parseFormulaTable(text);
+    return { formulaName: name.replace(/\.[^.]+$/, ""), ingredients: table.ingredients };
   }
   const parsed = JSON.parse(text) as unknown;
   const root = (parsed && typeof parsed === "object" ? parsed : {}) as Record<string, unknown>;
@@ -111,6 +154,28 @@ function parseFormulaText(text: string, contentType: string, name: string): {
     totalMl: numberValue(root.totalMl ?? root.batchSize ?? root.volume),
     ingredients,
   };
+}
+
+async function readFormulaFile(file: typeof uploadedFilesTable.$inferSelect): Promise<string> {
+  const downloadUrl = await signObjectUrl(file.objectKey, "GET");
+  const download = await fetch(downloadUrl, { signal: AbortSignal.timeout(30_000) });
+  if (!download.ok) throw new Error(`Could not read stored file (${download.status})`);
+  const bytes = new Uint8Array(await download.arrayBuffer());
+  const isPdf = file.contentType.includes("pdf") || file.name.toLowerCase().endsWith(".pdf");
+  if (!isPdf) return new TextDecoder().decode(bytes).slice(0, 250_000);
+
+  const directory = await mkdtemp(join(tmpdir(), "sillage-formula-"));
+  const source = join(directory, "formula.pdf");
+  try {
+    await writeFile(source, bytes);
+    const { stdout } = await execFileAsync("pdftotext", ["-layout", source, "-"], {
+      timeout: 30_000,
+      maxBuffer: 250_000,
+    });
+    return stdout.slice(0, 250_000);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 }
 
 function privateObjectPath(objectKey: string): { bucketName: string; objectName: string } {
@@ -213,18 +278,19 @@ router.post("/uploads/:id/analyze", async (req, res): Promise<void> => {
     res.status(404).json({ error: "File not found." });
     return;
   }
-  if (file.category !== "formula") {
-    res.status(400).json({ error: "Formula analysis currently supports JSON and CSV formula files." });
+  const canAnalyze = file.category === "formula"
+    || file.contentType.includes("pdf")
+    || file.contentType.startsWith("text/")
+    || /\.(pdf|txt)$/i.test(file.name);
+  if (!canAnalyze) {
+    res.status(400).json({ error: "Formula analysis supports JSON, CSV, text, and text-based PDF formula files. Images and other references remain safely filed for your studio." });
     return;
   }
   try {
-    const downloadUrl = await signObjectUrl(file.objectKey, "GET");
-    const download = await fetch(downloadUrl, { signal: AbortSignal.timeout(30_000) });
-    if (!download.ok) throw new Error(`Could not read stored file (${download.status})`);
-    const text = new TextDecoder().decode(await download.arrayBuffer()).slice(0, 250_000);
+    const text = await readFormulaFile(file);
     const parsed = parseFormulaText(text, file.contentType, file.name);
     if (!parsed.ingredients.length) {
-      res.status(422).json({ error: "I couldn't find an ingredients table. Use JSON with an ingredients array or CSV with a material and percentage column." });
+      res.status(422).json({ error: "I couldn't find an ingredients table. Use JSON with an ingredients array, CSV with material and percentage columns, or a text-based PDF with a material table." });
       return;
     }
 
