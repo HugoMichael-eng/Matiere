@@ -204,6 +204,25 @@ export interface UploadedFile {
   createdAt: string;
 }
 
+export type FormulaFileAnalysisIngredientsItem = { [key: string]: unknown };
+
+export type FormulaFileAnalysisIfraWarningsItem = { [key: string]: unknown };
+
+export interface FormulaFileAnalysis {
+  sourceFile: string;
+  formulaName: string;
+  /** @nullable */
+  concentration?: number | null;
+  /** @nullable */
+  totalMl?: number | null;
+  ingredientCount: number;
+  ingredients: FormulaFileAnalysisIngredientsItem[];
+  allergens: string[];
+  unknownMaterials: string[];
+  ifraWarnings: FormulaFileAnalysisIfraWarningsItem[];
+  interpretation: string;
+}
+
 export interface UploadRequestInput {
   name: string;
   /**

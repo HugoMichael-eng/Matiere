@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient
 import { AnimatePresence, motion, useMotionTemplate, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Beaker, Bookmark, BookOpen, ChevronDown, ChevronRight, CircleAlert,
-  Download, File, FileImage, FileText, FlaskConical, FolderUp, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Plus,
+  Download, File, FileImage, FileText, FlaskConical, FolderUp, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Paperclip, Plus,
   Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, Upload, X, ShoppingBag
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -957,7 +957,17 @@ function Formulas() {
           <p className="mt-1 font-mono-ui text-[9px] text-muted-foreground/60">A living record of each composition</p>
         </div>
       </motion.div>
-      <PageHeader eyebrow="Library · formulas" title="Formula library" description="The living record of what you've made, paused, and almost made." action={<Button href="/formulas/new" testId="button-library-new">New formula</Button>} />
+      <PageHeader
+        eyebrow="Library · formulas"
+        title="Formula library"
+        description="The living record of what you've made, paused, and almost made."
+        action={
+          <div className="flex flex-wrap gap-2">
+            <Button href="/coach?attach=1" variant="outline" testId="button-library-analyze-file"><Paperclip size={13} /> Analyze a file</Button>
+            <Button href="/formulas/new" testId="button-library-new">New formula</Button>
+          </div>
+        }
+      />
       <SectionRule label="Filter · search" />
       <div className="mb-6 flex flex-col gap-3 sm:flex-row"><div className="relative flex-1"><Search size={16} className="absolute left-4 top-3.5 text-muted-foreground" /><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or brief..." data-testid="input-formula-search" className="w-full border border-border bg-card py-3 pl-11 pr-4 text-sm outline-none transition-colors focus:border-foreground/40" /></div><select value={status} data-testid="select-formula-status" className="border border-border bg-card px-4 py-3 text-xs outline-none focus:border-foreground/40" onChange={e => setStatus(e.target.value as typeof status)}><option value="all">All stages</option><option value="draft">Drafts</option><option value="resting">Resting</option><option value="approved">Approved</option></select></div>
       <div className="border border-border bg-card px-5 sm:px-7"><div className="hidden grid-cols-[1.5fr_1fr_110px_110px_24px] gap-4 border-b border-border py-3 font-mono-ui text-[9px] uppercase tracking-[.14em] text-muted-foreground sm:grid"><span>Formula</span><span>Palette</span><span>Stage</span><span className="text-right">Changed</span><span /></div>{query.isLoading ? [1, 2, 3].map(i => <Skeleton key={i} className="my-5 h-14" />) : query.isError ? <ErrorState retry={() => query.refetch()} /> : formulas.length ? formulas.map(formula => <FormulaRow key={formula.id} formula={formula} />) : <EmptyState title="No formulas found." copy="Try another search, or give the next one a name." href="/formulas/new" label="Start a formula" />}</div>
@@ -982,6 +992,19 @@ type StudioFile = {
   size: number;
   category: "formula" | "image" | "document" | "other";
   createdAt: string;
+};
+
+type FormulaFileAnalysis = {
+  sourceFile: string;
+  formulaName: string;
+  concentration: number | null;
+  totalMl: number | null;
+  ingredientCount: number;
+  ingredients: Array<{ materialName: string; percentage?: number; matchedName: string | null; allergens: string[]; ifraWarning: string | null }>;
+  allergens: string[];
+  unknownMaterials: string[];
+  ifraWarnings: Array<{ material: string; warning: string }>;
+  interpretation: string;
 };
 
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
@@ -2345,6 +2368,7 @@ function Coach() {
   const rawConvId = new URLSearchParams(search).get("conv");
   const convFromUrl = rawConvId && Number.isFinite(Number(rawConvId)) ? Number(rawConvId) : null;
   const autoSendParam = new URLSearchParams(search).get("autoSend");
+  const attachIntent = new URLSearchParams(search).get("attach") === "1";
 
   const buildContext = useCallback((f: typeof activeFormula): string | null => {
     if (!f) return null;
@@ -2364,6 +2388,11 @@ function Coach() {
   const [newTitle, setNewTitle] = useState("");
   const [creatingNew, setCreatingNew] = useState(false);
   const [message, setMessage] = useState("");
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const attachStartedRef = useRef(false);
+  const [isAnalyzingFile, setIsAnalyzingFile] = useState(false);
+  const [fileAnalysis, setFileAnalysis] = useState<FormulaFileAnalysis | null>(null);
+  const [fileAnalysisError, setFileAnalysisError] = useState<string | null>(null);
   const [sessionSearch, setSessionSearch] = useState("");
   const [pinnedIds, setPinnedIds] = useState<Set<number>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem("matiere-pinned-sessions") ?? "[]")); }
@@ -2505,6 +2534,83 @@ function Coach() {
   const handleCreate = (e: FormEvent) => {
     e.preventDefault();
     createWithTitle(newTitle.trim() || "New session");
+  };
+
+  useEffect(() => {
+    if (!attachIntent || attachStartedRef.current || selectedConvId || createConv.isPending) return;
+    attachStartedRef.current = true;
+    createConv.mutate(
+      { data: { title: "Formula file analysis" } },
+      {
+        onSuccess: (conversation) => {
+          qc.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+          setSelectedConvId(conversation.id);
+          setCreatingNew(false);
+        },
+        onError: () => {
+          attachStartedRef.current = false;
+          setFileAnalysisError("Couldn't create an analysis session. Please try again.");
+        },
+      },
+    );
+  }, [attachIntent, selectedConvId, createConv, qc]);
+
+  const analyzeFile = async (file: File) => {
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!["json", "csv"].includes(extension ?? "")) {
+      setFileAnalysisError("Choose a JSON or CSV formula export. Image and document uploads stay available in the File Drawer.");
+      return;
+    }
+    if (!file.size || file.size > MAX_UPLOAD_BYTES) {
+      setFileAnalysisError("Choose a formula file between 1 byte and 25 MB.");
+      return;
+    }
+    setIsAnalyzingFile(true);
+    setFileAnalysisError(null);
+    setFileAnalysis(null);
+    try {
+      const request = await fetch(`${basePath}/api/uploads/request-url`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type || "application/octet-stream" }),
+      });
+      const requested = await request.json().catch(() => ({})) as { uploadUrl?: string; objectKey?: string; category?: StudioFile["category"]; error?: string };
+      if (!request.ok || !requested.uploadUrl || !requested.objectKey || !requested.category) throw new Error(requested.error ?? "Couldn't prepare this formula file.");
+      const stored = await fetch(requested.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type || "application/octet-stream" },
+        body: file,
+      });
+      if (!stored.ok) throw new Error("The formula file could not be saved.");
+      const completed = await fetch(`${basePath}/api/uploads`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: file.name,
+          size: file.size,
+          contentType: file.type || "application/octet-stream",
+          objectKey: requested.objectKey,
+          category: requested.category,
+        }),
+      });
+      const saved = await completed.json().catch(() => ({})) as StudioFile & { error?: string };
+      if (!completed.ok || !saved.id) throw new Error(saved.error ?? "The upload finished but could not be filed.");
+      const analysisResponse = await fetch(`${basePath}/api/uploads/${saved.id}/analyze`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const analysis = await analysisResponse.json().catch(() => ({})) as FormulaFileAnalysis & { error?: string };
+      if (!analysisResponse.ok) throw new Error(analysis.error ?? "I couldn't read that formula.");
+      setFileAnalysis(analysis);
+      setMessage(`I uploaded “${analysis.sourceFile}”. Review the formula analysis below and help me decide what to adjust next.`);
+      qc.invalidateQueries({ queryKey: ["studio-files"] });
+    } catch (error) {
+      setFileAnalysisError(error instanceof Error ? error.message : "I couldn't analyze that file.");
+    } finally {
+      setIsAnalyzingFile(false);
+    }
   };
 
   const handleSend = (e: FormEvent) => {
@@ -2932,13 +3038,64 @@ function Coach() {
                   </div>
                 </div>
               )}
+              {fileAnalysis && (
+                <div className="border border-border bg-secondary/15 p-5" data-testid="panel-formula-file-analysis">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">Formula file read</p>
+                      <h2 className="mt-1 font-display text-3xl">{fileAnalysis.formulaName}</h2>
+                      <p className="mt-1 text-xs text-muted-foreground">{fileAnalysis.ingredientCount} ingredients · {fileAnalysis.sourceFile}</p>
+                    </div>
+                    <button onClick={() => setFileAnalysis(null)} aria-label="Dismiss analysis" className="text-muted-foreground hover:text-foreground"><X size={14} /></button>
+                  </div>
+                  <p className="mt-5 whitespace-pre-wrap text-sm leading-6">{fileAnalysis.interpretation}</p>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                    <div className="border border-border bg-background/70 p-3">
+                      <p className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Known allergens</p>
+                      <p className="mt-2 text-sm">{fileAnalysis.allergens.length ? fileAnalysis.allergens.join(", ") : "None found in matched materials."}</p>
+                    </div>
+                    <div className="border border-border bg-background/70 p-3">
+                      <p className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">Unmatched materials</p>
+                      <p className="mt-2 text-sm">{fileAnalysis.unknownMaterials.length ? fileAnalysis.unknownMaterials.join(", ") : "All ingredients matched."}</p>
+                    </div>
+                    <div className="border border-border bg-background/70 p-3">
+                      <p className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">IFRA review</p>
+                      <p className="mt-2 text-sm">{fileAnalysis.ifraWarnings.length ? `${fileAnalysis.ifraWarnings.length} item${fileAnalysis.ifraWarnings.length === 1 ? "" : "s"} need review.` : "No library-limit flags."}</p>
+                    </div>
+                  </div>
+                  {fileAnalysis.ifraWarnings.length > 0 && <ul className="mt-4 space-y-1 border-l-2 border-destructive/60 pl-3 text-xs leading-5 text-muted-foreground">{fileAnalysis.ifraWarnings.map(item => <li key={item.material}><strong className="text-foreground">{item.material}:</strong> {item.warning}</li>)}</ul>}
+                  <p className="mt-4 text-xs text-muted-foreground">A ready-to-send question has been added to the prompt below so you can continue with the AI coach.</p>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
           </div>
 
           {/* Pinned input */}
           <div className="shrink-0 border-t border-border px-5 py-4 sm:px-8">
+            <input
+              ref={attachmentInputRef}
+              type="file"
+              accept=".json,.csv,application/json,text/csv"
+              className="sr-only"
+              data-testid="input-coach-formula-upload"
+              onChange={event => {
+                const [file] = Array.from(event.target.files ?? []);
+                if (file) void analyzeFile(file);
+                event.target.value = "";
+              }}
+            />
             <form onSubmit={handleSend} className="mx-auto flex max-w-2xl items-center gap-3 rounded-full border border-border bg-secondary/20 px-5 py-2.5">
+              <button
+                type="button"
+                onClick={() => attachmentInputRef.current?.click()}
+                disabled={isAnalyzingFile || streamMsg.isPending || !activeConv}
+                data-testid="button-attach-formula-file"
+                aria-label="Upload formula file for analysis"
+                className="grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-background hover:text-foreground disabled:opacity-30"
+              >
+                {isAnalyzingFile ? <span className="size-3.5 animate-spin rounded-full border-2 border-foreground/30 border-t-foreground" /> : <Paperclip size={15} />}
+              </button>
               <input
                 value={message}
                 onChange={e => setMessage(e.target.value)}
@@ -2961,6 +3118,18 @@ function Coach() {
             {streamMsg.error && (
               <p className="mt-2 text-center text-xs text-destructive" data-testid="status-coach-error">{streamMsg.error}</p>
             )}
+            {fileAnalysisError && <p className="mt-2 text-center text-xs text-destructive" data-testid="status-formula-file-error">{fileAnalysisError}</p>}
+            {attachIntent && !fileAnalysis && !isAnalyzingFile && (
+              <button
+                type="button"
+                onClick={() => attachmentInputRef.current?.click()}
+                className="mx-auto mt-3 flex items-center gap-2 border border-border px-3 py-2 text-xs transition-colors hover:bg-secondary"
+                data-testid="button-start-formula-file-analysis"
+              >
+                <Paperclip size={13} /> Attach a formula file to start analysis
+              </button>
+            )}
+            <p className="mx-auto mt-2 max-w-2xl text-center font-mono-ui text-[7px] uppercase tracking-[.12em] text-muted-foreground/60">Attach JSON or CSV formula exports for AI analysis, allergen matching, and IFRA review</p>
           </div>
         </div>
       )}

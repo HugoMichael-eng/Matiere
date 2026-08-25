@@ -85,12 +85,15 @@ function parseFormulaText(text: string, contentType: string, name: string): {
   }
   const parsed = JSON.parse(text) as unknown;
   const root = (parsed && typeof parsed === "object" ? parsed : {}) as Record<string, unknown>;
-  const rawIngredients = Array.isArray(parsed)
+  const nestedFormula = root.formula && typeof root.formula === "object"
+    ? root.formula as Record<string, unknown>
+    : null;
+  const rawIngredients: unknown[] = Array.isArray(parsed)
     ? parsed
     : Array.isArray(root.ingredients)
       ? root.ingredients
-      : Array.isArray((root.formula as Record<string, unknown> | undefined)?.ingredients)
-        ? (root.formula as Record<string, unknown>).ingredients
+      : nestedFormula && Array.isArray(nestedFormula.ingredients)
+        ? nestedFormula.ingredients
         : [];
   const ingredients = rawIngredients.map((item): ParsedIngredient => {
     const value = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;

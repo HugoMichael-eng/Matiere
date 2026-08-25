@@ -603,7 +603,7 @@ components:
         totalMl:
           type: [number, "null"]
         ingredientCount:
-          type: integer
+          type: number
         ingredients:
           type: array
           items:

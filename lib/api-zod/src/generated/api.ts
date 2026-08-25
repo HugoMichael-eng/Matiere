@@ -408,6 +408,30 @@ export const DownloadUploadResponse = zod.void()
 
 
 /**
+ * @summary Analyze an uploaded formula file
+ */
+
+
+
+export const AnalyzeUploadedFormulaParams = zod.object({
+  "id": zod.coerce.number().min(1)
+})
+
+export const AnalyzeUploadedFormulaResponse = zod.object({
+  "sourceFile": zod.string(),
+  "formulaName": zod.string(),
+  "concentration": zod.number().nullish(),
+  "totalMl": zod.number().nullish(),
+  "ingredientCount": zod.number(),
+  "ingredients": zod.array(zod.record(zod.string(), zod.unknown())),
+  "allergens": zod.array(zod.string()),
+  "unknownMaterials": zod.array(zod.string()),
+  "ifraWarnings": zod.array(zod.record(zod.string(), zod.unknown())),
+  "interpretation": zod.string()
+})
+
+
+/**
  * @summary Ask the AI perfumery coach for guidance
  */
 

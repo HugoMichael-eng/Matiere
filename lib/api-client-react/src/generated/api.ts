@@ -29,6 +29,7 @@ import type {
   DashboardSummary,
   Formula,
   FormulaEvent,
+  FormulaFileAnalysis,
   FormulaInput,
   FormulaUpdate,
   GetActivityParams,
@@ -1049,6 +1050,77 @@ export function useDownloadUpload<TData = Awaited<ReturnType<typeof downloadUplo
 
 
 
+
+export const getAnalyzeUploadedFormulaUrl = (id: number,) => {
+
+
+
+
+  return `/api/uploads/${id}/analyze`
+}
+
+/**
+ * @summary Analyze an uploaded formula file
+ */
+export const analyzeUploadedFormula = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<FormulaFileAnalysis> => {
+
+  return customFetch<FormulaFileAnalysis>(getAnalyzeUploadedFormulaUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAnalyzeUploadedFormulaMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof analyzeUploadedFormula>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof analyzeUploadedFormula>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['analyzeUploadedFormula'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof analyzeUploadedFormula>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  analyzeUploadedFormula(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AnalyzeUploadedFormulaMutationResult = NonNullable<Awaited<ReturnType<typeof analyzeUploadedFormula>>>
+
+    export type AnalyzeUploadedFormulaMutationError = ErrorType<void>
+
+    /**
+ * @summary Analyze an uploaded formula file
+ */
+export const useAnalyzeUploadedFormula = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof analyzeUploadedFormula>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof analyzeUploadedFormula>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getAnalyzeUploadedFormulaMutationOptions(options));
+    }
 
 export const getSendCoachingMessageUrl = () => {
 
