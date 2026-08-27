@@ -93,7 +93,7 @@ overrides:
   esbuild>@esbuild/win32-x64: '-'
   esbuild@>=0.27.3 <0.28.1: '>=0.28.1'
   fast-uri@>=3.0.0 <3.1.5: '>=3.1.5'
-  js-yaml@>=4.0.0 <4.3.1: '>=4.3.1'
+  js-yaml@>=4.0.0 <4.3.1: '4.3.1'
   image-size: link:./lib/image-size-safe
   lightningcss>lightningcss-android-arm64: '-'
   lightningcss>lightningcss-darwin-arm64: '-'

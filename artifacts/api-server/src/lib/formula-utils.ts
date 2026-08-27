@@ -9,6 +9,7 @@ type FormulaSafety = {
 export function calculateSafety(
   ingredients: FormulaIngredientRecord[],
   materials: Material[],
+  ifraCategory: string | null,
 ): FormulaSafety {
   const materialMap = new Map(materials.map((material) => [material.id, material]));
   const allergenNames = new Set<string>();
@@ -22,7 +23,12 @@ export function calculateSafety(
       continue;
     }
     for (const allergen of material.allergens ?? []) allergenNames.add(allergen);
-    const effectivePct = ingredient.percentage * ((ingredient.dilution ?? 100) / 100);
+    if (!ifraCategory || material.ifraCategory !== ifraCategory) {
+      missingIfraData = true;
+      continue;
+    }
+    const effectivePct = ingredient.percentage
+      * ((ingredient.dilution ?? 100) / 100);
     if (effectivePct > material.ifraLimit) exceedsIfra = true;
   }
 
@@ -35,7 +41,7 @@ export function calculateSafety(
 
 export function toFormulaResponse(formula: Formula, materials: Material[]) {
   const ingredients = formula.ingredients ?? [];
-  const safety = calculateSafety(ingredients, materials);
+  const safety = calculateSafety(ingredients, materials, formula.ifraCategory ?? null);
   return {
     id: formula.id,
     name: formula.name,

@@ -519,7 +519,12 @@ components:
           type: string
     FormulaUpdate:
       type: object
+      required: [expectedVersion]
       properties:
+        expectedVersion:
+          type: number
+          minimum: 1
+          description: Version last read by the editor; stale updates return HTTP 409.
         name:
           type: string
           minLength: 1

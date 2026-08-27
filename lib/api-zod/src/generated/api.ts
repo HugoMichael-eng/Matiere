@@ -221,6 +221,7 @@ export const UpdateFormulaParams = zod.object({
 })
 
 
+
 export const updateFormulaBodyConcentrationMin = 0;
 export const updateFormulaBodyConcentrationMax = 100;
 
@@ -237,6 +238,7 @@ export const updateFormulaBodyIngredientsItemDilutionMax = 100;
 
 
 export const UpdateFormulaBody = zod.object({
+  "expectedVersion": zod.number().min(1).describe('Version last read by the editor; stale updates return HTTP 409.'),
   "name": zod.string().min(1).optional(),
   "brief": zod.string().optional(),
   "status": zod.enum(['draft', 'resting', 'approved', 'archived']).optional(),

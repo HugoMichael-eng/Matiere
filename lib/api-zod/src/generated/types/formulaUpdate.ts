@@ -9,6 +9,11 @@ import type { FormulaIngredientInput } from './formulaIngredientInput';
 import type { FormulaUpdateStatus } from './formulaUpdateStatus';
 
 export interface FormulaUpdate {
+  /**
+     * Version last read by the editor; stale updates return HTTP 409.
+     * @minimum 1
+     */
+  expectedVersion: number;
   /** @minLength 1 */
   name?: string;
   brief?: string;

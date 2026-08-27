@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { and, desc, eq, ilike, or } from "drizzle-orm";
+import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db, formulasTable, materialsTable, formulaEvents } from "@workspace/db";
 import {
   CreateFormulaBody,
@@ -87,23 +87,26 @@ router.post("/formulas", async (req, res): Promise<void> => {
     return;
   }
   const userId = (req as unknown as AuthenticatedRequest).userId;
-  const [row] = await db
-    .insert(formulasTable)
-    .values({
-      ...parsed.data,
-      ownerId: userId,
-      ingredients: parsed.data.ingredients,
-      notes: parsed.data.notes ?? "",
-    })
-    .returning();
+  const row = await db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(formulasTable)
+      .values({
+        ...parsed.data,
+        ownerId: userId,
+        ingredients: parsed.data.ingredients,
+        notes: parsed.data.notes ?? "",
+      })
+      .returning();
 
-  // Emit creation event
-  await db.insert(formulaEvents).values({
-    formulaId: row.id,
-    formulaName: row.name,
-    ownerId: userId,
-    type: "created",
-    summary: `Formula created${parsed.data.brief ? `: "${parsed.data.brief}"` : ""}`,
+    await tx.insert(formulaEvents).values({
+      formulaId: created.id,
+      formulaName: created.name,
+      ownerId: userId,
+      type: "created",
+      summary: `Version 1 created${parsed.data.brief ? `: "${parsed.data.brief}"` : ""}`,
+    });
+
+    return created;
   });
 
   const materials = await getMaterials();
@@ -168,30 +171,41 @@ router.patch("/formulas/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  const [row] = await db
-    .update(formulasTable)
-    .set({
-      ...parsed.data,
-      ingredients: parsed.data.ingredients,
-      notes: parsed.data.notes,
-      updatedAt: new Date(),
-    })
-    .where(and(eq(formulasTable.id, params.data.id), eq(formulasTable.ownerId, userId)))
-    .returning();
+  const { expectedVersion, ...formulaUpdate } = parsed.data;
+  const { type, summary } = buildUpdateSummary(old, formulaUpdate as Partial<typeof formulasTable.$inferInsert>);
+  const row = await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(formulasTable)
+      .set({
+        ...formulaUpdate,
+        ingredients: formulaUpdate.ingredients,
+        notes: formulaUpdate.notes,
+        version: sql`${formulasTable.version} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(formulasTable.id, params.data.id),
+        eq(formulasTable.ownerId, userId),
+        eq(formulasTable.version, expectedVersion),
+      ))
+      .returning();
+
+    if (!updated) return undefined;
+
+    await tx.insert(formulaEvents).values({
+      formulaId: updated.id,
+      formulaName: updated.name,
+      ownerId: userId,
+      type,
+      summary: `Version ${updated.version} · ${summary}`,
+    });
+
+    return updated;
+  });
   if (!row) {
-    res.status(404).json({ error: "Formula not found" });
+    res.status(409).json({ error: "Formula changed since this editor was opened. Reload the latest version and try again." });
     return;
   }
-
-  // Emit update event
-  const { type, summary } = buildUpdateSummary(old, parsed.data as Partial<typeof formulasTable.$inferInsert>);
-  await db.insert(formulaEvents).values({
-    formulaId: row.id,
-    formulaName: row.name,
-    ownerId: userId,
-    type,
-    summary,
-  });
 
   const materials = await getMaterials();
   res.json(UpdateFormulaResponse.parse(toFormulaResponse(row, materials)));

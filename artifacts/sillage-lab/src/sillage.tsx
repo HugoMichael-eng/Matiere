@@ -8,7 +8,8 @@ import { AnimatePresence, motion, useMotionTemplate, useMotionValue, useScroll, 
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Beaker, Bookmark, BookOpen, ChevronDown, ChevronRight, CircleAlert,
   Download, File, FileImage, FileText, FlaskConical, FolderUp, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Paperclip, Plus,
-  Pencil, Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, Upload, X, ShoppingBag
+  Pencil, Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, Upload, X, ShoppingBag,
+  Lightbulb, TestTube2, BarChart2, Zap, FileCheck, PackageSearch
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link, Redirect, Route, Switch, useLocation, useParams, useSearch, Router as WouterRouter } from "wouter";
@@ -21,7 +22,7 @@ import {
   useGetFormulaEvents, useListConversations, useListFormulas, useListMaterials,
   useSendConversationMessage, useUpdateFormula,
 } from "@workspace/api-client-react";
-import type { Formula, FormulaIngredientInput, Material } from "@workspace/api-client-react";
+import type { Formula, FormulaEvent, FormulaIngredientInput, Material } from "@workspace/api-client-react";
 import { normalizeMaterialFamilies } from "@workspace/material-families";
 import { MarkdownMessage } from "./components/MarkdownMessage";
 
@@ -236,6 +237,793 @@ function SectionRule({ label }: { label: string }) {
         {label}
       </span>
       <div className="h-px flex-1 bg-border" />
+    </motion.div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WORKFLOW MODEL — nine-stage lab process
+// ─────────────────────────────────────────────────────────────────────────────
+type WorkflowStageId = "conceive" | "create" | "formulate" | "analyze" | "check" | "optimize" | "document" | "source" | "make";
+
+interface WorkflowStage {
+  id: WorkflowStageId;
+  label: string;
+  short: string;
+  icon: LucideIcon;
+  description: string;
+  nextAction: string;
+  nextHref?: string; // relative or parametric
+}
+
+const WORKFLOW_STAGES: WorkflowStage[] = [
+  {
+    id: "conceive",
+    label: "Conceive",
+    short: "01",
+    icon: Lightbulb,
+    description: "Define the feeling, brief, and olfactive direction. Explore AI-generated starting points.",
+    nextAction: "Generate ideas or name this formula",
+    nextHref: "/formulas/new",
+  },
+  {
+    id: "create",
+    label: "Create",
+    short: "02",
+    icon: Sparkles,
+    description: "Crystallise the concept and seed the ingredient list from your brief or a blueprint.",
+    nextAction: "Open a new formula",
+    nextHref: "/formulas/new",
+  },
+  {
+    id: "formulate",
+    label: "Formulate",
+    short: "03",
+    icon: FlaskConical,
+    description: "Add and balance every material in the blend. Set concentrations, dilutions, and roles.",
+    nextAction: "Edit the formula builder",
+  },
+  {
+    id: "analyze",
+    label: "Analyze",
+    short: "04",
+    icon: BarChart2,
+    description: "Review the olfactive profile by role and family. Identify top, heart, and base balance.",
+    nextAction: "Review the olfactive structure",
+  },
+  {
+    id: "check",
+    label: "Check",
+    short: "05",
+    icon: ShieldCheck,
+    description: "Run IFRA compliance and allergen review against the specified product category.",
+    nextAction: "Review IFRA and allergen status",
+  },
+  {
+    id: "optimize",
+    label: "Optimize",
+    short: "06",
+    icon: Zap,
+    description: "Identify adjustments, swap materials, and refine percentages for your next trial.",
+    nextAction: "Plan the next iteration",
+  },
+  {
+    id: "document",
+    label: "Document",
+    short: "07",
+    icon: FileCheck,
+    description: "Write the formula record, update notes, and review the full change history.",
+    nextAction: "Review history and notes",
+  },
+  {
+    id: "source",
+    label: "Source",
+    short: "08",
+    icon: PackageSearch,
+    description: "Identify gaps in your stock and link to trusted suppliers for missing materials.",
+    nextAction: "Check material gaps",
+    nextHref: "/shop",
+  },
+  {
+    id: "make",
+    label: "Make",
+    short: "09",
+    icon: TestTube2,
+    description: "Calculate bench-ready batch weights for each material at your chosen volume.",
+    nextAction: "Generate batch sheet",
+  },
+];
+
+function getCompletedWorkflowStages(formula?: Formula, materials: Material[] = []): Set<WorkflowStageId> {
+  const done = new Set<WorkflowStageId>();
+  if (!formula) return done;
+
+  const hasIngredients = formula.ingredients.length > 0;
+  const allLinked = hasIngredients && formula.ingredients.every(ingredient => ingredient.materialId > 0);
+  const totalPercentage = formula.ingredients.reduce((sum, ingredient) => sum + ingredient.percentage, 0);
+  const materialById = new Map(materials.map(material => [material.id, material]));
+  const stockIsKnownAndAvailable = allLinked
+    && materials.length > 0
+    && formula.ingredients.every(ingredient => materialById.get(ingredient.materialId)?.inStock === true);
+
+  if (formula.brief.trim()) done.add("conceive");
+  done.add("create");
+  if (hasIngredients) done.add("formulate");
+  if (allLinked) done.add("analyze");
+  if (allLinked && !!formula.ifraCategory) done.add("check");
+  if (hasIngredients && Math.abs(totalPercentage - formula.concentration) <= 0.1) done.add("optimize");
+  if (formula.version >= 1) done.add("document");
+  if (stockIsKnownAndAvailable) done.add("source");
+  if (hasIngredients && formula.totalMl > 0 && formula.concentration > 0) done.add("make");
+  return done;
+}
+
+function getSuggestedWorkflowStage(formula?: Formula, materials: Material[] = []): WorkflowStageId {
+  if (!formula) return "conceive";
+  const completed = getCompletedWorkflowStages(formula, materials);
+  return WORKFLOW_STAGES.find(stage => !completed.has(stage.id))?.id ?? "make";
+}
+
+/** Horizontal scrolling workflow progress bar — used on dashboard, new formula, and formula detail */
+function WorkflowNav({
+  activeStage,
+  formulaId,
+  onSelect,
+  completedStages,
+  compact = false,
+}: {
+  activeStage?: WorkflowStageId;
+  formulaId?: number;
+  onSelect?: (stage: WorkflowStageId) => void;
+  completedStages?: Set<WorkflowStageId>;
+  compact?: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="overflow-x-auto border-b border-border"
+      data-testid="workflow-nav"
+    >
+      <div className="flex min-w-max">
+        {WORKFLOW_STAGES.map((stage, i) => {
+          const Icon = stage.icon;
+          const isActive = activeStage === stage.id;
+          const isDone = completedStages?.has(stage.id);
+          const isClickable = !!onSelect || !!formulaId;
+          const href = formulaId ? `/formulas/${formulaId}?stage=${stage.id}` : undefined;
+          const content = (
+            <motion.div
+              key={stage.id}
+              data-testid={`workflow-stage-${stage.id}`}
+              whileHover={isClickable ? { backgroundColor: "hsl(var(--secondary)/0.6)" } : {}}
+              className={[
+                "relative flex flex-col items-start px-4 py-4 transition-colors",
+                compact ? "min-w-[96px]" : "min-w-[110px]",
+                i < WORKFLOW_STAGES.length - 1 ? "border-r border-border" : "",
+                isActive ? "bg-secondary/50" : "",
+                isClickable ? "cursor-pointer" : "",
+              ].join(" ")}
+              onClick={onSelect ? () => onSelect(stage.id) : undefined}
+            >
+              {/* Active indicator */}
+              {isActive && (
+                <motion.div
+                  layoutId="workflow-active-bar"
+                  className="absolute inset-x-0 top-0 h-[2px] bg-foreground"
+                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                />
+              )}
+              <div className={`flex items-center gap-1.5 ${isActive ? "text-foreground" : isDone ? "text-muted-foreground" : "text-muted-foreground/50"}`}>
+                <Icon size={compact ? 11 : 12} strokeWidth={1.8} />
+                <span className={`font-mono-ui uppercase tracking-[.14em] ${compact ? "text-[8px]" : "text-[8px]"}`}>{stage.short}</span>
+              </div>
+              <p className={`mt-1.5 font-mono-ui text-[10px] font-medium uppercase tracking-[.08em] transition-colors ${isActive ? "text-foreground" : isDone ? "text-muted-foreground" : "text-muted-foreground/40"}`}>
+                {stage.label}
+              </p>
+              {isDone && !isActive && (
+                <div className="absolute bottom-2 right-2 h-[3px] w-[3px] bg-accent" />
+              )}
+            </motion.div>
+          );
+
+          if (href && !onSelect) {
+            return (
+              <Link key={stage.id} href={href} data-testid={`link-workflow-${stage.id}`}>
+                {content}
+              </Link>
+            );
+          }
+          return <div key={stage.id}>{content}</div>;
+        })}
+      </div>
+    </motion.div>
+  );
+}
+
+/** Stage-specific content panel — shown inside FormulaDetail when a stage is selected */
+function WorkflowStagePanel({
+  stage,
+  formula,
+  materials,
+  events,
+  onEdit,
+}: {
+  stage: WorkflowStageId;
+  formula: Formula;
+  materials: Material[];
+  events: Array<{ id: number; formulaId: number; formulaName: string; type: string; summary: string; createdAt: string }>;
+  onEdit: () => void;
+}) {
+  const [, setLocation] = useLocation();
+  const [batchMl, setBatchMl] = useState(formula.totalMl);
+
+  useEffect(() => {
+    setBatchMl(formula.totalMl);
+  }, [formula.id, formula.totalMl]);
+
+  if (stage === "formulate") {
+    // Show the ingredient map — prompt to edit
+    const unlinked = formula.ingredients.filter(i => i.materialId === 0).length;
+    const totalPct = formula.ingredients.reduce((s, i) => s + i.percentage, 0);
+    return (
+      <motion.div key="formulate" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
+        <div className="border border-border bg-card p-6">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formulate · palette</p>
+              <h2 className="mt-1 font-display text-3xl">Materials in the blend</h2>
+            </div>
+            <button onClick={onEdit} data-testid="button-wf-edit" className="border border-border px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest transition-colors hover:bg-secondary">Edit blend</button>
+          </div>
+          {unlinked > 0 && (
+            <div className="mt-4 flex items-start gap-2.5 border border-accent/30 bg-accent/10 px-4 py-3">
+              <CircleAlert size={13} className="mt-0.5 shrink-0 text-accent-foreground/70" />
+              <p className="font-mono-ui text-[10px] uppercase tracking-[.1em] leading-5 text-accent-foreground/70">{unlinked} ingredient{unlinked !== 1 ? "s" : ""} not yet linked to your library</p>
+            </div>
+          )}
+          <div className="mt-5 space-y-1">
+            {formula.ingredients.map((item, i) => (
+              <div key={i} className="grid grid-cols-[1fr_70px_70px_80px] items-center gap-2 border-t border-border py-3 first:border-t-0">
+                <div>
+                  <p className="text-sm font-medium">{item.materialName}</p>
+                  <p className="mt-0.5 font-mono-ui text-[9px] uppercase tracking-[.1em] text-muted-foreground">{item.role}</p>
+                </div>
+                <p className="text-right font-mono-ui text-xs">{item.percentage}%</p>
+                <p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p>
+                <p className="text-right font-mono-ui text-[9px] text-muted-foreground">dil {item.dilution ?? 100}%</p>
+              </div>
+            ))}
+            {!formula.ingredients.length && <p className="py-6 text-center text-sm text-muted-foreground">No materials added yet.</p>}
+          </div>
+          {formula.ingredients.length > 0 && (
+            <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+              <div className="h-[2px] w-24 overflow-hidden bg-border">
+                <div className="h-full bg-foreground" style={{ width: `${formula.concentration > 0 ? Math.min((totalPct / formula.concentration) * 100, 100) : 0}%` }} />
+              </div>
+              <span className={`font-mono-ui text-[10px] ${totalPct > formula.concentration ? "text-destructive" : Math.abs(totalPct - formula.concentration) <= 0.1 ? "text-accent-foreground" : "text-muted-foreground"}`}>{Math.round(totalPct * 10) / 10}% of {formula.concentration}% target</span>
+            </div>
+          )}
+        </div>
+        <div className="border border-border bg-card p-5 flex items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">Ready to read the olfactive structure?</p>
+          <button onClick={() => setLocation(`/formulas/${formula.id}?stage=analyze`)} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Continue to Analyze</button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (stage === "analyze") {
+    // Olfactive structure by role and family
+    const byRole: Record<string, typeof formula.ingredients> = { top: [], heart: [], base: [], modifier: [] };
+    formula.ingredients.forEach(i => { (byRole[i.role] ??= []).push(i); });
+    const roleLabels: Record<string, string> = { top: "Top notes", heart: "Heart notes", base: "Base notes", modifier: "Modifiers" };
+    const totalGrams = formula.ingredients.reduce((s, i) => s + i.grams, 0);
+
+    // Families from materials library cross-reference
+    const matById = new Map(materials.map(m => [m.id, m]));
+    const familyCounts: Record<string, number> = {};
+    formula.ingredients.forEach(ing => {
+      const mat = matById.get(ing.materialId);
+      if (mat?.family) {
+        familyCounts[mat.family] = (familyCounts[mat.family] ?? 0) + ing.percentage;
+      }
+    });
+    const families = Object.entries(familyCounts).sort((a, b) => b[1] - a[1]);
+
+    return (
+      <motion.div key="analyze" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
+        <div className="border border-border bg-card p-6">
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Analyze · olfactive profile</p>
+          <h2 className="mt-1 font-display text-3xl">Structure</h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="border border-border bg-secondary/20 px-4 py-4">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">Reading source</p>
+              <p className="mt-2 text-sm">Stored formula v{formula.version} · {formula.ingredients.length} materials</p>
+            </div>
+            <div className="border border-border bg-secondary/20 px-4 py-4">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">Interpretation</p>
+              <p className="mt-2 text-sm">Role proportions and linked material families, calculated from this formula.</p>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-6 sm:grid-cols-2">
+            {(["top", "heart", "base", "modifier"] as const).map(role => {
+              const items = byRole[role] ?? [];
+              if (!items.length) return null;
+              const rolePct = items.reduce((s, i) => s + i.percentage, 0);
+              const barW = totalGrams > 0 ? `${Math.round((items.reduce((s, i) => s + i.grams, 0) / totalGrams) * 100)}%` : "0%";
+              return (
+                <div key={role}>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="font-mono-ui text-[9px] uppercase tracking-[.14em] text-muted-foreground">{roleLabels[role]}</p>
+                    <span className="font-mono-ui text-[10px] text-muted-foreground">{Math.round(rolePct * 10) / 10}%</span>
+                  </div>
+                  <div className="h-[2px] w-full bg-border mb-3">
+                    <motion.div className="h-full bg-foreground" initial={{ width: 0 }} animate={{ width: barW }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }} />
+                  </div>
+                  <div className="space-y-2">
+                    {items.map((ing, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <p className="text-sm">{ing.materialName}</p>
+                        <span className="font-mono-ui text-[10px] text-muted-foreground">{ing.grams}g</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {families.length > 0 && (
+          <div className="border border-border bg-card p-6">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground mb-4">Material families</p>
+            <div className="space-y-3">
+              {families.map(([family, pct]) => (
+                <div key={family}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs">{family}</p>
+                    <span className="font-mono-ui text-[9px] text-muted-foreground">{Math.round(pct * 10) / 10}%</span>
+                  </div>
+                  <div className="h-[2px] w-full bg-border">
+                    <motion.div className="h-full bg-accent" initial={{ width: 0 }} animate={{ width: `${Math.min(pct, 100)}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {families.length === 0 && <p className="text-sm text-muted-foreground">Link ingredients to your library to see family breakdown.</p>}
+          </div>
+        )}
+        <div className="flex items-center justify-between border border-border bg-card p-5 gap-4">
+          <p className="text-sm text-muted-foreground">Open this formula in the Creative Lab for a deeper read on the structure.</p>
+          <Link href={`/coach?formula=${formula.id}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="link-wf-analyze-lab">Discuss in lab</Link>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (stage === "check") {
+    const flaggedIngredients = formula.ingredients.filter(i => (i.allergenFlags ?? []).length > 0);
+    const ifraCat = IFRA_CATEGORIES.find(c => c.value === formula.ifraCategory);
+    const statusIsOk = formula.safetyStatus === "clear" && formula.ifraStatus === "within_limit";
+
+    return (
+      <motion.div key="check" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
+        <div className="border border-border bg-card p-6">
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Check · safety screening</p>
+          <h2 className="mt-1 font-display text-3xl">IFRA &amp; allergens</h2>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="border border-border bg-secondary/20 px-4 py-4">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">Safety status</p>
+              <p className="mt-2"><StatusPill value={formula.safetyStatus} /></p>
+            </div>
+            <div className="border border-border bg-secondary/20 px-4 py-4">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">IFRA status</p>
+              <p className="mt-2"><StatusPill value={formula.ifraStatus} /></p>
+            </div>
+            <div className="border border-border bg-secondary/20 px-4 py-4">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">Allergen notes</p>
+              <p className="mt-2 font-mono-ui text-[11px]">{formula.allergenCount}</p>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground mb-2">Product category</p>
+            {ifraCat
+              ? <p className="text-sm">{ifraCat.label}</p>
+              : <div className="flex items-center gap-3">
+                  <p className="text-sm text-muted-foreground italic">Not set.</p>
+                  <button onClick={onEdit} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Set category in Edit</button>
+                </div>
+            }
+          </div>
+
+          {flaggedIngredients.length > 0 ? (
+            <div className="mt-6 space-y-3">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">Flagged ingredients</p>
+              {flaggedIngredients.map((item, i) => (
+                <div key={i} className="border-l-2 border-destructive/60 bg-destructive/5 pl-4 py-2">
+                  <p className="text-sm font-medium">{item.materialName}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{(item.allergenFlags ?? []).join(", ")}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-6 text-sm text-muted-foreground">No allergen flags on any ingredient.</p>
+          )}
+
+          {!statusIsOk && (
+            <div className="mt-5 border border-accent/30 bg-accent/10 px-4 py-4">
+              <p className="text-sm text-accent-foreground/80">This formula has items that need review. Open in the Creative Lab or edit the formula to adjust concentrations.</p>
+            </div>
+          )}
+          <p className="mt-5 font-mono-ui text-[8px] uppercase tracking-[.12em] leading-5 text-muted-foreground/60">
+            Screening guidance only. Confirm the latest supplier documentation and current IFRA standards before production.
+          </p>
+        </div>
+        <div className="flex items-center justify-between border border-border bg-card p-5 gap-4">
+          <p className="text-sm text-muted-foreground">Use the Creative Lab to ask specific IFRA questions.</p>
+          <Link href={`/coach?formula=${formula.id}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="link-wf-check-lab">Ask in lab</Link>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (stage === "optimize") {
+    const totalPct = formula.ingredients.reduce((s, i) => s + i.percentage, 0);
+    const overFormulaIngredients = formula.ingredients.filter(i => i.percentage > 30);
+    const minorIngredients = formula.ingredients.filter(i => i.percentage < 1 && i.percentage > 0);
+    const unlinked = formula.ingredients.filter(i => i.materialId === 0);
+    const materialById = new Map(materials.map(material => [material.id, material]));
+
+    return (
+      <motion.div key="optimize" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
+        <div className="border border-border bg-card p-6">
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Optimize · next iteration</p>
+          <h2 className="mt-1 font-display text-3xl">Observations</h2>
+
+          <div className="mt-6 space-y-4">
+            {Math.abs(totalPct - formula.concentration) > 0.1 && (
+              <div className="flex items-start gap-3 border-l-2 border-border pl-4 py-1">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">Aromatic total is {Math.round(totalPct * 10) / 10}% of the finished batch</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{totalPct < formula.concentration ? `${Math.round((formula.concentration - totalPct) * 10) / 10}% remains below the ${formula.concentration}% concentration target.` : `Exceeds the ${formula.concentration}% concentration target — reduce one or more materials.`}</p>
+                </div>
+              </div>
+            )}
+            {overFormulaIngredients.map(ing => (
+              <div key={ing.materialName} className="flex items-start gap-3 border-l-2 border-accent/40 pl-4 py-1">
+                <div>
+                  <p className="text-sm font-medium">{ing.materialName} at {ing.percentage}%</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">High proportion — consider splitting with a complementary material or reducing to improve balance.</p>
+                </div>
+              </div>
+            ))}
+            {minorIngredients.map(ing => (
+              <div key={ing.materialName} className="flex items-start gap-3 border-l-2 border-muted pl-4 py-1">
+                <div>
+                  <p className="text-sm font-medium">{ing.materialName} at {ing.percentage}%</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Very minor amount — check if this is intentional or a trace left from an earlier version.</p>
+                </div>
+              </div>
+            ))}
+            {unlinked.length > 0 && (
+              <div className="flex items-start gap-3 border-l-2 border-destructive/50 pl-4 py-1">
+                <div>
+                  <p className="text-sm font-medium">{unlinked.length} unlinked ingredient{unlinked.length !== 1 ? "s" : ""}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Link these to your library to unlock allergen data, IFRA limits, and material family analysis.</p>
+                </div>
+              </div>
+            )}
+            {Math.abs(totalPct - formula.concentration) <= 0.1 && !overFormulaIngredients.length && !unlinked.length && (
+              <p className="text-sm text-muted-foreground">No structural observations — the formula looks balanced. Open in the Creative Lab to explore further refinements.</p>
+            )}
+          </div>
+
+          <div className="mt-6 border-t border-border pt-5">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">Material comparison</p>
+            <div className="mt-3 overflow-x-auto">
+              <div className="min-w-[560px]">
+                <div className="grid grid-cols-[1fr_100px_150px_110px] gap-3 border-b border-border pb-2 font-mono-ui text-[8px] uppercase tracking-[.12em] text-muted-foreground">
+                  <span>Material</span><span>Availability</span><span>Known restrictions</span><span>Cost</span>
+                </div>
+                {formula.ingredients.map((ingredient, index) => {
+                  const material = materialById.get(ingredient.materialId);
+                  const restrictions = material
+                    ? [
+                        material.allergens.length ? `${material.allergens.length} allergen note${material.allergens.length === 1 ? "" : "s"}` : null,
+                        material.ifraLimit > 0 ? `IFRA limit ${material.ifraLimit}%` : null,
+                        material.safetyStatus !== "low" ? material.safetyStatus : null,
+                      ].filter(Boolean).join(" · ") || "None recorded"
+                    : "Unknown — not linked";
+                  return (
+                    <div key={`${ingredient.materialId}-${index}`} className="grid grid-cols-[1fr_100px_150px_110px] gap-3 border-b border-border py-3 text-xs">
+                      <span className="font-medium">{ingredient.materialName}</span>
+                      <span className="text-muted-foreground">{material ? (material.inStock ? "In stock" : "Out of stock") : "Unknown"}</span>
+                      <span className="text-muted-foreground">{restrictions}</span>
+                      <span className="text-muted-foreground">Not recorded</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {!formula.ingredients.length && <p className="mt-3 text-sm text-muted-foreground">Add materials to compare availability and known restrictions.</p>}
+            <p className="mt-4 font-mono-ui text-[8px] uppercase tracking-[.14em] leading-5 text-muted-foreground/60">Cost data is unavailable because supplier pricing and cost-per-gram are not currently tracked. No estimate has been substituted.</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 border border-border bg-card p-5">
+          <button onClick={onEdit} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="button-wf-optimize-edit">Open Edit to revise</button>
+          <span className="text-muted-foreground/30">·</span>
+          <Link href={`/coach?formula=${formula.id}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Discuss in lab</Link>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (stage === "document") {
+    return (
+      <motion.div key="document" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
+        <div className="border border-border bg-card p-6">
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Document · notes and history</p>
+          <h2 className="mt-1 font-display text-3xl">Notebook</h2>
+          <div className="mt-5">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground mb-3">Notes</p>
+            {formula.notes
+              ? <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{formula.notes}</p>
+              : <div className="flex items-center gap-3 py-2">
+                  <p className="text-sm text-muted-foreground italic">No notes yet.</p>
+                  <button onClick={onEdit} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Add notes in Edit</button>
+                </div>
+            }
+          </div>
+        </div>
+        {events.length > 0 && (
+          <div className="border border-border bg-card p-6">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground mb-4">Change history</p>
+            <div className="space-y-0">
+              {events.map((ev, i) => (
+                <div key={ev.id} className={`flex items-start gap-4 py-3 ${i > 0 ? "border-t border-border" : ""}`}>
+                  <div className="shrink-0 w-16 font-mono-ui text-[8px] text-muted-foreground pt-0.5">
+                    {new Date(ev.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs leading-5">{ev.summary}</p>
+                    <p className="mt-0.5 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/50">{ev.type}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {events.length === 0 && (
+          <div className="border border-border bg-card p-6">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Change history</p>
+            <p className="mt-3 text-sm text-muted-foreground">No changes recorded yet.</p>
+          </div>
+        )}
+        <div className="flex items-center justify-between border border-border bg-card p-5 gap-4">
+          <p className="text-sm text-muted-foreground">Advance the formula to the Resting or Approved stage when the record is complete.</p>
+          <button onClick={onEdit} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Update stage in Edit</button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (stage === "source") {
+    const matById = new Map(materials.map(m => [m.id, m]));
+    const missingStock = formula.ingredients
+      .map(ing => ({ ing, mat: matById.get(ing.materialId) }))
+      .filter(({ mat }) => mat && !mat.inStock);
+    const unlinked = formula.ingredients.filter(i => i.materialId === 0);
+    const linkedUnknown = formula.ingredients.filter(ingredient => ingredient.materialId > 0 && !matById.has(ingredient.materialId));
+
+    return (
+      <motion.div key="source" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
+        <div className="border border-border bg-card p-6">
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Source · material gaps</p>
+          <h2 className="mt-1 font-display text-3xl">Stock check</h2>
+
+          {missingStock.length > 0 ? (
+            <div className="mt-5 space-y-2">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground mb-3">Not in stock ({missingStock.length})</p>
+              {missingStock.map(({ ing, mat }) => (
+                <div key={ing.materialName} className="flex items-center justify-between border border-border px-4 py-3">
+                  <div>
+                    <p className="text-sm font-medium">{ing.materialName}</p>
+                    <p className="mt-0.5 font-mono-ui text-[9px] uppercase tracking-[.1em] text-muted-foreground">{mat?.family} · {mat?.origin}</p>
+                  </div>
+                  <Link href={`/shop`} className="font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors" data-testid={`link-source-${ing.materialName}`}>Source ↗</Link>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-5 text-sm text-muted-foreground">All linked materials are marked in stock.</p>
+          )}
+
+          {unlinked.length > 0 && (
+            <div className="mt-5">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground mb-3">Unlinked — stock unknown ({unlinked.length})</p>
+              {unlinked.map((ing, i) => (
+                <div key={i} className="flex items-center justify-between border border-border px-4 py-3 mb-1">
+                  <p className="text-sm">{ing.materialName}</p>
+                  <Link href={`/materials?search=${encodeURIComponent(ing.materialName)}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Search library ↗</Link>
+                </div>
+              ))}
+            </div>
+          )}
+          {linkedUnknown.length > 0 && (
+            <div className="mt-5">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground mb-3">Availability unknown ({linkedUnknown.length})</p>
+              {linkedUnknown.map((ingredient, index) => (
+                <div key={`${ingredient.materialId}-${index}`} className="border border-border px-4 py-3 mb-1">
+                  <p className="text-sm">{ingredient.materialName}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="mt-5 font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground/50">Real-time pricing data is not available. Stock status reflects what you have marked in the Materials library.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 border border-border bg-card p-5">
+          <Link href="/shop" className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="link-wf-source-shop">Browse suppliers</Link>
+          <span className="text-muted-foreground/30">·</span>
+          <Link href="/materials" className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Review material library</Link>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (stage === "make") {
+    const totalIngredientPct = formula.ingredients.reduce((s, i) => s + i.percentage, 0);
+    const concentrateGrams = batchMl * (formula.concentration / 100);
+    const solventGrams = Math.max(batchMl - concentrateGrams, 0);
+    const makeRows = formula.ingredients.map(ingredient => {
+      const weighedGrams = concentrateGrams * (ingredient.percentage / 100);
+      const dilution = ingredient.dilution ?? 100;
+      return {
+        ...ingredient,
+        weighedGrams,
+        activeGrams: weighedGrams * (dilution / 100),
+      };
+    });
+    const allocatedConcentrateGrams = makeRows.reduce((sum, row) => sum + row.weighedGrams, 0);
+    const unallocatedConcentrateGrams = concentrateGrams - allocatedConcentrateGrams;
+    const benchSummary = [
+      `${formula.name} · version ${formula.version}`,
+      `${batchMl} ml finished batch at ${formula.concentration}% concentration`,
+      ...makeRows.map(row => `${row.materialName}: ${row.weighedGrams.toFixed(3)} g at ${row.dilution ?? 100}% dilution (${row.activeGrams.toFixed(3)} g active)`),
+      `Allocated concentrate: ${allocatedConcentrateGrams.toFixed(3)} g of ${concentrateGrams.toFixed(3)} g target`,
+      `Carrier / solvent target: ${solventGrams.toFixed(3)} g`,
+      "Bench proxy assumes 1 ml = 1 g until material densities are recorded.",
+    ].join("\n");
+
+    return (
+      <motion.div key="make" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
+        <div className="border border-border bg-card p-6">
+          <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Make · bench batch</p>
+          <h2 className="mt-1 font-display text-3xl">Batch calculator</h2>
+
+          <div className="mt-5 flex items-end gap-4">
+            <label className="block text-xs font-medium">
+              Batch volume (ml)
+              <input
+                type="number"
+                min="1"
+                value={batchMl}
+                onChange={e => setBatchMl(Number(e.target.value) || formula.totalMl)}
+                data-testid="input-wf-batch-ml"
+                className="mt-2 w-32 border border-border bg-secondary/45 px-3 py-2 text-sm outline-none focus:border-foreground/40"
+              />
+            </label>
+            <p className="pb-2 font-mono-ui text-[9px] text-muted-foreground">Stored target: {formula.totalMl} ml · {formula.concentration}% concentration</p>
+          </div>
+
+          {formula.ingredients.length > 0 ? (
+            <div className="mt-5">
+              <div className="hidden grid-cols-[1fr_80px_80px_80px] gap-2 border-b border-border pb-2 font-mono-ui text-[8px] uppercase tracking-[.12em] text-muted-foreground sm:grid">
+                <span>Material</span><span className="text-right">Original</span><span className="text-right">Scaled</span><span className="text-right">Role</span>
+              </div>
+              <div className="space-y-0">
+                {makeRows.map((ing, i) => {
+                  return (
+                    <div key={i} className="grid grid-cols-[1fr_auto] gap-2 border-t border-border py-3 sm:grid-cols-[1fr_80px_80px_80px]">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{ing.materialName}</p>
+                        <p className="mt-0.5 font-mono-ui text-[9px] text-muted-foreground">{ing.activeGrams.toFixed(3)}g active · dilution {ing.dilution ?? 100}%</p>
+                      </div>
+                      <p className="text-right font-mono-ui text-xs text-muted-foreground">{ing.grams}g</p>
+                      <p className="text-right font-mono-ui text-xs font-medium">{ing.weighedGrams.toFixed(3)}g</p>
+                      <p className="hidden text-right font-mono-ui text-[9px] text-muted-foreground sm:block">{ing.role}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+                <p className="font-mono-ui text-[9px] uppercase tracking-[.12em] text-muted-foreground">Fragrance concentrate / carrier</p>
+                <p className="font-mono-ui text-xs font-medium">{concentrateGrams.toFixed(3)}g / {solventGrams.toFixed(3)}g</p>
+              </div>
+              {Math.abs(totalIngredientPct - formula.concentration) > 0.1 && (
+                <p className="mt-3 font-mono-ui text-[8px] uppercase tracking-[.1em] text-muted-foreground/60">
+                  Aromatic materials total {Math.round(totalIngredientPct * 10) / 10}% against the {formula.concentration}% concentration target — {Math.abs(unallocatedConcentrateGrams).toFixed(3)}g is {unallocatedConcentrateGrams >= 0 ? "unallocated" : "over-allocated"}. Weights have not been silently normalized.
+                </p>
+              )}
+              <p className="mt-3 font-mono-ui text-[8px] uppercase tracking-[.1em] leading-5 text-muted-foreground/60">Bench proxy assumes 1 ml = 1 g until individual material densities are recorded.</p>
+            </div>
+          ) : (
+            <p className="mt-5 text-sm text-muted-foreground">Add ingredients to the formula to generate a batch sheet.</p>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-3 border border-border bg-card p-5">
+          <button onClick={onEdit} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="button-wf-make-edit">Edit formula</button>
+          <span className="text-muted-foreground/30">·</span>
+          <button onClick={() => navigator.clipboard.writeText(benchSummary)} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="button-wf-copy-batch">Copy batch</button>
+          <span className="text-muted-foreground/30">·</span>
+          <button onClick={() => window.print()} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="button-wf-print-batch">Print</button>
+          <span className="text-muted-foreground/30">·</span>
+          <Link href={`/formulas/${formula.id}?stage=source`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Check sourcing gaps</Link>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Default / conceive / create — show formula overview with a "Start working" prompt
+  return (
+    <motion.div key={stage} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }} className="space-y-5">
+      <div className="border border-border bg-card p-6">
+        <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">{WORKFLOW_STAGES.find(s => s.id === stage)?.label} · overview</p>
+        <h2 className="mt-1 font-display text-3xl">{WORKFLOW_STAGES.find(s => s.id === stage)?.description}</h2>
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="border border-border bg-secondary/20 px-4 py-4">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">Status</p>
+            <p className="mt-2"><StatusPill value={formula.status} /></p>
+          </div>
+          <div className="border border-border bg-secondary/20 px-4 py-4">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">Concentration</p>
+            <p className="mt-2 font-mono-ui text-[11px]">{formula.concentration}% · {formula.totalMl} ml</p>
+          </div>
+          <div className="border border-border bg-secondary/20 px-4 py-4">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">Materials</p>
+            <p className="mt-2 font-mono-ui text-[11px]">{formula.ingredients.length} in blend</p>
+          </div>
+        </div>
+        {formula.brief && <p className="mt-5 text-sm leading-6 text-muted-foreground">{formula.brief}</p>}
+      </div>
+      <div className="flex flex-wrap items-center gap-3 border border-border bg-card p-5">
+        <button onClick={() => setLocation(`/formulas/${formula.id}?stage=formulate`)} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Continue to Formulate</button>
+        <span className="text-muted-foreground/30">·</span>
+        <Link href={`/coach?formula=${formula.id}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Discuss in Creative Lab</Link>
+      </div>
+    </motion.div>
+  );
+}
+
+/** Dashboard workflow entry strip — compact horizontal rail with CTA */
+function DashboardWorkflow({ formula }: { formula?: Formula }) {
+  const [, setLocation] = useLocation();
+  const entryStage = getSuggestedWorkflowStage(formula);
+  const completedStages = getCompletedWorkflowStages(formula);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="border-b border-border"
+    >
+      <div className="flex items-center justify-between px-0 pt-5 pb-3">
+        <div>
+          <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-muted-foreground">The process</p>
+          <p className="mt-0.5 font-mono-ui text-[10px] uppercase tracking-[.12em] text-foreground">Studio workflow</p>
+        </div>
+        <button
+          onClick={() => setLocation(formula ? `/formulas/${formula.id}?stage=${entryStage}` : "/formulas/new")}
+          data-testid="button-workflow-entry"
+          className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {formula ? `Continue ${formula.name}` : "Start a formula"} →
+        </button>
+      </div>
+      <WorkflowNav activeStage={entryStage} formulaId={formula?.id} completedStages={completedStages} compact />
     </motion.div>
   );
 }
@@ -789,6 +1577,9 @@ function Dashboard() {
       {/* ── HERO: greeting ────────────────────────────────── */}
       <QuickPrompt greeting={greeting} weekday={weekday} />
 
+      {/* ── WORKFLOW ENTRY STRIP ──────────────────────────── */}
+      <DashboardWorkflow formula={summary.recentFormulas[0]} />
+
       {/* ── IDEA GENERATOR ────────────────────────────────── */}
       <FormulaIdeaGenerator onSelect={(n, b, mats) => {
         try { sessionStorage.setItem("matiere-blueprint", JSON.stringify(mats)); } catch {}
@@ -1148,6 +1939,12 @@ function FormulaImportReview({
   const unmapped = ingredients.filter(ingredient => ingredient.materialId === 0);
   const totalPercentage = ingredients.reduce((total, ingredient) => total + ingredient.percentage, 0);
   const linkedCount = ingredients.length - unmapped.length;
+  useEffect(() => {
+    setIngredients(current => current.map(ingredient => ({
+      ...ingredient,
+      grams: Number(((ingredient.percentage / 100) * totalMl).toFixed(3)),
+    })));
+  }, [totalMl]);
   const updateIngredient = (index: number, patch: Partial<FormulaIngredientInput>) => {
     setIngredients(current => current.map((ingredient, ingredientIndex) => {
       if (ingredientIndex !== index) return ingredient;
@@ -1732,6 +2529,15 @@ function IngredientBuilder({
   const materialsQuery = useListMaterials();
   const materials = materialsQuery.data ?? [];
 
+  useEffect(() => {
+    const next = ingredients.map(ingredient => ({
+      ...ingredient,
+      grams: parseFloat(((ingredient.percentage / 100) * totalMl).toFixed(3)),
+    }));
+    const changed = next.some((ingredient, index) => ingredient.grams !== ingredients[index]?.grams);
+    if (changed) setIngredients(next);
+  }, [totalMl]);
+
   const add = () => setIngredients([...ingredients, { materialId: 0, materialName: "", percentage: 0, grams: 0, dilution: 100, role: "heart" }]);
 
   const update = (index: number, patch: Partial<FormulaIngredientInput>) => {
@@ -1739,7 +2545,8 @@ function IngredientBuilder({
       if (i !== index) return item;
       const next = { ...item, ...patch };
       if ("grams" in patch) {
-        // grams is the primary input — derive percentage from it
+        // Ingredient percentages describe the finished batch. Their total
+        // should match the formula's target concentration.
         next.percentage = totalMl > 0 ? parseFloat(((next.grams / totalMl) * 100).toFixed(4)) : 0;
       } else {
         // percentage changed (e.g. programmatic) — keep grams in sync
@@ -1768,7 +2575,7 @@ function IngredientBuilder({
             const dilution = ingredient.dilution ?? 100;
             const grams = ingredient.grams;
             const activeGrams = parseFloat((grams * dilution / 100).toFixed(3));
-            const pctOfConc = Math.round(ingredient.percentage * concentration / 100 * 10) / 10;
+            const pctOfConc = concentration > 0 ? Math.round((ingredient.percentage / concentration) * 1000) / 10 : 0;
 
             return (
               <motion.div
@@ -1868,7 +2675,7 @@ function IngredientBuilder({
                           <span title={`${activeGrams}g is pure aromatic material; the rest is solvent`}>{activeGrams}g active</span>
                         )}
                         {concentration > 0 && (
-                          <span title={`Contribution to finished ${concentration}% concentrate`}>{pctOfConc}% of conc.</span>
+                          <span title={`Share of the formula's ${concentration}% aromatic concentrate`}>{pctOfConc}% of conc.</span>
                         )}
                       </div>
                     </div>
@@ -1900,19 +2707,19 @@ function IngredientBuilder({
           <div className="flex items-center gap-2">
             <div className="h-[3px] w-24 overflow-hidden bg-border">
               <motion.div
-                className={`h-full ${totalPct > 100 ? "bg-destructive" : totalPct === 100 ? "bg-accent" : "bg-foreground"}`}
-                animate={{ width: `${Math.min(totalPct, 100)}%` }}
+                className={`h-full ${totalPct > concentration ? "bg-destructive" : Math.abs(totalPct - concentration) <= 0.1 ? "bg-accent" : "bg-foreground"}`}
+                animate={{ width: `${concentration > 0 ? Math.min((totalPct / concentration) * 100, 100) : 0}%` }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
               />
             </div>
-            <span className={`font-mono-ui text-[10px] ${totalPct > 100 ? "text-destructive" : totalPct === 100 ? "text-accent-foreground" : "text-muted-foreground"}`}>
-              {totalPct}% of formula
+            <span className={`font-mono-ui text-[10px] ${totalPct > concentration ? "text-destructive" : Math.abs(totalPct - concentration) <= 0.1 ? "text-accent-foreground" : "text-muted-foreground"}`}>
+              {totalPct}% of {concentration}% target
             </span>
           </div>
-          {totalPct > 100 && <span className="font-mono-ui text-[9px] text-destructive">Exceeds 100%</span>}
-          {totalPct === 100 && <span className="font-mono-ui text-[9px] text-accent-foreground">Palette complete</span>}
-          {totalPct > 0 && totalPct < 100 && (
-            <span className="font-mono-ui text-[9px] text-muted-foreground">{Math.round((100 - totalPct) * 10) / 10}% remaining</span>
+          {totalPct > concentration && <span className="font-mono-ui text-[9px] text-destructive">Exceeds concentration</span>}
+          {Math.abs(totalPct - concentration) <= 0.1 && <span className="font-mono-ui text-[9px] text-accent-foreground">Palette complete</span>}
+          {totalPct > 0 && totalPct < concentration && (
+            <span className="font-mono-ui text-[9px] text-muted-foreground">{Math.round((concentration - totalPct) * 10) / 10}% remaining</span>
           )}
         </motion.div>
       )}
@@ -2417,8 +3224,8 @@ function NewFormula() {
         return mats.map(mat => ({
           materialId: 0,
           materialName: mat.name,
-          percentage: mat.pct,
-          grams: parseFloat(((mat.pct / 100) * 30).toFixed(3)),
+          percentage: mat.pct * 0.2,
+          grams: parseFloat(((mat.pct / 100) * 30 * 0.2).toFixed(3)),
           dilution: 100,
           role: mat.role,
         }));
@@ -2448,7 +3255,7 @@ function NewFormula() {
       { onSuccess: formula => {
         qc.invalidateQueries({ queryKey: getListFormulasQueryKey() });
         qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
-        setLocation(`/formulas/${formula.id}`);
+        setLocation(`/formulas/${formula.id}?stage=formulate`);
       }}
     );
   };
@@ -2461,14 +3268,16 @@ function NewFormula() {
         description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back."
         action={<FormulaToolFileUpload testId="button-new-formula-upload-file" />}
       />
+      {/* Workflow — CONCEIVE and CREATE are the active stages on new formula */}
+      <WorkflowNav activeStage="create" completedStages={new Set<WorkflowStageId>(["conceive"])} compact />
       <FormulaIdeaGenerator onSelect={(n, b, mats) => {
         setName(n);
         setBrief(b);
         const rawIngs: FormulaIngredientInput[] = mats.map(mat => ({
           materialId: 0,
           materialName: mat.name,
-          percentage: mat.pct,
-          grams: parseFloat(((mat.pct / 100) * totalMl).toFixed(3)),
+          percentage: mat.pct * (concentration / 100),
+          grams: parseFloat(((mat.pct / 100) * totalMl * (concentration / 100)).toFixed(3)),
           dilution: 100,
           role: mat.role,
         }));
@@ -2521,141 +3330,330 @@ function NewFormula() {
 }
 
 function FormulaDetail() {
-  const params = useParams<{ id: string }>(); const id = Number(params.id);
+  const params = useParams<{ id: string }>();
+  const id = Number(params.id);
+  const rawSearch = useSearch();
+  const searchParams = new URLSearchParams(rawSearch);
+  const stageParam = searchParams.get("stage") as WorkflowStageId | null;
+  const requestedStage: WorkflowStageId | null = stageParam && WORKFLOW_STAGES.some(stage => stage.id === stageParam) ? stageParam : null;
+
   const query = useGetFormula(id, { query: { enabled: Number.isFinite(id), queryKey: getGetFormulaQueryKey(id) } });
-  const update = useUpdateFormula(); const remove = useDeleteFormula(); const qc = useQueryClient(); const [, setLocation] = useLocation();
+  const update = useUpdateFormula();
+  const remove = useDeleteFormula();
+  const qc = useQueryClient();
+  const [, setLocation] = useLocation();
   const formula = query.data;
+
+  const materialsQuery = useListMaterials();
+  const materials = materialsQuery.data ?? [];
+
   const [editing, setEditing] = useState(false);
-  const [safetyOpen, setSafetyOpen] = useState(false);
-  const [name, setName] = useState(""); const [brief, setBrief] = useState(""); const [notes, setNotes] = useState(""); const [status, setStatus] = useState<"draft" | "resting" | "approved" | "archived">("draft");
-  const [editConcentration, setEditConcentration] = useState(20); const [editTotalMl, setEditTotalMl] = useState(30);
+  const [name, setName] = useState("");
+  const [brief, setBrief] = useState("");
+  const [notes, setNotes] = useState("");
+  const [status, setStatus] = useState<"draft" | "resting" | "approved" | "archived">("draft");
+  const [editConcentration, setEditConcentration] = useState(20);
+  const [editTotalMl, setEditTotalMl] = useState(30);
   const [editIfraCategory, setEditIfraCategory] = useState("");
   const [editIngredients, setEditIngredients] = useState<FormulaIngredientInput[]>([]);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const begin = () => {
     if (!formula) return;
-    setName(formula.name); setBrief(formula.brief); setNotes(formula.notes ?? ""); setStatus(formula.status);
-    setEditConcentration(formula.concentration); setEditTotalMl(formula.totalMl);
+    setSaveError(null);
+    setName(formula.name);
+    setBrief(formula.brief);
+    setNotes(formula.notes ?? "");
+    setStatus(formula.status);
+    setEditConcentration(formula.concentration);
+    setEditTotalMl(formula.totalMl);
     setEditIfraCategory(formula.ifraCategory ?? "");
-    setEditIngredients(formula.ingredients.map(i => ({ materialId: i.materialId, materialName: i.materialName, percentage: i.percentage, grams: i.grams, dilution: i.dilution ?? 100, role: i.role as FormulaIngredientInput["role"], allergenFlags: i.allergenFlags ?? [] })));
+    setEditIngredients(formula.ingredients.map(i => ({
+      materialId: i.materialId,
+      materialName: i.materialName,
+      percentage: i.percentage,
+      grams: i.grams,
+      dilution: i.dilution ?? 100,
+      role: i.role as FormulaIngredientInput["role"],
+      allergenFlags: i.allergenFlags ?? [],
+    })));
     setEditing(true);
   };
-  const save = () => update.mutate({ id, data: { name, brief, notes, status, concentration: editConcentration, totalMl: editTotalMl, ifraCategory: editIfraCategory || undefined, ingredients: editIngredients } }, { onSuccess: result => { qc.setQueryData(getGetFormulaQueryKey(id), result); qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setEditing(false); } });
-  const destroy = () => { if (window.confirm("Delete this formula from the library?")) remove.mutate({ id }, { onSuccess: () => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setLocation("/formulas"); } }); };
+
+  const save = () => {
+    if (!formula) return;
+    setSaveError(null);
+    update.mutate(
+      { id, data: { expectedVersion: formula.version, name, brief, notes, status, concentration: editConcentration, totalMl: editTotalMl, ifraCategory: editIfraCategory || undefined, ingredients: editIngredients } },
+      {
+        onSuccess: result => {
+          qc.setQueryData(getGetFormulaQueryKey(id), result);
+          qc.invalidateQueries({ queryKey: getListFormulasQueryKey() });
+          qc.invalidateQueries({ queryKey: getGetFormulaEventsQueryKey(id) });
+          qc.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+          setEditing(false);
+        },
+        onError: error => {
+          const isConflict = (error as { status?: number }).status === 409;
+          setSaveError(isConflict
+            ? "This formula changed in another editor. Your work is still open here; close and reopen Edit to reconcile with the latest version."
+            : "Couldn't save this revision. Your work is still open; try again.");
+          if (isConflict) query.refetch();
+        },
+      },
+    );
+  };
+
+  const destroy = () => {
+    if (window.confirm("Delete this formula from the library?"))
+      remove.mutate({ id }, { onSuccess: () => { qc.invalidateQueries({ queryKey: getListFormulasQueryKey() }); setLocation("/formulas"); } });
+  };
+
   const eventsQuery = useGetFormulaEvents(id, { query: { queryKey: getGetFormulaEventsQueryKey(id), enabled: Number.isFinite(id) } });
   const events = eventsQuery.data ?? [];
-  if (query.isLoading) return <Shell><Skeleton className="h-72" /></Shell>;
+
+  // Determine which stages are "done" based on formula data
+  const completedStages = useMemo(
+    () => getCompletedWorkflowStages(formula, materials),
+    [formula, materials],
+  );
+  const activeStage = requestedStage ?? getSuggestedWorkflowStage(formula, materials);
+
+  // Stage navigation helper — updates URL query string
+  const navigateToStage = useCallback((stage: WorkflowStageId) => {
+    setLocation(`/formulas/${id}?stage=${stage}`);
+  }, [id, setLocation]);
+
+  // Next stage in the workflow
+  const currentIdx = WORKFLOW_STAGES.findIndex(s => s.id === activeStage);
+  const nextStage = WORKFLOW_STAGES[currentIdx + 1];
+  const prevStage = WORKFLOW_STAGES[currentIdx - 1];
+
+  if (query.isLoading) return <Shell><div className="space-y-4 pt-8"><Skeleton className="h-20 w-full" /><Skeleton className="h-12 w-full" /><Skeleton className="h-72 w-full" /></div></Shell>;
   if (query.isError || !formula) return <Shell><ErrorState retry={() => query.refetch()} /></Shell>;
+
   return (
-    <Shell><PageHeader eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · version ${formula.version}`} title={formula.name} description={formula.brief} action={<div className="flex flex-wrap gap-2"><FormulaToolFileUpload testId="button-formula-upload-file" /><Button href={`/coach?formula=${formula.id}`} variant="outline" testId="button-discuss-lab">Discuss in lab ↗</Button><Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button><Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button></div>} /><div className="grid gap-6 lg:grid-cols-[1.2fr_.8fr]"><section className="space-y-6"><div className="border border-border bg-card p-6 sm:p-7"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula status</p><div className="mt-3 flex items-center gap-3"><StatusPill value={formula.status} /><StatusPill value={formula.safetyStatus} /><StatusPill value={formula.ifraStatus} /></div></div><div className="text-right"><p className="font-display text-4xl">{formula.concentration}%</p><p className="font-mono-ui text-[9px] uppercase text-muted-foreground">{formula.totalMl} ml batch</p></div></div></div><div className="border border-border bg-card p-6 sm:p-7"><div className="flex items-start justify-between gap-3"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The structure</p><h2 className="mt-1 font-display text-3xl">Ingredient map</h2></div><div className="flex items-center gap-3 pt-1"><p className="font-mono-ui text-[10px] text-muted-foreground">{formula.ingredients.length} materials</p><button onClick={begin} data-testid="button-edit-inline" className="border border-border bg-secondary/60 px-3 py-1.5 font-mono-ui text-[9px] uppercase tracking-widest text-foreground transition-colors hover:bg-secondary">Edit</button></div></div><div className="mt-5 space-y-1">{(() => { const unlinkCount = formula.ingredients.filter(i => i.materialId === 0).length; return unlinkCount > 0 ? (<div className="mb-4 flex items-start gap-2.5 border border-accent/30 bg-accent/10 px-4 py-3" data-testid="banner-unlinked-ingredients"><CircleAlert size={13} className="mt-0.5 shrink-0 text-accent-foreground/70" /><p className="font-mono-ui text-[10px] uppercase tracking-[.1em] leading-5 text-accent-foreground/70">{unlinkCount} ingredient{unlinkCount > 1 ? "s" : ""} not yet linked to your library — open Edit to resolve</p></div>) : null; })()}{formula.ingredients.map((item, i) => { const unlinked = item.materialId === 0; return (<div key={`${item.materialId}-${i}`} data-testid={`row-ingredient-${item.materialId}`} className={`grid grid-cols-[1fr_70px_70px] items-center gap-3 border-t py-4 ${unlinked ? "border-accent/30" : "border-border"}`}><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{item.materialName}</p>{unlinked && <span className="inline-flex items-center border border-accent/40 px-1.5 py-0.5 font-mono-ui text-[8px] uppercase tracking-widest text-accent-foreground/70" data-testid={`badge-unlinked-${i}`}>Unlinked</span>}</div><p className="mt-1 text-[10px] uppercase tracking-[.12em] text-muted-foreground">{item.role}</p></div><p className="text-right font-mono-ui text-xs">{item.percentage}%</p><p className="text-right font-mono-ui text-xs text-muted-foreground">{item.grams}g</p></div>); })}</div></div>{editing && (
-                                                                                                            <div className="fixed inset-0 z-40 overflow-y-auto bg-background">
-                                                                                                              <div className="mx-auto max-w-5xl px-5 pb-20 pt-6 sm:px-10">
-                                                                                                                <div className="mb-8 flex items-center justify-between">
-                                                                                                                  <div>
-                                                                                                                    <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Editing · formula {String(formula.id).padStart(3, "0")}</p>
-                                                                                                                    <h2 className="mt-1 font-display text-4xl">Stay curious.</h2>
-                                                                                                                  </div>
-                                                                                                                  <button onClick={() => setEditing(false)} data-testid="button-close-edit" className="grid size-9 place-items-center border border-border bg-card hover:bg-secondary"><X size={16} /></button>
-                                                                                                                </div>
-                                                                                                                <div className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
-                                                                                                                  <div className="space-y-5">
-                                                                                                                    <div className="border border-border bg-card p-6 sm:p-7">
-                                                                                                                      <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p>
-                                                                                                                      <div className="mt-5 grid grid-cols-2 gap-4">
-                                                                                                                        <label className="text-xs font-medium">Concentration %
-                                                                                                                          <input type="number" min="0" max="100" value={editConcentration} onChange={e => setEditConcentration(Number(e.target.value))} data-testid="input-edit-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
-                                                                                                                        </label>
-                                                                                                                        <label className="text-xs font-medium">Batch size ml
-                                                                                                                          <input type="number" min="0" value={editTotalMl} onChange={e => setEditTotalMl(Number(e.target.value))} data-testid="input-edit-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
-                                                                                                                        </label>
-                                                                                                                      </div>
-                                                                                                                      <label className="mt-7 block text-xs font-medium">Stage
-                                                                                                                        <select value={status} onChange={e => setStatus(e.target.value as typeof status)} data-testid="select-edit-status" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40">
-                                                                                                                          <option value="draft">Draft</option>
-                                                                                                                          <option value="resting">Resting</option>
-                                                                                                                          <option value="approved">Approved</option>
-                                                                                                                          <option value="archived">Archived</option>
-                                                                                                                        </select>
-                                                                                                                      </label>
-                                                                                                                      <IfraCategoryPicker value={editIfraCategory} onChange={setEditIfraCategory} testId="select-edit-ifra-category" />
-                                                                                                                      <label className="mt-7 block text-xs font-medium">Notebook notes
-                                                                                                                        <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
-                                                                                                                      </label>
-                                                                                                                    </div>
-                                                                                                                  </div>
-                                                                                                                  <div className="space-y-5">
-                                                                                                                    <IngredientBuilder ingredients={editIngredients} setIngredients={setEditIngredients} totalMl={editTotalMl} concentration={editConcentration} />
-                                                                                                                    <div className="flex items-center justify-between border border-border bg-card p-5">
-                                                                                                                      <div>
-                                                                                                                        <p className="font-display text-2xl">Save the revision.</p>
-                                                                                                                        <p className="mt-1 text-xs text-muted-foreground">All changes replace the current version.</p>
-                                                                                                                      </div>
-                                                                                                                      <div className="flex gap-2">
-                                                                                                                        <Button onClick={() => setEditing(false)} variant="quiet" testId="button-cancel-edit">Cancel</Button>
-                                                                                                                        <Button onClick={save} disabled={update.isPending || !name} testId="button-update-formula">{update.isPending ? "Saving…" : "Save changes"}</Button>
-                                                                                                                      </div>
-                                                                                                                    </div>
-                                                                                                                    {update.isError && <p className="text-sm text-destructive" data-testid="status-update-error">Couldn't save. Try again.</p>}
-                                                                                                                  </div>
-                                                                                                                </div>
-                                                                                                              </div>
-                                                                                                            </div>
-                                                                                                          )}</section><aside className="space-y-6"><button onClick={() => setSafetyOpen(v => !v)} className="w-full text-left border border-border bg-secondary p-6 text-foreground transition-colors hover:bg-secondary/80 active:bg-secondary/60">
-                                                                                                <div className="flex items-start justify-between gap-3">
-                                                                                                  <ShieldCheck size={20} className="text-muted-foreground mt-0.5 shrink-0" />
-                                                                                                  <ChevronDown size={16} className={`mt-0.5 shrink-0 text-muted-foreground transition-transform duration-200 ${safetyOpen ? "rotate-180" : ""}`} />
-                                                                                                </div>
-                                                                                                <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Formula safety</p>
-                                                                                                <p className="mt-2 font-display text-3xl leading-tight">Allergens &amp; IFRA compliance</p>
-                                                                                                <div className="mt-5 space-y-2 border-t border-border pt-4 text-xs">
-                                                                                                  {formula.ifraCategory
-                                                                                                    ? <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="text-right">{IFRA_CATEGORIES.find(c => c.value === formula.ifraCategory)?.label ?? `Cat ${formula.ifraCategory}`}</span></div>
-                                                                                                    : <div className="flex justify-between gap-2"><span className="shrink-0 text-muted-foreground">Product category</span><span className="italic text-muted-foreground">Not set</span></div>
-                                                                                                  }
-                                                                                                  <div className="flex justify-between"><span className="text-muted-foreground">Allergen notes</span><span data-testid="text-formula-allergens">{formula.allergenCount}</span></div>
-                                                                                                  <div className="flex justify-between"><span className="text-muted-foreground">IFRA status</span><span>{formula.ifraStatus.replace(/_/g, " ")}</span></div>
-                                                                                                  <div className="flex justify-between"><span className="text-muted-foreground">Last touched</span><span>{new Date(formula.updatedAt).toLocaleDateString()}</span></div>
-                                                                                                </div>
-                                                                                                <AnimatePresence>
-                                                                                                  {safetyOpen && (
-                                                                                                    <motion.div
-                                                                                                      initial={{ opacity: 0, height: 0 }}
-                                                                                                      animate={{ opacity: 1, height: "auto" }}
-                                                                                                      exit={{ opacity: 0, height: 0 }}
-                                                                                                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                                                                                                      className="overflow-hidden"
-                                                                                                    >
-                                                                                                      <div className="mt-4 border-t border-border pt-4 space-y-3">
-                                                                                                        {formula.ingredients.filter(i => (i.allergenFlags ?? []).length > 0).length === 0 ? (
-                                                                                                          <p className="text-xs text-muted-foreground">No allergen flags on any ingredient.</p>
-                                                                                                        ) : (
-                                                                                                          formula.ingredients
-                                                                                                            .filter(i => (i.allergenFlags ?? []).length > 0)
-                                                                                                            .map((item, i) => (
-                                                                                                              <div key={i} className="text-xs">
-                                                                                                                <p className="font-medium">{item.materialName}</p>
-                                                                                                                <p className="mt-0.5 text-muted-foreground">{(item.allergenFlags ?? []).join(", ")}</p>
-                                                                                                              </div>
-                                                                                                            ))
-                                                                                                        )}
-                                                                                                      </div>
-                                                                                                    </motion.div>
-                                                                                                  )}
-                                                                                                </AnimatePresence>
-                                                                                              </button><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Notebook</p><p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-muted-foreground" data-testid="text-formula-notes">{formula.notes || "No notes yet. Leave a trace for the next session."}</p></div><div className="border border-border bg-card p-6"><p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Studio</p><h3 className="mt-3 font-display text-2xl leading-none">Take it to the lab.</h3><p className="mt-3 text-sm leading-6 text-muted-foreground">Open this formula in the Creative Lab — the coach will know exactly what you're working on.</p><div className="mt-5 space-y-2"><Button href={`/coach?formula=${formula.id}`} testId="button-formula-to-lab">Open in Creative Lab</Button><Button onClick={begin} variant="outline" testId="button-formula-edit-studio">Edit formula</Button></div></div>
-                                                                                              {events.length > 0 && (
-                                                                                                <div className="border border-border bg-card p-6">
-                                                                                                  <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Change log</p>
-                                                                                                  <div className="mt-4 space-y-0">
-                                                                                                    {events.slice(0, 8).map((ev, i) => (
-                                                                                                      <div key={ev.id} className={`flex items-start gap-3 py-3 ${i > 0 ? 'border-t border-border' : ''}`}>
-                                                                                                        <div className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground shrink-0 w-16">{new Date(ev.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
-                                                                                                        <p className="text-xs leading-5 text-muted-foreground">{ev.summary}</p>
-                                                                                                      </div>
-                                                                                                    ))}
-                                                                                                  </div>
-                                                                                                </div>
-                                                                                              )}
-                                                                                              </aside></div></Shell>
+    <Shell>
+      {/* ── Header ───────────────────────────────────────────── */}
+      <PageHeader
+        eyebrow={`Formula ${String(formula.id).padStart(3, "0")} · v${formula.version}`}
+        title={formula.name}
+        description={formula.brief}
+        action={
+          <div className="flex flex-wrap gap-2">
+            <FormulaToolFileUpload testId="button-formula-upload-file" />
+            <Button href={`/coach?formula=${formula.id}`} variant="outline" testId="button-discuss-lab">Creative Lab ↗</Button>
+            <Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button>
+            <Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button>
+          </div>
+        }
+      />
+
+      {/* ── Workflow navigation ───────────────────────────────── */}
+      <WorkflowNav
+        activeStage={activeStage}
+        formulaId={id}
+        completedStages={completedStages}
+      />
+
+      {/* ── Status strip ─────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-4">
+        <div className="flex items-center gap-3">
+          <StatusPill value={formula.status} />
+          <StatusPill value={formula.safetyStatus} />
+          <StatusPill value={formula.ifraStatus} />
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="font-mono-ui text-[10px] text-muted-foreground">{formula.concentration}% · {formula.totalMl} ml · {formula.ingredients.length} materials</span>
+        </div>
+      </div>
+
+      {/* ── Main content: stage panel + sidebar ──────────────── */}
+      <div className="grid gap-6 py-6 lg:grid-cols-[1.35fr_.65fr]">
+        {/* Stage panel */}
+        <div>
+          {/* Stage header */}
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">
+                Step {String(currentIdx + 1).padStart(2, "0")} of {WORKFLOW_STAGES.length}
+              </p>
+              <h2 className="mt-0.5 font-display text-2xl">{WORKFLOW_STAGES[currentIdx]?.description}</h2>
+            </div>
+            <div className="flex items-center gap-1">
+              {prevStage && (
+                <button
+                  onClick={() => navigateToStage(prevStage.id)}
+                  data-testid="button-workflow-prev"
+                  className="grid size-8 place-items-center border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  aria-label={`Previous: ${prevStage.label}`}
+                >
+                  <ArrowLeft size={13} />
+                </button>
+              )}
+              {nextStage && (
+                <button
+                  onClick={() => navigateToStage(nextStage.id)}
+                  data-testid="button-workflow-next"
+                  className="grid size-8 place-items-center border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  aria-label={`Next: ${nextStage.label}`}
+                >
+                  <ArrowRight size={13} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Stage content */}
+          <AnimatePresence mode="wait">
+            <WorkflowStagePanel
+              key={activeStage}
+              stage={activeStage}
+              formula={formula}
+              materials={materials}
+              events={events}
+              onEdit={begin}
+            />
+          </AnimatePresence>
+        </div>
+
+        {/* Sidebar */}
+        <aside className="space-y-4">
+          {/* Quick actions */}
+          <div className="border border-border bg-card p-5">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-4">Quick actions</p>
+            <div className="space-y-2">
+              <Button href={`/coach?formula=${formula.id}`} variant="outline" testId="button-formula-to-lab">Open in Creative Lab</Button>
+              <Button onClick={begin} variant="outline" testId="button-formula-edit-sidebar">Edit formula</Button>
+            </div>
+          </div>
+
+          {/* Stage jump */}
+          <div className="border border-border bg-secondary/30 p-5">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-3">Jump to stage</p>
+            <div className="space-y-1">
+              {WORKFLOW_STAGES.map(stage => {
+                const Icon = stage.icon;
+                const isActive = stage.id === activeStage;
+                const isDone = completedStages.has(stage.id);
+                return (
+                  <button
+                    key={stage.id}
+                    onClick={() => navigateToStage(stage.id)}
+                    data-testid={`button-jump-${stage.id}`}
+                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-secondary/70 ${isActive ? "bg-secondary/80" : ""}`}
+                  >
+                    <Icon size={11} strokeWidth={1.8} className={isActive ? "text-foreground" : isDone ? "text-muted-foreground" : "text-muted-foreground/40"} />
+                    <span className={`font-mono-ui text-[9px] uppercase tracking-[.1em] ${isActive ? "text-foreground font-medium" : isDone ? "text-muted-foreground" : "text-muted-foreground/50"}`}>{stage.label}</span>
+                    {isDone && !isActive && <div className="ml-auto h-[3px] w-[3px] bg-accent/80" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Metadata */}
+          <div className="border border-border bg-card p-5">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-3">Details</p>
+            <div className="space-y-2 text-xs">
+              {formula.ifraCategory && (
+                <div className="flex justify-between gap-2">
+                  <span className="text-muted-foreground shrink-0">Category</span>
+                  <span className="text-right">{IFRA_CATEGORIES.find(c => c.value === formula.ifraCategory)?.label ?? `Cat ${formula.ifraCategory}`}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Allergen notes</span>
+                <span data-testid="text-formula-allergens">{formula.allergenCount}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Last updated</span>
+                <span>{new Date(formula.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Version</span>
+                <span>{formula.version}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Notes preview */}
+          {formula.notes && (
+            <div className="border border-border bg-card p-5">
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-3">Notes</p>
+              <p className="line-clamp-4 text-xs leading-5 text-muted-foreground" data-testid="text-formula-notes">{formula.notes}</p>
+              {formula.notes.length > 200 && (
+                <button onClick={() => navigateToStage("document")} className="mt-2 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">Read all →</button>
+              )}
+            </div>
+          )}
+        </aside>
+      </div>
+
+      {/* ── Edit dialog (full-screen overlay) ────────────────── */}
+      {editing && (
+        <div className="fixed inset-0 z-40 overflow-y-auto bg-background">
+          <div className="mx-auto max-w-5xl px-5 pb-20 pt-6 sm:px-10">
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Editing · formula {String(formula.id).padStart(3, "0")}</p>
+                <h2 className="mt-1 font-display text-4xl">Stay curious.</h2>
+              </div>
+              <button onClick={() => setEditing(false)} data-testid="button-close-edit" className="grid size-9 place-items-center border border-border bg-card hover:bg-secondary">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
+              <div className="space-y-5">
+                <div className="border border-border bg-card p-6 sm:p-7">
+                  <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p>
+                  <label className="mt-5 block text-xs font-medium">Name
+                    <input value={name} onChange={e => setName(e.target.value)} data-testid="input-edit-name" className="mt-2 w-full border-b border-border bg-transparent py-2 font-display text-2xl outline-none focus:border-foreground" />
+                  </label>
+                  <label className="mt-5 block text-xs font-medium">Brief
+                    <textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-edit-brief" className="mt-2 min-h-20 w-full resize-none border border-border bg-secondary/45 p-3 text-sm leading-6 outline-none focus:border-foreground/40" />
+                  </label>
+                  <div className="mt-5 grid grid-cols-2 gap-4">
+                    <label className="text-xs font-medium">Concentration %
+                      <input type="number" min="0" max="100" value={editConcentration} onChange={e => setEditConcentration(Number(e.target.value))} data-testid="input-edit-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+                    </label>
+                    <label className="text-xs font-medium">Batch size ml
+                      <input type="number" min="0" value={editTotalMl} onChange={e => setEditTotalMl(Number(e.target.value))} data-testid="input-edit-total-ml" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
+                    </label>
+                  </div>
+                  <label className="mt-5 block text-xs font-medium">Stage
+                    <select value={status} onChange={e => setStatus(e.target.value as typeof status)} data-testid="select-edit-status" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40">
+                      <option value="draft">Draft</option>
+                      <option value="resting">Resting</option>
+                      <option value="approved">Approved</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </label>
+                  <IfraCategoryPicker value={editIfraCategory} onChange={setEditIfraCategory} testId="select-edit-ifra-category" />
+                  <label className="mt-7 block text-xs font-medium">Notebook notes
+                    <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-edit-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
+                  </label>
+                </div>
+              </div>
+              <div className="space-y-5">
+                <IngredientBuilder ingredients={editIngredients} setIngredients={setEditIngredients} totalMl={editTotalMl} concentration={editConcentration} />
+                <div className="flex items-center justify-between border border-border bg-card p-5">
+                  <div>
+                    <p className="font-display text-2xl">Save the revision.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Each save advances the version and records a revision summary.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={() => setEditing(false)} variant="quiet" testId="button-cancel-edit">Cancel</Button>
+                    <Button onClick={save} disabled={update.isPending || !name} testId="button-update-formula">{update.isPending ? "Saving…" : "Save changes"}</Button>
+                  </div>
+                </div>
+                {saveError && <p className="text-sm text-destructive" data-testid="status-update-error">{saveError}</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </Shell>
   );
 }
 
