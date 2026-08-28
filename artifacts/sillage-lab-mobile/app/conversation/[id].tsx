@@ -20,6 +20,7 @@ import { useColors } from '@workspace/s1/hooks/use-colors';
 import { nativeTheme } from '@workspace/s1/lib/native-theme';
 import { useGetConversation } from '@workspace/api-client-react';
 import { streamConversationMessage } from '@/lib/streaming';
+import { MarkdownMessage } from '@/components/MarkdownMessage';
 
 type ChatMessage = {
   id: string;
@@ -386,20 +387,22 @@ export default function ConversationScreen() {
                     item.isStreaming && styles.streamingBubble,
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.messageText,
-                      {
-                        color: isUser
-                          ? colors.accentForeground
-                          : colors.foreground,
-                        fontFamily: nativeTheme.fontFamily.sans,
-                      },
-                    ]}
-                    selectable
-                  >
-                    {item.content}
-                  </Text>
+                  {isUser ? (
+                    <Text
+                      style={[
+                        styles.messageText,
+                        {
+                          color: colors.accentForeground,
+                          fontFamily: nativeTheme.fontFamily.sans,
+                        },
+                      ]}
+                      selectable
+                    >
+                      {item.content}
+                    </Text>
+                  ) : (
+                    <MarkdownMessage content={item.content} />
+                  )}
                   {item.isStreaming ? (
                     <View
                       style={[
