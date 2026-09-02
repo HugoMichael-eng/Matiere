@@ -35,6 +35,7 @@ import {
   accordSeedMessage,
   moodSeedMessage,
 } from '@/constants/creative-lab';
+import { removePinnedSession } from '@/lib/pinned-sessions';
 
 function relativeDate(iso: string): string {
   const d = new Date(iso);
@@ -160,6 +161,13 @@ export default function CreativeLabScreen() {
         onPress: async () => {
           try {
             await deleteMutation.mutateAsync({ conversationId: id });
+            await removePinnedSession(id);
+            setPinnedIds((prev) => {
+              if (!prev.has(id)) return prev;
+              const next = new Set(prev);
+              next.delete(id);
+              return next;
+            });
             refetch();
           } catch {
             Alert.alert('Error', 'Could not delete session.');
@@ -400,66 +408,90 @@ export default function CreativeLabScreen() {
               {ordered.map((conv) => {
                 const isPinned = pinnedIds.has(conv.id);
                 return (
-                  <Pressable
+                  <View
                     key={conv.id}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      router.push(`/conversation/${conv.id}`);
-                    }}
-                    onLongPress={() => handleDelete(conv.id, conv.title)}
-                    style={({ pressed }) => [
+                    style={[
                       styles.sessionRow,
                       {
                         borderBottomColor: colors.border,
-                        backgroundColor: pressed ? colors.muted : 'transparent',
                       },
                     ]}
                   >
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <View style={styles.sessionTitleRow}>
-                        {isPinned && (
+                    <Pressable
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        router.push(`/conversation/${conv.id}`);
+                      }}
+                      onLongPress={() => handleDelete(conv.id, conv.title)}
+                      style={({ pressed }) => [
+                        styles.sessionMain,
+                        { opacity: pressed ? 0.7 : 1 },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Open session ${conv.title}`}
+                      testID={`button-session-${conv.id}`}
+                    >
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <View style={styles.sessionTitleRow}>
+                          {isPinned && (
+                            <Text
+                              style={[
+                                styles.pinnedLabel,
+                                { color: colors.mutedForeground, fontFamily: mono },
+                              ]}
+                            >
+                              PINNED
+                            </Text>
+                          )}
                           <Text
+                            numberOfLines={1}
                             style={[
-                              styles.pinnedLabel,
-                              { color: colors.mutedForeground, fontFamily: mono },
+                              styles.sessionTitle,
+                              { color: colors.foreground, fontFamily: nativeTheme.fontFamily.sansMedium },
                             ]}
                           >
-                            PINNED
+                            {conv.title}
                           </Text>
-                        )}
+                        </View>
                         <Text
-                          numberOfLines={1}
                           style={[
-                            styles.sessionTitle,
-                            { color: colors.foreground, fontFamily: nativeTheme.fontFamily.sansMedium },
+                            styles.sessionMeta,
+                            { color: colors.mutedForeground, fontFamily: mono },
                           ]}
                         >
-                          {conv.title}
+                          {conv.messageCount ?? 0} {(conv.messageCount ?? 0) === 1 ? 'msg' : 'msgs'} ·{' '}
+                          {relativeDate(conv.updatedAt)}
                         </Text>
                       </View>
-                      <Text
-                        style={[
-                          styles.sessionMeta,
-                          { color: colors.mutedForeground, fontFamily: mono },
-                        ]}
-                      >
-                        {conv.messageCount ?? 0} {(conv.messageCount ?? 0) === 1 ? 'msg' : 'msgs'} ·{' '}
-                        {relativeDate(conv.updatedAt)}
-                      </Text>
-                    </View>
-                    <Pressable
-                      onPress={() => togglePin(conv.id)}
-                      hitSlop={10}
-                      style={styles.pinBtn}
-                    >
-                      <Feather
-                        name="bookmark"
-                        size={15}
-                        color={isPinned ? colors.foreground : colors.mutedForeground}
-                      />
+                      <Feather name="arrow-right" size={14} color={colors.mutedForeground} />
                     </Pressable>
-                    <Feather name="arrow-right" size={14} color={colors.mutedForeground} />
-                  </Pressable>
+                    <View style={styles.sessionActions}>
+                      <Pressable
+                        onPress={() => togglePin(conv.id)}
+                        hitSlop={8}
+                        style={styles.pinBtn}
+                        accessibilityRole="button"
+                        accessibilityLabel={isPinned ? `Unpin session ${conv.title}` : `Pin session ${conv.title}`}
+                        testID={`button-pin-session-${conv.id}`}
+                      >
+                        <Feather
+                          name="bookmark"
+                          size={15}
+                          color={isPinned ? colors.foreground : colors.mutedForeground}
+                        />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => handleDelete(conv.id, conv.title)}
+                        hitSlop={8}
+                        style={styles.deleteBtn}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Delete session ${conv.title}`}
+                        testID={`button-delete-session-${conv.id}`}
+                      >
+                        <Feather name="trash-2" size={16} color={colors.destructive} />
+                      </Pressable>
+                    </View>
+                  </View>
                 );
               })}
             </View>
@@ -662,15 +694,29 @@ const styles = StyleSheet.create({
   sessionRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+    borderBottomWidth: 1,
+  },
+  sessionMain: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
     paddingVertical: 16,
-    borderBottomWidth: 1,
+  },
+  sessionActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingRight: 2,
   },
   sessionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   pinnedLabel: { fontSize: 7, letterSpacing: 1.5 },
   sessionTitle: { fontSize: 15, flexShrink: 1 },
   sessionMeta: { fontSize: 10, marginTop: 5 },
-  pinBtn: { padding: 4 },
+  pinBtn: { padding: 8 },
+  deleteBtn: { padding: 8 },
   center: { paddingVertical: 40, alignItems: 'center' },
   empty: {
     marginHorizontal: 20,

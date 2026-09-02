@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image as RNImage,
   Platform,
@@ -18,7 +19,8 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useColors } from '@workspace/s1/hooks/use-colors';
 import { nativeTheme } from '@workspace/s1/lib/native-theme';
-import { useGetConversation } from '@workspace/api-client-react';
+import { useDeleteConversation, useGetConversation } from '@workspace/api-client-react';
+import { removePinnedSession } from '@/lib/pinned-sessions';
 import { streamConversationMessage } from '@/lib/streaming';
 import { MarkdownMessage } from '@/components/MarkdownMessage';
 
@@ -54,6 +56,7 @@ export default function ConversationScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { getToken } = useAuth();
+  const deleteMutation = useDeleteConversation();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -192,6 +195,33 @@ export default function ConversationScreen() {
     sendText(text);
   }, [input, sendText]);
 
+  const handleDelete = () => {
+    if (deleteMutation.isPending || Number.isNaN(conversationId)) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert(
+      'Delete Session',
+      `Delete "${conversation?.title ?? 'Session'}"? This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteMutation.mutateAsync({ conversationId });
+              await removePinnedSession(conversationId);
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              router.replace('/conversations');
+            } catch {
+              Alert.alert('Error', 'Could not delete session.');
+            }
+          },
+        },
+      ],
+    );
+  };
+
   // Auto-seed: when the hub creates a session from a mood or accord, it passes
   // the first message as a `seed` param. Send it once the (empty) conversation
   // has loaded — same behaviour as the web hub.
@@ -247,6 +277,20 @@ export default function ConversationScreen() {
         >
           {conversation?.title ?? 'Session'}
         </Text>
+
+        <Pressable
+          onPress={handleDelete}
+          disabled={deleteMutation.isPending}
+          style={({ pressed }) => [
+            styles.deleteBtn,
+            { opacity: pressed || deleteMutation.isPending ? 0.5 : 1 },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="Delete session"
+          testID="button-delete-current-session"
+        >
+          <Feather name="trash-2" size={17} color={colors.destructive} />
+        </Pressable>
 
         <Pressable
           onPress={() => setShowContextPanel((v) => !v)}
@@ -491,6 +535,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   backBtn: { padding: 4 },
+  deleteBtn: { padding: 4 },
   headerTitle: { flex: 1, fontSize: 16 },
   contextToggle: {
     width: 34,
