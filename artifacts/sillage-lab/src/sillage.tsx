@@ -998,7 +998,7 @@ function WorkflowStagePanel({
   );
 }
 
-/** Dashboard workflow entry strip — compact horizontal rail with CTA */
+/** Dashboard workflow entry strip — kept for FormulaDetail use; not used on dashboard page */
 function DashboardWorkflow({ formula }: { formula?: Formula }) {
   const [, setLocation] = useLocation();
   const entryStage = getSuggestedWorkflowStage(formula);
@@ -1091,59 +1091,33 @@ function FormulaRow({ formula }: { formula: Formula }) {
   );
 }
 
-function useCountUp(target: number, duration = 1100) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (target === 0) { setCount(0); return; }
-    const start = performance.now();
-    const id = requestAnimationFrame(function tick(now) {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setCount(Math.round(eased * target));
-      if (t < 1) requestAnimationFrame(tick);
-    });
-    return () => cancelAnimationFrame(id);
-  }, [target, duration]);
-  return count;
-}
-
-function MetricCard({ label, value, Icon, delay, testId, href }: { label: string; value: number; Icon: LucideIcon; delay: number; testId: string; href: string }) {
-  const count = useCountUp(value);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const glow = useMotionTemplate`radial-gradient(180px at ${mouseX}px ${mouseY}px, hsl(var(--accent) / 0.28), transparent 80%)`;
-
+// ── Dashboard: editorial formula row (minimal, hairline-rule list) ──
+function DashboardFormulaRow({ formula, index }: { formula: Formula; index: number }) {
+  const num = String(formula.id).padStart(3, "0");
+  const name = formula.name || "Untitled";
+  const updated = new Date(formula.updatedAt);
+  const modified = updated.toDateString() === new Date().toDateString()
+    ? "MODIFIED TODAY"
+    : `MODIFIED ${updated.toLocaleDateString(undefined, { day: "2-digit", month: "short" }).toUpperCase()}`;
   return (
-    <Link href={href}>
+    <Link href={`/formulas/${formula.id}`} data-testid={`row-dashboard-formula-${formula.id}`}>
       <motion.div
-        ref={cardRef}
-        data-testid={testId}
-        onMouseMove={e => {
-          const r = cardRef.current?.getBoundingClientRect();
-          if (!r) return;
-          mouseX.set(e.clientX - r.left);
-          mouseY.set(e.clientY - r.top);
-        }}
-        initial={{ opacity: 0, y: 20, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-        whileHover={{ y: -3, transition: { duration: 0.16 } }}
-        whileTap={{ scale: 0.97 }}
-        className="group relative overflow-hidden bg-card p-6 text-foreground cursor-pointer"
+        className="group grid grid-cols-[32px_1fr_auto] items-baseline gap-4 border-t border-border py-4 sm:grid-cols-[32px_1fr_120px_auto] cursor-pointer"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.06 * index, ease: [0.22, 1, 0.36, 1] }}
+        whileHover="hovered"
       >
-        {/* Cursor glow */}
-        <motion.div aria-hidden className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: glow }} />
-        <div className="relative flex items-start justify-between">
-          <p className="max-w-[120px] text-[11px] leading-4 text-muted-foreground">{label}</p>
-          <motion.div whileHover={{ scale: 1.25, rotate: 8 }} transition={{ type: "spring", stiffness: 300, damping: 14 }}>
-            <Icon size={17} strokeWidth={1.6} className="text-muted-foreground transition-colors group-hover:text-foreground" />
-          </motion.div>
-        </div>
-        <p className="relative mt-5 font-display text-4xl">{count}</p>
-        <p className="relative mt-1 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-          View →
-        </p>
+        <span className="font-mono-ui text-[9px] text-muted-foreground/60 tabular-nums">{num}</span>
+        <span className="font-display text-xl uppercase leading-tight tracking-[-0.02em] transition-colors group-hover:text-accent">{name}</span>
+        <span className="hidden font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground sm:block">{modified}</span>
+        <motion.span
+          className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground/50 transition-colors group-hover:text-foreground"
+          variants={{ hovered: { x: 3 }, idle: { x: 0 } }}
+          transition={{ duration: 0.2 }}
+        >
+          &rarr;
+        </motion.span>
       </motion.div>
     </Link>
   );
@@ -1258,75 +1232,7 @@ function SpotlightCard({ formula }: { formula: Formula }) {
   );
 }
 
-// ── Stage pipeline: clickable, hover reveals "View →" ─────
-function StageTrack({ counts, total }: { counts: Record<"draft" | "resting" | "approved", number>; total: number }) {
-  const stages = (["draft", "resting", "approved"] as const);
-  const labels = { draft: "Draft", resting: "Resting", approved: "Approved" };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-      className="grid grid-cols-3 border-b border-border overflow-hidden"
-    >
-      {stages.map((stage, i) => {
-        const count = counts[stage];
-        const pct = total > 0 ? (count / total) * 100 : 0;
-        return (
-          <Link key={stage} href={`/formulas?status=${stage}`} data-testid={`link-stage-${stage}`}>
-            <motion.div
-              className={`group relative px-6 py-7 cursor-pointer ${i < 2 ? "border-r border-border" : ""}`}
-              whileHover="hovered" initial="idle"
-            >
-              {/* Hover background */}
-              <motion.div
-                aria-hidden
-                className="absolute inset-0 bg-secondary/60"
-                variants={{ idle: { opacity: 0 }, hovered: { opacity: 1 } }}
-                transition={{ duration: 0.18 }}
-              />
-              <div className="relative">
-                <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">{labels[stage]}</p>
-                <motion.p
-                  className="mt-2 font-display text-4xl"
-                  variants={{ idle: { y: 0 }, hovered: { y: -3 } }}
-                  transition={{ type: "spring", stiffness: 360, damping: 18 }}
-                >
-                  {count}
-                </motion.p>
-                {/* Progress bar */}
-                <div className="mt-3 h-[2px] w-full overflow-hidden bg-border">
-                  <motion.div
-                    className="h-full bg-foreground"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
-                    transition={{ duration: 1, delay: 0.35 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  />
-                </div>
-                {/* "View →" reveals on hover */}
-                <motion.p
-                  className="mt-2 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground"
-                  variants={{ idle: { opacity: 0, y: 5 }, hovered: { opacity: 1, y: 0 } }}
-                  transition={{ duration: 0.16 }}
-                >
-                  View formulas →
-                </motion.p>
-              </div>
-              {/* Connector chevron */}
-              {i < 2 && (
-                <ChevronRight
-                  size={11}
-                  className="absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-[55%] bg-card text-border transition-colors group-hover:text-foreground/30"
-                />
-              )}
-            </motion.div>
-          </Link>
-        );
-      })}
-    </motion.div>
-  );
-}
+// StageTrack removed — dashboard uses editorial list layout instead.
 
 // ── Scent of the day: full-width hero with cursor glow + parallax ──
 function MaterialHero({ material }: { material: Material }) {
@@ -1450,269 +1356,235 @@ function MaterialHero({ material }: { material: Material }) {
   );
 }
 
-function QuickPrompt({ greeting, weekday }: { greeting: string; weekday: string }) {
-  const heroRef = useRef<HTMLDivElement>(null);
-  const mx = useMotionValue(0.5);
-  const my = useMotionValue(0.5);
-  const sx = useSpring(mx, { stiffness: 70, damping: 20 });
-  const sy = useSpring(my, { stiffness: 70, damping: 20 });
-  const imgX = useTransform(sx, [0, 1], ["-2%", "2%"]);
-  const imgY = useTransform(sy, [0, 1], ["-2%", "2%"]);
-
-  const onMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const r = heroRef.current?.getBoundingClientRect();
-    if (!r) return;
-    mx.set((e.clientX - r.left) / r.width);
-    my.set((e.clientY - r.top) / r.height);
-  };
-
-  return (
-    <div
-      ref={heroRef}
-      onMouseMove={onMouseMove}
-      onMouseLeave={() => { mx.set(0.5); my.set(0.5); }}
-      className="relative overflow-hidden border-b border-border bg-foreground -mx-5 sm:-mx-8 lg:-mx-12"
-    >
-      {/* Photo texture layer — parallax on desktop */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-[-4%] will-change-transform"
-        style={{ x: imgX, y: imgY }}
-      >
-        <img
-          src={`${import.meta.env.BASE_URL}images/hero-droplets.jpg`}
-          alt=""
-          className="h-full w-full object-cover opacity-[0.13] mix-blend-luminosity"
-        />
-      </motion.div>
-      {/* SVG grain / noise overlay */}
-      <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
-        <filter id="qp-grain">
-          <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" stitchTiles="stitch" />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#qp-grain)" />
-      </svg>
-
-      {/* Content */}
-      <div className="relative flex flex-col px-5 py-10 sm:px-8 sm:py-12 lg:px-12">
-        {/* Top row: eyebrow + quiet secondary action */}
-        <motion.div
-          className="flex items-center justify-between"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-          <p className="font-mono-ui text-[9px] uppercase tracking-[.32em] text-white/40">
-            {weekday} · studio desk
-          </p>
-          <Link
-            href="/formulas/new"
-            data-testid="button-new-formula"
-            className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-white/40 transition-colors hover:text-white/80"
-          >
-            New formula
-          </Link>
-        </motion.div>
-
-        {/* Greeting */}
-        <motion.h1
-          data-testid={`heading-${`${greeting}, maker.`.toLowerCase().replaceAll(" ", "-")}`}
-          className="mt-4 font-display leading-[.88] tracking-[-0.03em] text-white"
-          style={{ fontSize: "clamp(2.4rem, 7vw, 6rem)" }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {greeting}, maker.
-        </motion.h1>
-      </div>
-    </div>
-  );
-}
+// QuickPrompt kept for backwards-compat reference; Dashboard uses DashboardHero instead.
 
 function Dashboard() {
-  const [, setLocation] = useLocation();
   const summaryQuery = useGetDashboardSummary();
-  const draftsQuery = useListFormulas({ status: "draft" });
-  const restingQuery = useListFormulas({ status: "resting" });
-  const approvedQuery = useListFormulas({ status: "approved" });
+  const formulasQuery = useListFormulas();
+  const activityQuery = useGetActivity({ limit: 6 });
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
-    return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+    return h < 12 ? "GOOD MORNING" : h < 18 ? "GOOD AFTERNOON" : "GOOD EVENING";
   }, []);
 
-  const weekday = useMemo(() => new Date().toLocaleDateString(undefined, { weekday: "long" }), []);
   const summary = summaryQuery.data;
-  const activityQuery = useGetActivity({});
-  const stageCounts = {
-    draft: draftsQuery.data?.length ?? 0,
-    resting: restingQuery.data?.length ?? 0,
-    approved: approvedQuery.data?.length ?? 0,
-  };
-  const stageTotal = stageCounts.draft + stageCounts.resting + stageCounts.approved;
 
+  // ── Loading state ────────────────────────────────────────────
   if (summaryQuery.isLoading) return (
     <Shell>
-      <div className="space-y-7">
-        <Skeleton className="h-32 w-2/3" />
-        <Skeleton className="h-28 w-full" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-28" />)}</div>
-        <Skeleton className="h-80" />
+      <div className="py-16 space-y-10 max-w-2xl">
+        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-16 w-2/3" />
+        <Skeleton className="h-px w-full" />
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-10 w-full" />)}
+        </div>
       </div>
     </Shell>
   );
   if (summaryQuery.isError || !summary) return <Shell><ErrorState retry={() => summaryQuery.refetch()} /></Shell>;
 
-  const metrics: Array<[string, number, LucideIcon, string, string]> = [
-    ["Saved formulas", summary.formulaCount, BookOpen, "metric-0", "/formulas"],
-    ["Material library", summary.materialCount, Leaf, "metric-1", "/materials"],
-    ["Needs a second look", summary.reviewCount, ShieldCheck, "metric-2", "/formulas?status=resting"],
-    ["Allergen notes", summary.allergenCount, CircleAlert, "metric-3", "/formulas"],
-  ];
+  const allFormulas = formulasQuery.data ?? summary.recentFormulas;
+  const inProgress = allFormulas.filter(f => f.status === "draft" || f.status === "resting");
+  const recentFormulas = summary.recentFormulas;
+  const hasFormulas = summary.formulaCount > 0;
+  const continueTarget = inProgress[0] ?? recentFormulas[0];
 
   return (
     <Shell>
-      {/* ── HERO: greeting ────────────────────────────────── */}
-      <QuickPrompt greeting={greeting} weekday={weekday} />
-
-      {/* ── WORKFLOW ENTRY STRIP ──────────────────────────── */}
-      <DashboardWorkflow formula={summary.recentFormulas[0]} />
-
-      {/* ── IDEA GENERATOR ────────────────────────────────── */}
-      <FormulaIdeaGenerator onSelect={(n, b, mats) => {
-        try { sessionStorage.setItem("matiere-blueprint", JSON.stringify(mats)); } catch {}
-        setLocation(`/formulas/new?name=${encodeURIComponent(n)}&brief=${encodeURIComponent(b)}`);
-      }} />
-
-      {/* ── STAGE PIPELINE ────────────────────────────────── */}
-      {stageTotal > 0 && <StageTrack counts={stageCounts} total={stageTotal} />}
-
-      {/* ── ANIMATED METRICS ──────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-px bg-border border-b border-border lg:grid-cols-4">
-        {metrics.map(([label, count, Icon, testId, href], i) => (
-          <MetricCard key={label} label={label} value={count} Icon={Icon} delay={0.07 * i} testId={testId} href={href} />
-        ))}
-      </div>
-
-      {/* ── MATERIALS SPOTLIGHT STRIP ─────────────────────── */}
-      <motion.div
-        className="border-b border-border overflow-hidden"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <div className="flex items-center justify-between px-0 pt-5 pb-3">
-          <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-muted-foreground">Palette · seasonal</p>
-        </div>
-        <div className="flex gap-px overflow-x-auto">
-          {[
-            { src: `${import.meta.env.BASE_URL}images/spice.jpg`,     label: "Cardamom CO₂", pos: "center" },
-            { src: `${import.meta.env.BASE_URL}images/jasmine.jpg`,  label: "Jasmine sambac", pos: "center" },
-            { src: `${import.meta.env.BASE_URL}images/resin.jpg`,    label: "Labdanum abs.", pos: "center" },
-            { src: `${import.meta.env.BASE_URL}images/leaves.jpg`,   label: "Vetiver roots", pos: "center top" },
-          ].map(({ src, label, pos }, i) => (
-            <motion.div
-              key={label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.06 + i * 0.07, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              className="group relative flex-1 min-w-[120px] overflow-hidden"
-              style={{ height: 120 }}
-            >
-              <img
-                src={src}
-                alt=""
-                aria-hidden
-                className="absolute inset-0 h-full w-full object-cover opacity-60 transition-opacity duration-500 group-hover:opacity-80"
-                style={{ objectPosition: pos }}
-              />
-              <div className="absolute inset-0 bg-foreground/40" />
-              <p className="absolute bottom-2 left-2 font-mono-ui text-[8px] uppercase tracking-[.18em] text-white/80">{label}</p>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
-      <SectionRule label="The notebook · recent" />
-
-      {/* ── LATEST FORMULAS — full width ──────────────────── */}
+      {/* ── HERO: brand mark + greeting ─────────────────────────── */}
       <motion.section
-        className="border-b border-border py-7"
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        className="-mx-5 sm:-mx-8 lg:-mx-12 border-b border-border bg-foreground px-5 py-14 sm:px-8 sm:py-16 lg:px-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        data-testid="dashboard-hero"
       >
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">The notebook, recently</p>
-            <h2 className="mt-1 font-display text-3xl">Latest formulas</h2>
-          </div>
-          <motion.div whileHover={{ x: 2 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
-            <Link href="/formulas" data-testid="link-view-all-formulas" className="inline-flex items-center gap-1 text-[11px] uppercase tracking-widest text-foreground hover:underline">
-              View all <ArrowUpRight size={12} />
-            </Link>
+        <motion.p
+          className="font-mono-ui text-[9px] uppercase tracking-[.35em] text-white/30"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.05 }}
+        >
+          MATIÈRE
+        </motion.p>
+        <motion.h1
+          data-testid="heading-dashboard-greeting"
+          className="mt-4 font-display leading-[.88] tracking-[-0.03em] text-white"
+          style={{ fontSize: "clamp(2.6rem, 7vw, 6rem)" }}
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {greeting}.
+        </motion.h1>
+
+        {/* ── PRIMARY ACTION: continue or create ────────────────── */}
+        {hasFormulas && continueTarget ? (
+          <motion.div
+            className="mt-10 border-t border-white/10 pt-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.2 }}
+          >
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.28em] text-white/30">
+              {inProgress.length > 0
+                ? `${String(inProgress.length).padStart(2, "0")} FORMULA${inProgress.length !== 1 ? "S" : ""} IN PROGRESS`
+                : "FORMULA LIBRARY"}
+            </p>
+            <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+              <Link
+                href={`/formulas/${continueTarget.id}`}
+                data-testid="link-dashboard-continue"
+                className="group flex items-baseline gap-4"
+              >
+                <span className="font-display text-[clamp(1.5rem,3.5vw,2.8rem)] leading-tight tracking-[-0.02em] text-white transition-opacity group-hover:opacity-70">
+                  {continueTarget.name || "Untitled"}
+                  {continueTarget.id && (
+                    <span className="ml-3 font-mono-ui text-[10px] font-normal uppercase tracking-[.18em] text-white/30 align-middle">
+                      / {String(continueTarget.id).padStart(3, "0")}
+                    </span>
+                  )}
+                </span>
+                <span className="shrink-0 font-mono-ui text-[11px] uppercase tracking-[.22em] text-white/50 transition-all group-hover:text-white group-hover:translate-x-1">
+                  CONTINUE &rarr;
+                </span>
+              </Link>
+            </div>
+            <div className="mt-8 border-t border-white/10 pt-6">
+              <Link
+                href="/formulas/new"
+                data-testid="button-new-formula"
+                className="group inline-flex items-center gap-4 font-display text-xl uppercase tracking-[-0.01em] text-white transition-colors hover:text-accent sm:text-2xl"
+              >
+                START SOMETHING NEW
+                <Plus size={18} strokeWidth={1.5} className="transition-transform group-hover:rotate-90" />
+              </Link>
+            </div>
           </motion.div>
-        </div>
-        {summary.recentFormulas.length
-          ? summary.recentFormulas.map(formula => <FormulaRow key={formula.id} formula={formula} />)
-          : <EmptyState title="Your first formula is waiting." copy="Start with a feeling, a material, or a strange little question." href="/formulas/new" label="Open a fresh page" />}
+        ) : (
+          <motion.div
+            className="mt-10 border-t border-white/10 pt-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.2 }}
+          >
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.28em] text-white/30 mb-7">
+              WHAT DO YOU WANT TO CREATE?
+            </p>
+            <div className="flex flex-col gap-0 sm:flex-row sm:gap-0">
+              {[
+                { label: "Start with an idea", href: "/formulas/new", testId: "link-start-idea" },
+                { label: "Explore materials", href: "/materials", testId: "link-explore-materials" },
+                { label: "Learn how formulation works", href: "/coach", testId: "link-learn-formulation" },
+              ].map(({ label, href, testId }, i) => (
+                <Link
+                  key={href}
+                  href={href}
+                  data-testid={testId}
+                  className={`group flex items-center justify-between py-4 font-mono-ui text-[10px] uppercase tracking-[.18em] text-white/50 transition-colors hover:text-white sm:flex-col sm:items-start sm:pr-10 ${i > 0 ? "border-t border-white/10 sm:border-t-0 sm:border-l sm:pl-8 sm:border-l-white/10" : ""}`}
+                >
+                  <span className="group-hover:opacity-100">{label}</span>
+                  <ArrowRight size={11} className="sm:mt-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </motion.section>
 
-      <SectionRule label="Source · supply" />
-
-      {/* ── SHOP BANNER — muted lilac panel, echoing the landing sections ── */}
-      <motion.div
-        className="relative my-7 flex flex-col gap-4 overflow-hidden border border-accent/40 bg-accent px-6 py-7 text-accent-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <img
-          src={`${import.meta.env.BASE_URL}images/flower.jpg`}
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute -right-6 top-1/2 hidden h-[150%] w-56 -translate-y-1/2 object-cover opacity-25 mix-blend-luminosity sm:block"
-        />
-        <div className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-accent via-accent/95 to-transparent sm:block" />
-        <div className="relative">
-          <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-accent-foreground/60">Supplier sourcing</p>
-          <h2 className="mt-2 font-display text-3xl">Stock the palette.</h2>
-          <p className="mt-2 max-w-md text-sm leading-6 text-accent-foreground/70">Browse Fraterworks, PCW, and Contrebande — the three suppliers this studio tracks.</p>
-        </div>
-        <div className="relative shrink-0">
-          <Button href="/shop" testId="button-dashboard-shop">Browse shop</Button>
-        </div>
-      </motion.div>
-
-      {/* ── ACTIVITY FEED ─────────────────────────────────── */}
-      {(activityQuery.data?.length ?? 0) > 0 && (
-        <>
-        <SectionRule label="Studio log · activity" />
-        <div className="py-7">
-          <div className="mb-4 flex items-center justify-between">
+      {/* ── RECENT FORMULAS — editorial list ───────────────────── */}
+      {hasFormulas && (
+        <motion.section
+          className="py-10"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          data-testid="section-recent-formulas"
+        >
+          <div className="flex items-center justify-between pb-2">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.3em] text-muted-foreground">
+              RECENT
+            </p>
+            <Link
+              href="/formulas"
+              data-testid="link-view-all-formulas"
+              className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              View all &rarr;
+            </Link>
+          </div>
+          {/* List */}
+          {recentFormulas.length > 0 ? (
             <div>
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Recent activity</p>
-              <h2 className="mt-1 font-display text-3xl">Studio log</h2>
+              {recentFormulas.slice(0, 8).map((formula, i) => (
+                <DashboardFormulaRow key={formula.id} formula={formula} index={i} />
+              ))}
             </div>
-          </div>
-          <div className="border border-border">
-            {activityQuery.data!.slice(0, 10).map((ev, i) => (
-              <div
-                key={ev.id}
-                className={`grid grid-cols-[100px_1fr_auto] items-center gap-4 px-5 py-3.5 ${i > 0 ? "border-t border-border" : ""}`}
-              >
-                <p className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">
-                  {new Date(ev.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                </p>
-                <p className="text-xs text-foreground">{ev.summary}</p>
-                <p className="font-mono-ui text-[8px] text-muted-foreground truncate max-w-[140px]">{ev.formulaName}</p>
+          ) : (
+            <div className="border-t border-border py-14 text-center">
+              <p className="font-display text-2xl text-muted-foreground/50">No formulas yet.</p>
+            </div>
+          )}
+        </motion.section>
+      )}
+
+      {/* ── SUPPORTING TOOLS — minimal secondary strip ──────────── */}
+      <motion.section
+        className="border-t border-border py-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.28 }}
+        data-testid="section-tools"
+      >
+        <p className="mb-6 font-mono-ui text-[8px] uppercase tracking-[.3em] text-muted-foreground">STUDIO TOOLS</p>
+        <div className="grid grid-cols-1 border-b border-border sm:grid-cols-3">
+          {[
+            { label: "Materials", sub: `${summary.materialCount} in library`, href: "/materials", testId: "link-tool-materials" },
+            { label: "IFRA", sub: summary.reviewCount > 0 ? `${summary.reviewCount} need review` : "Review formula safety", href: "/formulas?status=resting", testId: "link-tool-ifra" },
+            { label: "Learn", sub: "Formulation guidance", href: "/coach", testId: "link-tool-learn" },
+          ].map(({ label, sub, href, testId }, index) => (
+            <Link
+              key={href}
+              href={href}
+              data-testid={testId}
+              className={`group flex items-end justify-between border-t border-border py-5 transition-colors hover:text-accent sm:px-5 ${index === 0 ? "sm:pl-0" : "sm:border-l"} ${index === 2 ? "sm:pr-0" : ""}`}
+            >
+              <div>
+                <p className="font-display text-xl uppercase tracking-[-0.01em]">{label}</p>
+                <p className="mt-1 font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">{sub}</p>
               </div>
-            ))}
-          </div>
+              <ArrowRight size={12} strokeWidth={1.5} className="mb-1 text-muted-foreground/50 transition-transform group-hover:translate-x-1 group-hover:text-accent" />
+            </Link>
+          ))}
         </div>
-        </>
+      </motion.section>
+
+      {/* ── ACTIVITY LOG — quiet, collapsible feel ───────────────── */}
+      {(activityQuery.data?.length ?? 0) > 0 && (
+        <motion.section
+          className="border-t border-border pb-16"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
+          data-testid="section-activity"
+        >
+          <p className="py-6 font-mono-ui text-[8px] uppercase tracking-[.3em] text-muted-foreground">STUDIO LOG</p>
+          {activityQuery.data!.slice(0, 6).map((ev, i) => (
+            <div
+              key={ev.id}
+              data-testid={`row-activity-${ev.id}`}
+              className="grid grid-cols-[80px_1fr] items-baseline gap-4 border-t border-border py-3 sm:grid-cols-[80px_1fr_140px]"
+            >
+              <p className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/50">
+                {new Date(ev.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+              </p>
+              <p className="text-xs text-foreground/80">{ev.summary}</p>
+              <p className="hidden font-mono-ui text-[8px] text-muted-foreground truncate sm:block">{ev.formulaName}</p>
+            </div>
+          ))}
+        </motion.section>
       )}
     </Shell>
   );
