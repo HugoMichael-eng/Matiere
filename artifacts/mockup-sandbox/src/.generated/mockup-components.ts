@@ -13,5 +13,6 @@ export const modules: ModuleMap = {
   "./components/mockups/sillage-chat/ChatSplitPanelLayout.tsx": () => import("../components/mockups/sillage-chat/ChatSplitPanelLayout.tsx"),
   "./components/mockups/sillage-chat/ChatThreadedLayout.tsx": () => import("../components/mockups/sillage-chat/ChatThreadedLayout.tsx"),
   "./components/mockups/templates/EditorialPerfumeProductPage-rMCFNo/App.tsx": () => import("../components/mockups/templates/EditorialPerfumeProductPage-rMCFNo/App.tsx"),
+  "./components/mockups/templates/MonochromeFashionLandingPage-hw1_nu/Verve.tsx": () => import("../components/mockups/templates/MonochromeFashionLandingPage-hw1_nu/Verve.tsx"),
   "./components/mockups/templates/SwissLearningApp-Q_1eba/App.tsx": () => import("../components/mockups/templates/SwissLearningApp-Q_1eba/App.tsx")
 };

@@ -7,6 +7,7 @@ uri = "file://attached_assets/inspect/botanicals.jpg"
 type = "image"
 title = "botanicals.jpg"
 description = "Inspect for Fraterworks suitability"
+logical_id = "dd3aad1d-6af4-4ac3-b246-9f694965b8c9"
 
 [[outputs]]
 id = "1beM2QrbIxCgI_dOHj8kF"
@@ -14,6 +15,7 @@ uri = "file://attached_assets/inspect/jasmine.jpg"
 type = "image"
 title = "jasmine.jpg"
 description = "Inspect for Fraterworks suitability"
+logical_id = "81b538e8-c15b-4a88-852d-0a6df2fd62f0"
 
 [[outputs]]
 id = "Q7fG3Qw09QG1DlkMgQsak"
@@ -21,6 +23,7 @@ uri = "file://attached_assets/inspect/leaves.jpg"
 type = "image"
 title = "leaves.jpg"
 description = "Inspect for Fraterworks suitability"
+logical_id = "b9795720-6bef-4211-a151-ca3d7e2fb27b"
 
 [[outputs]]
 id = "2KgCtqbhk4h5J-TN6wskg"
@@ -28,6 +31,7 @@ uri = "file://attached_assets/inspect/spice.jpg"
 type = "image"
 title = "spice.jpg"
 description = "Inspect for Fraterworks suitability"
+logical_id = "b93e5a5a-2be9-44c9-9fc0-3d4c781154a8"
 
 [[outputs]]
 id = "dOGCemuX2LyAQsMsl1NvD"
@@ -35,3 +39,4 @@ uri = "file://attached_assets/inspect/molecule.jpg"
 type = "image"
 title = "molecule.jpg"
 description = "Inspect for Fraterworks suitability"
+logical_id = "7c637c77-899a-4b54-bb6e-dbaa281608f5"

@@ -1,0 +1,19 @@
+kind = "design-system"
+previewPath = "/verve-design-system/"
+title = "Verve Design System"
+description = "A monochrome fashion and objects design system extracted from the selected Verve Systems mockup: radical restraint, exposed structural grids, oversized display typography, sharp geometry, and precise editorial controls."
+version = "1.0.0"
+id = "artifacts/verve-design-system"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/verve-design-system/" ]
+localPort = 23094
+
+[services.development]
+run = "pnpm --filter @workspace/verve-design-system run dev"
+
+[services.env]
+PORT = "23094"
+BASE_PATH = "/verve-design-system/"
