@@ -2,4 +2,4 @@
 - [S2 Design System](s2-design-system.md) — Editorial Void; Jost + Cormorant Garamond; zero radius; cold lavender accent #B0AAB8.
 - [History feature](history-feature.md) — Persistent coach sessions, formula changelog, activity feed; zod must be installed per-package in api-server.
 - [Expo Clerk setup](expo-clerk-setup.md) — @clerk/clerk-expo peer deps, React Query v5 gotcha, S1 native hooks built.
-- [Formula Builder MVP](formula-builder-mvp.md) — Center Matière on creating, revising, and retrieving private formulas; keep library/history supportive and AI secondary.
+- [Project-centered formula workspace](formula-builder-mvp.md) — Projects organize creative work; reliable private formulas remain the functional core; AI stays contextual.

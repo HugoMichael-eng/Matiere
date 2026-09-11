@@ -7,8 +7,8 @@ import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient
 import { AnimatePresence, motion, useMotionTemplate, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Beaker, Bookmark, BookOpen, ChevronDown, ChevronRight, CircleAlert,
-  Download, File, FileImage, FileText, FlaskConical, FolderUp, Gauge, Leaf, LogOut, Menu, MessageCircle, Minus, Paperclip, Plus,
-  Pencil, Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, Upload, X, ShoppingBag,
+  Download, File, FileImage, FileText, FlaskConical, Gauge, Leaf, LogOut, Menu, Minus, Paperclip, Plus,
+  Pencil, Search, Send, Settings2, ShieldCheck, Sparkles, Trash2, Upload, X,
   Lightbulb, TestTube2, BarChart2, Zap, FileCheck, PackageSearch
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -32,8 +32,10 @@ const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 
 function Logo({ light = false }: { light?: boolean }) {
+  const { isSignedIn } = useAuth();
+  const dest = isSignedIn ? "/studio" : "/";
   return (
-    <Link href="/" data-testid="link-brand" className="flex items-center gap-3 group">
+    <Link href={dest} data-testid="link-brand" className="flex items-center gap-3 group">
       <span className={`font-mono-ui text-[10px] font-medium uppercase tracking-[.35em] ${light ? "text-white" : "text-foreground"}`}>MATIÈRE</span>
     </Link>
   );
@@ -118,12 +120,10 @@ function IfraCategoryPicker({ value, onChange, testId }: { value: string; onChan
 }
 
 const navItems = [
-  { href: "/coach", label: "Creative lab", icon: MessageCircle },
-  { href: "/dashboard", label: "Studio desk", icon: Gauge },
-  { href: "/formulas", label: "Formula library", icon: BookOpen },
+  { href: "/studio", label: "Studio", icon: Gauge },
+  { href: "/projects", label: "Projects", icon: BookOpen },
+  { href: "/formulas", label: "Formulas", icon: FlaskConical },
   { href: "/materials", label: "Materials", icon: Leaf },
-  { href: "/files", label: "File drawer", icon: FolderUp },
-  { href: "/shop", label: "Shop & source", icon: ShoppingBag },
 ];
 
 function Sidebar() {
@@ -136,7 +136,7 @@ function Sidebar() {
       <div className="mt-12">
         <nav className="space-y-1">
           {navItems.map(({ href, label, icon: Icon }) => {
-            const active = location === href || (href !== "/dashboard" && location.startsWith(href));
+            const active = location === href || (href !== "/studio" && location.startsWith(href));
             return <Link href={href} key={href} data-testid={`link-nav-${label.toLowerCase().replaceAll(" ", "-")}`}
               className={`flex items-center gap-3 px-3 py-3 text-[10px] tracking-[.18em] uppercase font-medium transition-colors ${active ? "border-l-2 border-accent text-white" : "text-white/50 hover:text-white"}`}>
               <Icon size={14} strokeWidth={1.7} /><span>{label}</span>
@@ -156,49 +156,51 @@ function Sidebar() {
 
 function MobileNav() {
   const [open, setOpen] = useState(false);
+  const [location] = useLocation();
   return (
     <div className="relative flex items-center justify-between border-b border-border bg-background px-5 py-4 md:hidden">
       <Logo />
-      <motion.button
+      <button
         onClick={() => setOpen(!open)}
         data-testid="button-mobile-menu"
-        className="p-2 text-muted-foreground hover:bg-secondary"
-        animate={{ rotate: open ? 90 : 0 }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
+        aria-label={open ? "Close menu" : "Open menu"}
+        aria-expanded={open}
+        className="p-2 text-muted-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:bg-secondary"
       >
-        {open ? <X size={19} /> : <Menu size={19} />}
-      </motion.button>
+        {open ? <X size={18} strokeWidth={1.5} /> : <Menu size={18} strokeWidth={1.5} />}
+      </button>
 
       <AnimatePresence>
         {open && (
-          <motion.div
+          <motion.nav
             key="mobile-menu"
-            initial={{ opacity: 0, y: -8, scaleY: 0.95 }}
-            animate={{ opacity: 1, y: 0, scaleY: 1 }}
-            exit={{ opacity: 0, y: -6, scaleY: 0.97 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            style={{ transformOrigin: "top" }}
-            className="absolute left-0 right-0 top-full z-40 border-b border-border bg-background shadow-lg"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-0 right-0 top-full z-40 border-b border-border bg-background shadow-md"
           >
-            {navItems.map(({ href, label, icon: Icon }, i) => (
-              <motion.div
-                key={href}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.06 + i * 0.04, duration: 0.18, ease: "easeOut" }}
-              >
+            {navItems.map(({ href, label }) => {
+              const active = location === href || (href !== "/studio" && location.startsWith(href));
+              return (
                 <Link
+                  key={href}
                   href={href}
                   onClick={() => setOpen(false)}
                   data-testid={`link-mobile-${label.toLowerCase().replaceAll(" ", "-")}`}
-                  className="flex items-center gap-3 border-t border-border px-5 py-4 text-xs uppercase tracking-widest hover:bg-secondary"
+                  className={[
+                    "block border-t border-border px-5 py-4",
+                    "font-mono-ui text-[10px] uppercase tracking-[.22em]",
+                    "transition-colors duration-150",
+                    "hover:bg-secondary focus-visible:outline-none focus-visible:bg-secondary",
+                    active ? "text-foreground" : "text-muted-foreground",
+                  ].join(" ")}
                 >
-                  <Icon size={14} />
                   {label}
                 </Link>
-              </motion.div>
-            ))}
-          </motion.div>
+              );
+            })}
+          </motion.nav>
         )}
       </AnimatePresence>
     </div>
@@ -206,7 +208,17 @@ function MobileNav() {
 }
 
 function Shell({ children }: { children: ReactNode }) {
-  return <div className="flex min-h-[100dvh] bg-background animate-fade-in"><Sidebar /><div className="min-w-0 flex-1"><MobileNav /><main className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">{children}</main></div></div>;
+  return (
+    <div className="flex min-h-[100dvh] bg-background animate-fade-in overflow-x-hidden">
+      <Sidebar />
+      <div className="min-w-0 flex-1 overflow-x-hidden">
+        <MobileNav />
+        <main className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12 overflow-x-hidden">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
 }
 
 function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; title: string; description?: string; action?: ReactNode }) {
@@ -594,9 +606,8 @@ function WorkflowStagePanel({
             {families.length === 0 && <p className="text-sm text-muted-foreground">Link ingredients to your library to see family breakdown.</p>}
           </div>
         )}
-        <div className="flex items-center justify-between border border-border bg-card p-5 gap-4">
-          <p className="text-sm text-muted-foreground">Open this formula in the Creative Lab for a deeper read on the structure.</p>
-          <Link href={`/coach?formula=${formula.id}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="link-wf-analyze-lab">Discuss in lab</Link>
+        <div className="border border-border bg-card px-5 py-3">
+          <p className="text-xs text-muted-foreground">Olfactive structure derived from current ingredients and linked material families.</p>
         </div>
       </motion.div>
     );
@@ -655,16 +666,15 @@ function WorkflowStagePanel({
 
           {!statusIsOk && (
             <div className="mt-5 border border-accent/30 bg-accent/10 px-4 py-4">
-              <p className="text-sm text-accent-foreground/80">This formula has items that need review. Open in the Creative Lab or edit the formula to adjust concentrations.</p>
+              <p className="text-sm text-accent-foreground/80">This formula has items that need review. Edit the formula to adjust concentrations.</p>
             </div>
           )}
           <p className="mt-5 font-mono-ui text-[8px] uppercase tracking-[.12em] leading-5 text-muted-foreground/60">
             Screening guidance only. Confirm the latest supplier documentation and current IFRA standards before production.
           </p>
         </div>
-        <div className="flex items-center justify-between border border-border bg-card p-5 gap-4">
-          <p className="text-sm text-muted-foreground">Use the Creative Lab to ask specific IFRA questions.</p>
-          <Link href={`/coach?formula=${formula.id}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="link-wf-check-lab">Ask in lab</Link>
+        <div className="border border-border bg-card px-5 py-3">
+          <p className="text-xs text-muted-foreground">Screening guidance only — confirm current IFRA standards and supplier documentation before production.</p>
         </div>
       </motion.div>
     );
@@ -717,7 +727,7 @@ function WorkflowStagePanel({
               </div>
             )}
             {Math.abs(totalPct - formula.concentration) <= 0.1 && !overFormulaIngredients.length && !unlinked.length && (
-              <p className="text-sm text-muted-foreground">No structural observations — the formula looks balanced. Open in the Creative Lab to explore further refinements.</p>
+              <p className="text-sm text-muted-foreground">No structural flags — the formula looks balanced at current proportions.</p>
             )}
           </div>
 
@@ -752,10 +762,8 @@ function WorkflowStagePanel({
             <p className="mt-4 font-mono-ui text-[8px] uppercase tracking-[.14em] leading-5 text-muted-foreground/60">Cost data is unavailable because supplier pricing and cost-per-gram are not currently tracked. No estimate has been substituted.</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3 border border-border bg-card p-5">
-          <button onClick={onEdit} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="button-wf-optimize-edit">Open Edit to revise</button>
-          <span className="text-muted-foreground/30">·</span>
-          <Link href={`/coach?formula=${formula.id}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Discuss in lab</Link>
+        <div className="border border-border bg-card p-5">
+          <button onClick={onEdit} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline" data-testid="button-wf-optimize-edit">Edit formula</button>
         </div>
       </motion.div>
     );
@@ -802,8 +810,7 @@ function WorkflowStagePanel({
             <p className="mt-3 text-sm text-muted-foreground">No changes recorded yet.</p>
           </div>
         )}
-        <div className="flex items-center justify-between border border-border bg-card p-5 gap-4">
-          <p className="text-sm text-muted-foreground">Advance the formula to the Resting or Approved stage when the record is complete.</p>
+        <div className="border border-border bg-card p-5">
           <button onClick={onEdit} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Update stage in Edit</button>
         </div>
       </motion.div>
@@ -989,10 +996,8 @@ function WorkflowStagePanel({
         </div>
         {formula.brief && <p className="mt-5 text-sm leading-6 text-muted-foreground">{formula.brief}</p>}
       </div>
-      <div className="flex flex-wrap items-center gap-3 border border-border bg-card p-5">
-        <button onClick={() => setLocation(`/formulas/${formula.id}?stage=formulate`)} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Continue to Formulate</button>
-        <span className="text-muted-foreground/30">·</span>
-        <Link href={`/coach?formula=${formula.id}`} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Discuss in Creative Lab</Link>
+      <div className="border border-border bg-card p-5">
+        <button onClick={() => setLocation(`/formulas/${formula.id}?stage=formulate`)} className="font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline">Open ingredient workspace →</button>
       </div>
     </motion.div>
   );
@@ -1272,7 +1277,7 @@ function MaterialHero({ material }: { material: Material }) {
       transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
       className="border-b border-border"
     >
-      <Link href="/materials" data-testid="link-material-hero">
+      <Link href={`/materials/${material.id}`} data-testid="link-material-hero">
         <div
           ref={cardRef}
           onMouseMove={onMove}
@@ -1477,7 +1482,7 @@ function Dashboard() {
               {[
                 { label: "Start with an idea", href: "/formulas/new", testId: "link-start-idea" },
                 { label: "Explore materials", href: "/materials", testId: "link-explore-materials" },
-                { label: "Learn how formulation works", href: "/coach", testId: "link-learn-formulation" },
+                { label: "Browse formula library", href: "/formulas", testId: "link-browse-formulas" },
               ].map(({ label, href, testId }, i) => (
                 <Link
                   key={href}
@@ -1543,7 +1548,7 @@ function Dashboard() {
           {[
             { label: "Materials", sub: `${summary.materialCount} in library`, href: "/materials", testId: "link-tool-materials" },
             { label: "IFRA", sub: summary.reviewCount > 0 ? `${summary.reviewCount} need review` : "Review formula safety", href: "/formulas?status=resting", testId: "link-tool-ifra" },
-            { label: "Learn", sub: "Formulation guidance", href: "/coach", testId: "link-tool-learn" },
+            { label: "Import", sub: "File drawer", href: "/files", testId: "link-tool-files" },
           ].map(({ label, sub, href, testId }, index) => (
             <Link
               key={href}
@@ -1628,7 +1633,7 @@ function Formulas() {
         description="The living record of what you've made, paused, and almost made."
         action={
           <div className="flex flex-wrap gap-2">
-            <Button href="/coach?attach=1" variant="outline" testId="button-library-analyze-file"><Paperclip size={13} /> Analyze a file</Button>
+            <Button href="/files" variant="outline" testId="button-library-import-file"><Paperclip size={13} /> Import file</Button>
             <Button href="/formulas/new" testId="button-library-new">New formula</Button>
           </div>
         }
@@ -2272,45 +2277,41 @@ const FAMILY_WASH: Record<string, { bg: string; img: string; pos: string }> = {
 };
 
 function MaterialCard({ material }: { material: Material }) {
-  const [expanded, setExpanded] = useState(false);
   const familyKey = normalizeMaterialFamilies(material.family)[0] ?? "";
   const wash = FAMILY_WASH[familyKey] ?? { bg: "bg-secondary", img: "botanicals.jpg", pos: "center" };
   return (
-    <article className="group relative border border-border bg-card overflow-hidden p-5" data-testid={`card-material-${material.id}`}>
-      {/* Tinted background image */}
-      <img
-        src={`${import.meta.env.BASE_URL}images/${wash.img}`}
-        alt=""
-        aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.12] mix-blend-multiply"
-        style={{ objectPosition: wash.pos }}
-      />
-      <div className="relative">
-        <div className="flex items-start justify-between gap-3">
-          <div className={`grid size-10 place-items-center ${wash.bg} text-foreground`}>
-            <Leaf size={18} strokeWidth={1.5} />
+    <Link href={`/materials/${material.id}`} data-testid={`card-material-${material.id}`}>
+      <article className="group relative border border-border bg-card overflow-hidden p-5 transition-colors hover:bg-secondary/20">
+        {/* Tinted background image */}
+        <img
+          src={`${import.meta.env.BASE_URL}images/${wash.img}`}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.12] mix-blend-multiply"
+          style={{ objectPosition: wash.pos }}
+        />
+        <div className="relative">
+          <div className="flex items-start justify-between gap-3">
+            <div className={`grid size-10 place-items-center ${wash.bg} text-foreground`}>
+              <Leaf size={18} strokeWidth={1.5} />
+            </div>
+            <StatusPill value={material.safetyStatus} />
           </div>
-          <StatusPill value={material.safetyStatus} />
-        </div>
-        <h3 className="mt-5 font-display text-2xl leading-none" data-testid={`text-material-name-${material.id}`}>{material.name}</h3>
-        <p className="mt-2 text-xs text-muted-foreground">{material.family} · {material.origin}</p>
-        <div className="mt-5 flex items-center justify-between border-t border-border pt-4 font-mono-ui text-[9px] uppercase tracking-[.11em] text-muted-foreground">
-          <span>IFRA {material.ifraLimit}%</span>
-          <span>{material.inStock ? "In stock" : "To source"}</span>
-        </div>
-        <button onClick={() => setExpanded(!expanded)} data-testid={`button-material-details-${material.id}`} className="mt-4 flex w-full items-center justify-between text-left text-[11px] uppercase tracking-widest text-foreground">
-          {expanded ? "Hide notes" : "Read usage notes"}
-          <ChevronDown size={14} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
-        </button>
-        {expanded && (
-          <div className="mt-3 border-t border-border pt-3 text-xs leading-5 text-muted-foreground animate-fade-in">
-            <p>{material.usageNotes}</p>
-            {material.allergens.length > 0 && <p className="mt-2 text-destructive">Allergens to note: {material.allergens.join(", ")}</p>}
-            <p className="mt-2 font-mono-ui text-[9px]">CAS {material.casNumber ?? "Not listed"}</p>
+          <h3 className="mt-5 font-display text-2xl leading-none" data-testid={`text-material-name-${material.id}`}>{material.name}</h3>
+          <p className="mt-2 text-xs text-muted-foreground">{material.family} · {material.origin}</p>
+          <div className="mt-5 flex items-center justify-between border-t border-border pt-4 font-mono-ui text-[9px] uppercase tracking-[.11em] text-muted-foreground">
+            <span>IFRA {material.ifraLimit}%</span>
+            <span>{material.inStock ? "In stock" : "To source"}</span>
           </div>
-        )}
-      </div>
-    </article>
+          {material.usageNotes && (
+            <p className="mt-3 text-xs leading-5 text-muted-foreground line-clamp-2">{material.usageNotes}</p>
+          )}
+          <p className="mt-3 font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/50">
+            Read more →
+          </p>
+        </div>
+      </article>
+    </Link>
   );
 }
 
@@ -3135,40 +3136,31 @@ function NewFormula() {
   return (
     <Shell>
       <PageHeader
-        eyebrow="New page · formula"
-        title="Make a beginning."
-        description="A formula is a hypothesis. Give it a clear brief, then let the materials answer back."
+        eyebrow="Formula lab · new"
+        title="Start here."
+        description="Name it, describe the intention, then build out the palette. Everything can be revised."
         action={<FormulaToolFileUpload testId="button-new-formula-upload-file" />}
       />
-      {/* Workflow — CONCEIVE and CREATE are the active stages on new formula */}
-      <WorkflowNav activeStage="create" completedStages={new Set<WorkflowStageId>(["conceive"])} compact />
-      <FormulaIdeaGenerator onSelect={(n, b, mats) => {
-        setName(n);
-        setBrief(b);
-        const rawIngs: FormulaIngredientInput[] = mats.map(mat => ({
-          materialId: 0,
-          materialName: mat.name,
-          percentage: mat.pct * (concentration / 100),
-          grams: parseFloat(((mat.pct / 100) * totalMl * (concentration / 100)).toFixed(3)),
-          dilution: 100,
-          role: mat.role,
-        }));
-        // Library is already fetched by this point — match immediately.
-        // Also reset the guard so the useEffect won't re-run a stale match.
-        blueprintMatchedRef.current = true;
-        setIngredients(matchBlueprintToLibrary(rawIngs, libraryMaterials));
-      }} />
       <form onSubmit={submit} className="mt-6 grid gap-6 lg:grid-cols-[.85fr_1.15fr]">
         <div className="space-y-5">
+          {/* Intention — always visible first */}
           <div className="border border-border bg-card p-6 sm:p-7">
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">The intention</p>
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Intention</p>
             <label className="mt-5 block text-xs font-medium">Name
               <input required value={name} onChange={e => setName(e.target.value)} data-testid="input-formula-name" className="mt-2 w-full border-b border-border bg-transparent py-3 font-display text-3xl outline-none placeholder:text-muted-foreground/45 focus:border-foreground" placeholder="A name with a little weather" />
             </label>
-            <label className="mt-7 block text-xs font-medium">Creative brief <span className="font-normal text-muted-foreground">(optional)</span>
-              <textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-28 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="What should this scent make possible?" />
+            <label className="mt-7 block text-xs font-medium">Brief <span className="font-normal text-muted-foreground">(optional)</span>
+              <textarea value={brief} onChange={e => setBrief(e.target.value)} data-testid="textarea-formula-brief" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="The feeling, the direction, the thing you're after." />
             </label>
-            <div className="mt-7 grid grid-cols-2 gap-4">
+            <label className="mt-7 block text-xs font-medium">Notes <span className="font-normal text-muted-foreground">(optional)</span>
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-20 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, what to try next." />
+            </label>
+          </div>
+
+          {/* Technical parameters — secondary */}
+          <div className="border border-border bg-card p-6">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">Technical</p>
+            <div className="mt-5 grid grid-cols-2 gap-4">
               <label className="text-xs font-medium">Concentration %
                 <input type="number" min="0" max="100" value={concentration} onChange={e => setConcentration(Number(e.target.value))} data-testid="input-formula-concentration" className="mt-2 w-full border border-border bg-secondary/45 px-3 py-3 text-sm outline-none focus:border-foreground/40" />
               </label>
@@ -3177,17 +3169,39 @@ function NewFormula() {
               </label>
             </div>
             <IfraCategoryPicker value={ifraCategory} onChange={setIfraCategory} testId="select-formula-ifra-category" />
-            <label className="mt-7 block text-xs font-medium">Notebook notes
-              <textarea value={notes} onChange={e => setNotes(e.target.value)} data-testid="textarea-formula-notes" className="mt-2 min-h-24 w-full resize-none border border-border bg-secondary/45 p-4 text-sm leading-6 outline-none focus:border-foreground/40" placeholder="Observations, references, things to remember..." />
-            </label>
           </div>
+
+          {/* AI idea generator — optional/contextual, revealed on demand */}
+          <details className="group border border-border">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4 font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground hover:text-foreground transition-colors select-none">
+              <span className="flex items-center gap-2"><Sparkles size={11} />Generate from a brief</span>
+              <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/60 group-open:hidden">Explore</span>
+              <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/60 hidden group-open:block">Close</span>
+            </summary>
+            <div className="border-t border-border">
+              <FormulaIdeaGenerator onSelect={(n, b, mats) => {
+                setName(n);
+                setBrief(b);
+                const rawIngs: FormulaIngredientInput[] = mats.map(mat => ({
+                  materialId: 0,
+                  materialName: mat.name,
+                  percentage: mat.pct * (concentration / 100),
+                  grams: parseFloat(((mat.pct / 100) * totalMl * (concentration / 100)).toFixed(3)),
+                  dilution: 100,
+                  role: mat.role,
+                }));
+                blueprintMatchedRef.current = true;
+                setIngredients(matchBlueprintToLibrary(rawIngs, libraryMaterials));
+              }} />
+            </div>
+          </details>
         </div>
         <div className="space-y-5">
           <IngredientBuilder ingredients={ingredients} setIngredients={setIngredients} totalMl={totalMl} concentration={concentration} />
           <div className="flex items-center justify-between border border-border bg-card p-5">
             <div>
-              <p className="font-display text-2xl">Keep it open.</p>
-              <p className="mt-1 text-xs text-muted-foreground">You can revise every field once it's in the library.</p>
+              <p className="font-display text-xl">Ready to save.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Every field can be revised after saving.</p>
             </div>
             <div className="flex items-center gap-2">
               <Button href="/formulas" variant="quiet" testId="button-cancel-new">Cancel</Button>
@@ -3314,7 +3328,6 @@ function FormulaDetail() {
         action={
           <div className="flex flex-wrap gap-2">
             <FormulaToolFileUpload testId="button-formula-upload-file" />
-            <Button href={`/coach?formula=${formula.id}`} variant="outline" testId="button-discuss-lab">Creative Lab ↗</Button>
             <Button onClick={begin} variant="outline" testId="button-edit-formula">Edit</Button>
             <Button onClick={destroy} variant="quiet" testId="button-delete-formula">Delete</Button>
           </div>
@@ -3345,35 +3358,11 @@ function FormulaDetail() {
         {/* Stage panel */}
         <div>
           {/* Stage header */}
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">
-                Step {String(currentIdx + 1).padStart(2, "0")} of {WORKFLOW_STAGES.length}
-              </p>
-              <h2 className="mt-0.5 font-display text-2xl">{WORKFLOW_STAGES[currentIdx]?.description}</h2>
-            </div>
-            <div className="flex items-center gap-1">
-              {prevStage && (
-                <button
-                  onClick={() => navigateToStage(prevStage.id)}
-                  data-testid="button-workflow-prev"
-                  className="grid size-8 place-items-center border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                  aria-label={`Previous: ${prevStage.label}`}
-                >
-                  <ArrowLeft size={13} />
-                </button>
-              )}
-              {nextStage && (
-                <button
-                  onClick={() => navigateToStage(nextStage.id)}
-                  data-testid="button-workflow-next"
-                  className="grid size-8 place-items-center border border-border bg-card text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                  aria-label={`Next: ${nextStage.label}`}
-                >
-                  <ArrowRight size={13} />
-                </button>
-              )}
-            </div>
+          <div className="mb-4">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">
+              {WORKFLOW_STAGES.find(s => s.id === activeStage)?.label}
+            </p>
+            <h2 className="mt-0.5 font-display text-2xl">{WORKFLOW_STAGES[currentIdx]?.description}</h2>
           </div>
 
           {/* Stage content */}
@@ -3393,9 +3382,8 @@ function FormulaDetail() {
         <aside className="space-y-4">
           {/* Quick actions */}
           <div className="border border-border bg-card p-5">
-            <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-4">Quick actions</p>
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-4">Actions</p>
             <div className="space-y-2">
-              <Button href={`/coach?formula=${formula.id}`} variant="outline" testId="button-formula-to-lab">Open in Creative Lab</Button>
               <Button onClick={begin} variant="outline" testId="button-formula-edit-sidebar">Edit formula</Button>
             </div>
           </div>
@@ -5010,6 +4998,20 @@ function Landing() {
   );
 }
 
+// ─── New page imports ─────────────────────────────────────────────────────────
+import { Studio } from "./pages/Studio";
+import { Projects } from "./pages/Projects";
+import { ProjectWorkspace } from "./pages/ProjectWorkspace";
+import { Inspiration } from "./pages/Inspiration";
+import { MaterialDetail } from "./pages/MaterialDetail";
+
+// Thin shell wrappers (keep Shell in sillage.tsx for Sidebar/MobileNav access)
+function StudioPage() { return <Studio />; }
+function ProjectsPage() { return <Projects />; }
+function ProjectWorkspacePage() { return <ProjectWorkspace />; }
+function InspirationPage() { return <Inspiration />; }
+function MaterialDetailPage() { return <MaterialDetail />; }
+
 function Protected({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return <div className="grid min-h-[100dvh] place-items-center bg-background"><Skeleton className="h-8 w-32" /></div>;
@@ -5026,10 +5028,13 @@ function NotFoundView() {
 
 export function SillageApp() {
   return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={{ theme: experimental__simple, options: { logoPlacement: "inside", logoLinkUrl: basePath || "/", logoImageUrl: `${window.location.origin}${basePath}/logo.svg` }, variables: { colorPrimary: "hsl(0 0% 7%)", colorForeground: "hsl(0 0% 7%)", colorMutedForeground: "hsl(0 0% 45%)", colorBackground: "hsl(0 0% 100%)", colorInput: "hsl(0 0% 94%)", colorInputForeground: "hsl(0 0% 7%)", colorDanger: "hsl(0 58% 48%)", colorNeutral: "hsl(0 0% 86%)", fontFamily: "Inter", borderRadius: "0rem" }, elements: { cardBox: "bg-card border border-border w-[440px] max-w-full", card: "!shadow-none !border-0 !bg-transparent", footer: "!shadow-none !border-0 !bg-transparent", headerTitle: "text-foreground font-medium", headerSubtitle: "text-muted-foreground", formFieldLabel: "text-foreground", formFieldInput: "bg-secondary text-foreground border border-border", formButtonPrimary: "bg-primary text-primary-foreground hover:opacity-80 rounded-none uppercase tracking-widest text-[11px]", footerActionLink: "text-foreground underline", socialButtonsBlockButtonText: "text-foreground", socialButtonsBlockButton__google: "!hidden", dividerRow: "!hidden", dividerText: "text-muted-foreground", footerActionText: "text-muted-foreground" } }} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{ signIn: { start: { title: "Return to the studio", subtitle: "Your next idea is still on the page." } }, signUp: { start: { title: "Open your studio", subtitle: "A place for the work between first thought and final blotter." } } }}>
-    <QueryClientProvider client={queryClient}><WouterRouter base={basePath}><Switch><Route path="/sign-in/*?" component={() => <AuthPage kind="in" />} /><Route path="/sign-up/*?" component={() => <AuthPage kind="up" />} /><Route path="/"><HomeRedirect /></Route><Route path="/dashboard"><Protected><Dashboard /></Protected></Route><Route path="/formulas/new"><Protected><NewFormula /></Protected></Route><Route path="/formulas/:id"><Protected><FormulaDetail /></Protected></Route><Route path="/formulas"><Protected><Formulas /></Protected></Route><Route path="/materials"><Protected><Materials /></Protected></Route><Route path="/files"><Protected><FileDrawer /></Protected></Route><Route path="/coach"><Protected><Coach /></Protected></Route><Route path="/shop"><Protected><Shop /></Protected></Route><Route><NotFoundView /></Route></Switch></WouterRouter></QueryClientProvider>
+    <QueryClientProvider client={queryClient}><WouterRouter base={basePath}><Switch><Route path="/sign-in/*?" component={() => <AuthPage kind="in" />} /><Route path="/sign-up/*?" component={() => <AuthPage kind="up" />} /><Route path="/"><HomeRedirect /></Route><Route path="/dashboard"><Redirect to="/studio" /></Route><Route path="/studio"><Protected><Shell><StudioPage /></Shell></Protected></Route><Route path="/projects/:id/inspiration"><Protected><Shell><InspirationPage /></Shell></Protected></Route><Route path="/projects/:id"><Protected><Shell><ProjectWorkspacePage /></Shell></Protected></Route><Route path="/projects"><Protected><Shell><ProjectsPage /></Shell></Protected></Route><Route path="/formulas/new"><Protected><NewFormula /></Protected></Route><Route path="/formulas/:id"><Protected><FormulaDetail /></Protected></Route><Route path="/formulas"><Protected><Formulas /></Protected></Route><Route path="/materials/:id"><Protected><Shell><MaterialDetailPage /></Shell></Protected></Route><Route path="/materials"><Protected><Materials /></Protected></Route><Route path="/files"><Protected><FileDrawer /></Protected></Route><Route path="/coach"><Protected><Coach /></Protected></Route><Route path="/shop"><Protected><Shop /></Protected></Route><Route><NotFoundView /></Route></Switch></WouterRouter></QueryClientProvider>
   </ClerkProvider>;
 }
 
 function HomeRedirect() {
+  const { isLoaded, isSignedIn } = useAuth();
+  if (!isLoaded) return null;
+  if (isSignedIn) return <Redirect to="/studio" />;
   return <Landing />;
 }

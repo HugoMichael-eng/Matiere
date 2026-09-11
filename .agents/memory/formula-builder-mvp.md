@@ -1,10 +1,10 @@
 ---
-name: Formula Builder MVP
-description: Product-priority decision for the core Matière experience.
+name: Project-centered formula workspace
+description: Product-priority decision for Matière's project container and reliable formula core.
 ---
 
-Make the Formula Builder the center of the Matière MVP. The essential loop is creating, revising, and retrieving a private formula without assistance. The material library and revision history support that loop; AI suggestions are optional starting points, not the product’s primary value.
+Treat a fragrance Project as Matière's main creative container: inspiration, notes, materials, formulas, mods, evaluations, and AI conversations belong around the project. Within that container, reliable private formula creation, revision, and retrieval remains the core functional loop. AI stays optional and contextual.
 
-**Why:** The product needs to prove that independent perfumers can reliably manage real formula work before expanding into more features.
+**Why:** The Studio should feel like reopening an artist's workspace, not a formula generator or reporting dashboard, while still proving that independent perfumers can trust it with real formula work.
 
-**How to apply:** Prioritize Formula Builder usability, formula privacy, revision integrity, and retrieval in product and engineering tradeoffs. Evaluate new features by whether they strengthen that loop.
+**How to apply:** Organize navigation and continuation states around projects. Keep formula privacy, percentage semantics, revision integrity, and retrieval non-negotiable. Use AI for inspectable suggestions, never automatic edits.

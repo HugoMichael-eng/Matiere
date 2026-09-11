@@ -1,0 +1,637 @@
+We are redesigning an existing fragrance formulation application from the ground up.
+
+For now, use the working product name MATIÈRE, but build the interface so the brand name can easily be changed later.
+
+This is NOT simply a visual redesign. The product direction has changed substantially, so I want you to rethink the information architecture, navigation, hierarchy, and core user experience.
+
+PRODUCT VISION
+
+MATIÈRE should become an intelligent creative workspace for fragrance creation.
+
+Think of it as a creative operating system for perfumers: a place where someone can begin with an idea, visual reference, memory, material, text, accord, or formula and gradually develop it into a finished fragrance.
+
+The current product feels too much like a technical “formula coach.”
+
+We are moving away from that idea.
+
+AI should not feel like a teacher hovering over the user or constantly telling them what to do. It should behave more like an intelligent creative collaborator embedded throughout the workspace.
+
+The product should sit at the intersection of:
+
+* perfumery
+* creative direction
+* formulation
+* visual research
+* material intelligence
+* experimentation
+* documentation
+* AI-assisted ideation
+* technical fragrance knowledge
+
+The emotional experience should be closer to using sophisticated creative software than laboratory management software.
+
+⸻
+
+WHO WE ARE DESIGNING FOR
+
+The initial users are primarily:
+
+* independent perfumers
+* emerging perfumers
+* self-taught perfumers
+* fragrance creators
+* creative professionals experimenting seriously with scent
+* small fragrance studios
+* eventually professional perfumers and fragrance houses
+
+The interface must be powerful enough that an experienced perfumer does not find it simplistic, while being approachable enough that a newer perfumer does not feel intimidated.
+
+Do NOT make the application feel like chemistry software.
+
+Do NOT make it feel like a beginner fragrance game either.
+
+It should feel professional, intelligent, artistic, calm and extremely considered.
+
+⸻
+
+CORE PRODUCT PRINCIPLE
+
+The application should follow the actual creative process:
+
+Idea → Research → Olfactive Direction → Materials → Formula → Mods → Evaluation → Refinement → Final Formula
+
+But users should never be forced into a rigid step-by-step wizard.
+
+Fragrance development is nonlinear.
+
+A perfumer may jump from a formula back to an image, change a material, write a note, create another mod, revisit the brief, or ask AI to analyze a direction.
+
+Design the product accordingly.
+
+⸻
+
+PRIMARY APP ARCHITECTURE
+
+For this first redesign, restructure the application around five major areas.
+
+1. STUDIO
+
+This is the user’s home.
+
+It should immediately communicate that this is a creative workspace, not an analytics dashboard.
+
+Show things such as:
+
+* active fragrance projects
+* recently edited formulas
+* recent experiments / mods
+* saved inspiration
+* recent notes
+* materials recently explored
+* project activity
+* quick creation actions
+
+Possible primary actions:
+
+* New Project
+* New Formula
+* Add Inspiration
+* Add Note
+
+Avoid filling the home screen with generic KPI cards and graphs.
+
+The Studio should feel alive with the user’s actual creative work.
+
+⸻
+
+2. PROJECTS
+
+A fragrance should exist as a Project, not simply as a formula.
+
+Each project becomes the central container for the entire creative process.
+
+A project may contain:
+
+Overview
+
+Project name
+Status
+Short description
+Olfactive direction
+Creation date
+Last edited
+
+Creative Brief
+
+A written creative intention for the fragrance.
+
+Moodboard / Inspiration
+
+Users should be able to collect:
+
+* images
+* video
+* uploaded references
+* colors
+* textures
+* architecture
+* objects
+* fashion references
+* artwork
+* screenshots
+* text
+* quotations
+* notes
+* links
+
+This should feel closer to a sophisticated creative moodboard than a file attachment list.
+
+AI will eventually be capable of interpreting these references and suggesting olfactive directions, materials, contrasts, textures, structures or ideas.
+
+Notes
+
+A flexible notebook for observations, ideas, trials, evaluation notes and random thoughts.
+
+Materials
+
+Materials associated with the project.
+
+Formulas
+
+All formulas associated with the project.
+
+Mods / Versions
+
+Formula iterations should be extremely important.
+
+For example:
+
+MOD 01
+MOD 02
+MOD 03
+MOD 04
+
+Users need to be able to see how the fragrance evolves.
+
+Evaluation
+
+Allow the perfumer to record impressions after smelling a mod.
+
+Examples:
+
+Opening
+15 min
+1 hour
+4 hours
+Drydown
+Overall impression
+What works
+What needs adjustment
+
+⸻
+
+3. FORMULA LAB
+
+This is the serious formulation environment.
+
+It should feel highly functional but visually calm.
+
+A formula could include:
+
+Material
+Percentage
+Weight
+Dilution
+Role / facet
+Notes
+
+Important capabilities to anticipate in the interface:
+
+* total percentage
+* gram calculations
+* concentrate calculations
+* dilution calculations
+* add / remove materials
+* drag or reorder materials
+* formula versions
+* duplicate as new mod
+* compare formulas
+* highlight what changed between versions
+* personal notes
+* AI analysis
+* substitutions
+* technical warnings
+* IFRA / regulatory information
+* cost information later
+* supplier information later
+
+Do NOT overcrowd the Formula Lab with every future feature immediately.
+
+Create a strong hierarchy where formulation itself remains the focus.
+
+⸻
+
+4. MATERIALS LIBRARY
+
+Materials should not feel like rows in a chemical database.
+
+Each material should eventually become a rich knowledge object.
+
+A material profile can contain:
+
+Material name
+Common name
+CAS number
+Supplier
+Type
+Natural / synthetic
+Odor family
+Odor description
+Strength / impact
+Typical dosage
+Technical information
+IFRA information
+Personal notes
+Favorite status
+Formulas containing this material
+Projects using this material
+Possible substitutions
+Related materials
+Possible pairings
+
+We also want AI eventually to help users discover materials through natural creative language.
+
+For example:
+
+“something cold and metallic”
+
+“dry transparent wood”
+
+“green but not leafy”
+
+“mineral and slightly salty”
+
+“something that adds lift without smelling obviously citrus”
+
+The Materials area should therefore visually balance scientific information with sensory and creative language.
+
+⸻
+
+5. AI CREATIVE LAYER
+
+Do NOT create a giant chatbot as the center of the application.
+
+AI should be integrated contextually throughout the product.
+
+Examples:
+
+Inside a moodboard:
+Interpret this direction
+
+Inside Materials:
+Suggest materials for this idea
+
+Inside Formula Lab:
+Analyze this formula
+
+Inside a formula comparison:
+Explain the effect of these changes
+
+Inside project notes:
+Develop this idea
+
+AI interactions should understand where the user currently is and what they are working on.
+
+Possible user requests:
+
+“What materials could express this texture?”
+
+“Make this direction colder and more mineral.”
+
+“This accord feels too dense. What could be causing it?”
+
+“Compare MOD 04 and MOD 07.”
+
+“What changed structurally?”
+
+“What am I losing if I reduce Hedione?”
+
+“Suggest three ways to create more diffusion without making this sweeter.”
+
+“Turn this moodboard into an olfactive direction.”
+
+The AI should feel like an intelligent collaborator, not an authority.
+
+Avoid language such as:
+
+“Your coach recommends…”
+
+“You should…”
+
+“Correct formula…”
+
+“Perfect formula…”
+
+Prefer language such as:
+
+“Explore”
+
+“Consider”
+
+“Possible direction”
+
+“One interpretation”
+
+“Material ideas”
+
+“Structural observation”
+
+⸻
+
+FUTURE COMMERCE LAYER
+
+We believe there is an opportunity to eventually connect the Materials Library with suppliers and purchasing.
+
+This could ultimately allow users to:
+
+* discover a material
+* understand it
+* use it in a formula
+* see available suppliers
+* purchase it
+
+However, DO NOT turn the application into an e-commerce store in this first redesign.
+
+Commerce should remain a future extension of the Materials ecosystem, not the primary product experience.
+
+Design the architecture so this can be added later without redesigning the entire application.
+
+⸻
+
+NAVIGATION
+
+Create a very simple primary navigation.
+
+Start with:
+
+STUDIO
+PROJECTS
+FORMULAS
+MATERIALS
+
+AI does not necessarily need to be a primary navigation item because it should exist throughout the product.
+
+Secondary utility navigation can include:
+
+Search
+Notifications if needed later
+Account / Settings
+
+Do not create excessive navigation categories.
+
+⸻
+
+PROJECT WORKSPACE
+
+The Project Workspace is probably the most important new screen.
+
+Design a project page where someone could genuinely spend hours developing a fragrance.
+
+Suggested project navigation:
+
+Overview
+Inspiration
+Notes
+Materials
+Formulas
+Mods
+Evaluation
+
+However, explore whether some of these should be combined so the interface remains elegant.
+
+The workspace should make it easy to move between the conceptual and technical sides of fragrance creation.
+
+For example:
+
+A moodboard image could inspire a material.
+
+A material could be added directly to a formula.
+
+A formula could become a new mod.
+
+A mod could receive an evaluation note.
+
+An evaluation could lead to an AI suggestion.
+
+Everything should feel connected.
+
+⸻
+
+VISUAL DIRECTION
+
+The visual identity is extremely important.
+
+Avoid the visual language of:
+
+* SaaS dashboards
+* medical software
+* chemistry software
+* generic AI startups
+* neon gradients
+* purple AI branding
+* excessive rounded cards
+* cartoon illustrations
+* glassmorphism
+* gamification
+* futuristic sci-fi laboratory interfaces
+
+I want a sophisticated creative-tool aesthetic influenced by:
+
+* contemporary editorial design
+* architecture
+* industrial design
+* fashion
+* modernist graphic design
+* artist studios
+* high-end creative software
+
+The interface should feel:
+
+quiet
+precise
+editorial
+spacious
+intelligent
+tactile
+minimal
+professional
+creative
+slightly experimental
+
+Use typography, whitespace, proportion, hierarchy and grid structure as the main visual tools.
+
+Do not rely on decoration.
+
+⸻
+
+COLOR
+
+Start primarily neutral.
+
+Use a restrained palette such as:
+
+warm white / off-white
+soft grey
+charcoal / near-black
+subtle borders
+
+Accent color should be used sparingly and intentionally.
+
+Avoid making everything pure white with generic grey SaaS cards.
+
+Create depth through hierarchy, spacing, typography and subtle surface changes instead.
+
+⸻
+
+TYPOGRAPHY
+
+Typography should be a major part of the identity.
+
+Aim for an editorial / design-oriented feeling rather than a typical startup dashboard.
+
+Use strong typographic hierarchy.
+
+Large project titles can feel almost editorial.
+
+Technical information should remain extremely legible.
+
+Labels should be restrained and precise.
+
+Avoid excessive bold type.
+
+⸻
+
+CARDS AND CONTAINERS
+
+Avoid putting every element inside a rounded rectangle.
+
+Use cards only where a true object needs containment.
+
+Use:
+
+dividers
+spacing
+columns
+grids
+typographic hierarchy
+subtle surface changes
+
+to organize information.
+
+The application should breathe.
+
+⸻
+
+INTERACTION PRINCIPLES
+
+Prioritize:
+
+1. Direct manipulation
+2. Contextual actions
+3. Minimal modal windows
+4. Progressive disclosure
+5. Fast movement between creative and technical information
+6. Clear version history
+7. Drag-and-drop where useful
+8. Persistent context
+9. Very little visual noise
+
+The application should reward exploration.
+
+⸻
+
+IMPORTANT PRODUCT LANGUAGE CHANGE
+
+Remove the concept of Formula Coach.
+
+We are intentionally abandoning that positioning.
+
+Do not replace it with another cute AI assistant name.
+
+AI is infrastructure inside the creative environment.
+
+The human perfumer remains the author.
+
+The software augments the user’s thinking rather than pretending to create the fragrance for them.
+
+⸻
+
+FIRST IMPLEMENTATION
+
+For this first redesign pass, concentrate on establishing the new product foundation rather than attempting to build every feature.
+
+Please create:
+
+1. The new global application shell/navigation
+2. The redesigned Studio home
+3. Projects index
+4. A representative Project Workspace
+5. Inspiration / Moodboard view
+6. Formula Lab view
+7. Materials Library view
+8. A representative Material Detail view
+9. Contextual AI interaction patterns
+10. Responsive behavior and reusable design system/components
+
+Use realistic fragrance-related mock data so the experience feels believable.
+
+Do not use generic placeholder content such as:
+
+“Project 1”
+“Lorem ipsum”
+“Ingredient A”
+
+Use realistic examples of perfume materials, mods, project names and creative notes.
+
+⸻
+
+DESIGN SYSTEM
+
+Create reusable components and establish consistent rules for:
+
+Navigation
+Typography
+Spacing
+Buttons
+Inputs
+Tables
+Material rows
+Formula rows
+Project cards
+Moodboard objects
+Notes
+Tags
+Status indicators
+AI actions
+Side panels
+Context menus
+
+Keep the design system restrained rather than creating dozens of component styles.
+
+⸻
+
+IMPORTANT
+
+Before adding more features, prioritize making the core product experience coherent.
+
+I would rather have fewer screens that feel exceptional than dozens of mediocre features.
+
+The user should understand within seconds:
+
+This is where I develop fragrances.
+
+The product should make the transition between inspiration and formulation feel uniquely fluid.
+
+That relationship between creative idea + material intelligence + formula development is the heart of MATIÈRE.
+
+Please redesign the app accordingly and establish this as the foundation we can iterate on screen by screen afterward.

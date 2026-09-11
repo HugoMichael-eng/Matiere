@@ -1,0 +1,298 @@
+Refine the current MATIÈRE Studio homepage before building additional screens.
+
+The current visual direction is promising. Preserve the restrained editorial aesthetic, typography, black hero section, thin dividers, monochrome palette and generous spacing.
+
+Do NOT redesign it into a conventional SaaS dashboard.
+
+The goal of this pass is to improve hierarchy, mobile behavior and product logic.
+
+1. SHIFT THE HOMEPAGE FROM FORMULA-CENTRIC TO PROJECT-CENTRIC
+
+MATIÈRE is no longer primarily a formula generator.
+
+A fragrance PROJECT is the main creative container and may include:
+
+* inspiration
+* moodboards
+* notes
+* materials
+* formulas
+* mods
+* evaluations
+* AI conversations
+
+Therefore, change the primary homepage continuation state from:
+
+“1 FORMULA IN PROGRESS”
+
+to something more project-oriented, such as:
+
+CONTINUE WORKING
+
+Animal in the Mirror
+MOD 02 · Last edited today
+
+CONTINUE →
+
+The homepage should feel like returning to an artist’s workspace rather than opening formulation software.
+
+⸻
+
+2. SIMPLIFY THE STUDIO HOMEPAGE
+
+The homepage currently becomes too dashboard-like below the hero.
+
+Simplify the entire page into four primary areas:
+
+A. CONTINUE WORKING
+
+The dominant hero area.
+
+Show the most recently active fragrance project and enough contextual information to make the user immediately want to re-enter it.
+
+Example:
+
+ANIMAL IN THE MIRROR
+
+A moment of self-recognition becomes stranger and more magnetic.
+
+MOD 02 · Active
+
+CONTINUE →
+
+Do not overload this area.
+
+⸻
+
+B. ACTIVE PROJECTS
+
+Show active fragrance projects in an elegant editorial list.
+
+Each project may show:
+
+Project name
+Very short olfactive direction
+Current mod or project stage
+Last edited date
+
+Example:
+
+SEL GRIS
+Marine mineral · warm skin · driftwood
+MOD 05 · Yesterday
+
+LAIT VERT
+Violet leaf · milky skin · transparent woods
+MOD 02 · 3 days ago
+
+Avoid conventional rounded cards.
+
+Use typography, spacing, alignment and thin rules.
+
+The whole row should be tappable.
+
+⸻
+
+C. RECENT WORK
+
+Replace generic “Recent Activity” with Recent Work.
+
+This should surface objects the perfumer actually interacted with recently.
+
+For example:
+
+MOD 05 — Sel Gris
+Formula adjusted · 12 materials changed
+
+Inspiration — Lait Vert
+3 images added
+
+Evaluation — Animal in the Mirror
+4-hour evaluation added
+
+Sandalore
+Material note updated
+
+This should communicate that the application contains many interconnected types of creative work, not just formulas.
+
+⸻
+
+D. QUICK CREATE
+
+Move Quick Actions lower on the page and make them secondary.
+
+Rename this section:
+
+QUICK CREATE
+
+Possible actions:
+
+* New Project
+* New Formula
+* Add Inspiration
+* New Note
+
+Do not make these large cards.
+
+Simple editorial text actions or restrained buttons are preferable.
+
+⸻
+
+3. REMOVE DASHBOARD METRICS FROM THE HOMEPAGE
+
+Remove the current Library metric cards such as:
+
+1 FORMULAS
+33 MATERIALS
+
+These numbers do not help the creative workflow and make the page feel like software analytics.
+
+Materials and formulas can be accessed through navigation.
+
+If library statistics are ever needed, they can live inside those respective areas.
+
+⸻
+
+4. FIX MOBILE OVERFLOW COMPLETELY
+
+The current mobile build has horizontal overflow.
+
+Nothing on the Studio homepage should extend outside the viewport.
+
+There must be:
+
+* no horizontal scrollbar
+* no clipped cards
+* no text pushing the layout wider than the device
+* no fixed-width desktop components on mobile
+
+Use responsive widths based on the viewport.
+
+All content should fit naturally within the screen padding.
+
+Long text should wrap intentionally.
+
+Test specifically around a 390px–430px wide mobile viewport.
+
+⸻
+
+5. IMPROVE MOBILE SPACING
+
+The mobile page currently becomes very tall because several sections contain excessive vertical whitespace.
+
+Maintain the premium spacious feeling, but reduce empty vertical gaps.
+
+The page should feel deliberate, not sparse for the sake of sparsity.
+
+Establish a consistent spacing rhythm between:
+
+section heading
+content
+divider
+next section
+
+⸻
+
+6. HERO AREA
+
+Keep the black hero section.
+
+This is a strong piece of the visual identity.
+
+However, refine it so it feels like a creative workspace rather than a marketing landing page.
+
+The greeting can remain:
+
+Good afternoon.
+
+But MATIÈRE does not need to appear twice immediately underneath the navigation and inside the hero unless the second use serves a clear purpose.
+
+Reduce redundant branding.
+
+The important hierarchy should be:
+
+Greeting
+Current work
+Continue action
+
+⸻
+
+7. TYPOGRAPHIC SYSTEM
+
+Preserve the existing contrast between:
+
+* expressive / clean sans-serif typography for major titles
+* monospaced typography for metadata, labels and technical information
+
+Use the monospace font carefully.
+
+It should communicate:
+
+technical detail
+metadata
+formula information
+status
+
+Do not use it so extensively that the entire application begins to look like a developer console.
+
+Project names and creative descriptions should primarily use the main sans-serif.
+
+⸻
+
+8. NAVIGATION
+
+The mobile menu can remain behind the hamburger for now.
+
+Primary product architecture remains:
+
+STUDIO
+PROJECTS
+FORMULAS
+MATERIALS
+
+When the mobile navigation opens, present these simply and confidently.
+
+Do not add unnecessary icons.
+
+⸻
+
+9. INTERACTION DETAILS
+
+Make the interface feel tactile and responsive.
+
+Add subtle states for:
+
+hover
+tap
+focus
+active rows
+
+Rows should not jump or dramatically change color.
+
+Use subtle opacity, underline, border movement or background shifts.
+
+Keep interactions quiet.
+
+⸻
+
+10. IMPORTANT DESIGN PRINCIPLE
+
+The Studio is not a reporting dashboard.
+
+It is the front door into a creative practice.
+
+When the perfumer opens MATIÈRE, the product should answer:
+
+“What was I working on?”
+
+“What do I want to continue?”
+
+“What else is alive in my studio?”
+
+Avoid answering questions like:
+
+“How many database records do I have?”
+
+The experience should feel closer to reopening a sketchbook, studio table or creative project environment than checking business software.
+
+Please refine the existing Studio homepage according to these principles while preserving the current visual language.
