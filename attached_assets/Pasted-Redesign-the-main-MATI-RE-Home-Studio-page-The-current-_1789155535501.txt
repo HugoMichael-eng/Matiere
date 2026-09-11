@@ -1,0 +1,323 @@
+Redesign the main MATIÈRE Home / Studio page.
+
+The current homepage is visually strong, but it still feels slightly too functional and list-based. The new Home should feel more like the front door to a creative perfume studio.
+
+MATIÈRE is an intelligent creative workspace for fragrance development. The homepage should immediately connect:
+
+* active fragrance projects
+* current creative direction
+* visual inspiration
+* formula development
+* notes
+* evaluations
+* materials
+* recent creative activity
+
+Do NOT redesign this as a SaaS dashboard.
+
+Do NOT introduce analytics cards, graphs, KPI blocks, productivity metrics, or generic software widgets.
+
+Preserve the existing MATIÈRE visual language:
+
+* editorial
+* restrained
+* monochrome
+* off-white, black and charcoal
+* strong typography
+* thin dividers
+* mono metadata
+* minimal iconography
+* generous but controlled whitespace
+* almost no rounded cards
+
+The emotional goal is:
+
+Opening MATIÈRE should feel like returning to your studio table and immediately reconnecting with what you were creating.
+
+⸻
+
+1. CURRENT FOCUS
+
+Keep a strong opening hero section.
+
+Use the project Lait Vert as the current focus.
+
+Suggested content:
+
+GOOD AFTERNOON.
+
+CURRENT FOCUS
+
+LAIT VERT
+
+Green · violet leaf · milky skin · transparent
+
+A green floral built around violet leaf absolute and galbanum, with a milky-skin base from Hedione and Cashmeran. Clean and quiet.
+
+MOD 02 · ACTIVE · LAST EDITED TODAY
+
+CONTINUE PROJECT →
+
+The hero can remain black / dark.
+
+Keep it quiet, spacious and editorial.
+
+Do not overload it with controls.
+
+If you introduce imagery in the hero, use only a very subtle project texture or cropped inspiration image.
+
+⸻
+
+2. PROJECTS IN MOTION
+
+Rename “Active Projects” to:
+
+PROJECTS IN MOTION
+
+Show 2–4 active projects.
+
+Examples:
+
+LAIT VERT
+Green · violet leaf · milky skin · transparent
+MOD 02 · Today
+
+SEL GRIS
+Marine mineral · warm skin · driftwood
+MOD 04 · Jan 13
+
+ANIMAL IN THE MIRROR
+Skin · fur · polished wood · animalic warmth
+MOD 02 · Jan 11
+
+Use elegant editorial rows, not conventional cards.
+
+The whole row should be tappable.
+
+Include:
+
+VIEW ALL PROJECTS →
+
+⸻
+
+3. INSPIRATION
+
+Add a highly visual section directly on the homepage.
+
+This is important because it should immediately communicate that MATIÈRE is not only formulation software.
+
+Use:
+
+INSPIRATION
+
+Show recent visual references across active projects in a compact masonry-style composition.
+
+Examples:
+
+* wet violet leaves
+* translucent pale-green glass
+* diffused light on skin
+* brutalist concrete
+* pale fabric
+* a marine horizon
+* a handwritten text fragment
+* a fragrance material reference
+
+Images should dominate.
+
+Use minimal metadata.
+
+Where needed, include a subtle project label such as:
+
+LAIT VERT
+SEL GRIS
+
+On tap, open the reference inside its project moodboard.
+
+Include:
+
+OPEN MOODBOARDS →
+
+Do not make this look like Instagram or a social feed.
+
+No likes, comments, follower mechanics or social UI.
+
+⸻
+
+4. RECENT WORK
+
+Keep a section called:
+
+RECENT WORK
+
+This should surface different types of creative activity.
+
+Make the object type clear using restrained mono labels.
+
+Example:
+
+MOD
+
+MOD 02
+Lait Vert
+Formula adjusted · Today
+
+⸻
+
+MATERIAL
+
+Violet Leaf Absolute
+Note updated · Jan 17
+
+⸻
+
+EVALUATION
+
+MOD 04
+Sel Gris
+4-hour evaluation added · Jan 13
+
+⸻
+
+INSPIRATION
+
+Lait Vert
+3 references added · Jan 12
+
+Avoid icons unless necessary.
+
+Use typography and spacing to create hierarchy.
+
+⸻
+
+5. QUICK CREATE
+
+Keep this secondary and lower on the page.
+
+Use:
+
+QUICK CREATE
+
+* New Project
+* New Formula
+* Add Inspiration
+* New Note
+
+Do not use large filled buttons.
+
+Keep these as restrained text actions.
+
+⸻
+
+6. REMOVE NON-CREATIVE METRICS
+
+Do not show:
+
+* total formulas
+* total materials
+* total projects
+* completion percentages
+* productivity metrics
+* activity graphs
+* analytics
+
+These do not support the creative experience.
+
+⸻
+
+7. VISUAL RHYTHM
+
+The page should alternate between text-heavy and image-heavy sections.
+
+Suggested sequence:
+
+DARK CURRENT FOCUS HERO
+
+↓
+
+PROJECTS IN MOTION
+
+↓
+
+VISUAL INSPIRATION
+
+↓
+
+RECENT WORK
+
+↓
+
+QUICK CREATE
+
+This rhythm should make the Home feel like a creative environment, not a long administrative list.
+
+⸻
+
+8. MOBILE
+
+Design mobile-first.
+
+On mobile:
+
+* Current Focus
+* Projects in Motion
+* Inspiration
+* Recent Work
+* Quick Create
+
+For Inspiration, use a compact 2-column masonry layout with occasional full-width elements.
+
+There must be no horizontal page overflow.
+
+Keep section spacing generous but not excessive.
+
+Avoid oversized empty gaps.
+
+Tap targets must remain comfortable.
+
+⸻
+
+9. DESKTOP
+
+Do not simply stretch the mobile layout.
+
+Use horizontal space intelligently.
+
+The Home should feel like a creative studio wall.
+
+Possible desktop composition:
+
+* large Current Focus area
+* Inspiration preview nearby or directly below
+* wide editorial project list
+* recent work arranged with stronger horizontal rhythm
+
+Keep the layout calm and sophisticated.
+
+⸻
+
+10. CORE PRINCIPLE
+
+The homepage should answer:
+
+What am I developing?
+
+What projects are alive?
+
+What has been inspiring me?
+
+What did I work on recently?
+
+What do I want to create next?
+
+It should NOT answer:
+
+How many database records do I have?
+
+How productive have I been?
+
+This is not productivity software.
+
+This is a creative fragrance workspace.
+
+Build the MATIÈRE Home page around that principle.

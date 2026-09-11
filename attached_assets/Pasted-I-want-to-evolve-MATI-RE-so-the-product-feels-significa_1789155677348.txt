@@ -1,0 +1,584 @@
+I want to evolve MATIÈRE so the product feels significantly more immersive, while preserving the restraint, editorial sophistication and usability of the current direction.
+
+Immersive does NOT mean:
+
+* more gradients
+* flashy animation
+* excessive effects
+* gaming aesthetics
+* sci-fi interfaces
+* constant motion
+* visual clutter
+
+For MATIÈRE, immersion should mean:
+
+the user feels progressively drawn into the creative world of the fragrance they are developing.
+
+The product should feel less like navigating software and more like entering and moving through a creative environment.
+
+The core design principle is:
+
+ATMOSPHERE ↔ PRECISION
+
+MATIÈRE should deliberately alternate between these two modes.
+
+Inspiration = atmospheric
+Project development = expressive but controlled
+Evaluation = reflective
+Formula Lab = precise and focused
+
+Do not apply the same visual intensity to every screen.
+
+Contrast between atmospheric spaces and technical spaces is essential.
+
+⸻
+
+1. HOME / STUDIO
+
+The Home should feel like the threshold into the user’s creative practice.
+
+Keep it calm and editorial.
+
+It should not become cinematic or overly visual.
+
+Use selective immersive moments:
+
+* large-scale project imagery
+* cropped textures
+* occasional edge-to-edge visual sections
+* strong project typography
+* subtle transitions
+* visual previews from active moodboards
+
+The Home should create curiosity and invite the user deeper into a project.
+
+It should feel like entering a studio.
+
+⸻
+
+2. PROJECTS SHOULD HAVE THEIR OWN ATMOSPHERE
+
+When the user opens a fragrance project, there should be a subtle sense that they have entered that project’s world.
+
+Example:
+
+LAIT VERT
+
+Its visual environment could be influenced by:
+
+* pale green references
+* cold diffused daylight
+* translucent surfaces
+* soft organic textures
+* restrained materiality
+
+SEL GRIS might feel different because its moodboard contains:
+
+* mineral textures
+* marine horizons
+* grey light
+* salt
+* skin
+* driftwood
+
+Do NOT create literal themes or decorative skins.
+
+The core UI must remain consistent.
+
+Instead, allow the project’s inspiration content to influence:
+
+* hero imagery
+* image crops
+* occasional background moments
+* visual pacing
+* large-scale reference placement
+
+The interface remains MATIÈRE.
+
+The content creates the atmosphere.
+
+⸻
+
+3. LARGE-SCALE IMAGERY
+
+Use imagery more confidently.
+
+Moodboard references should not always appear as small thumbnails.
+
+Allow occasional:
+
+* full-width images
+* near full-screen images
+* oversized crops
+* edge-to-edge photography
+* cinematic image sequences
+* large portrait references
+
+The user should sometimes experience an image before reading metadata about it.
+
+Images should feel like part of the workspace, not attachments inside cards.
+
+⸻
+
+4. IMMERSIVE MOODBOARD
+
+The Inspiration / Moodboard should be the most atmospheric part of the application.
+
+When browsing inspiration:
+
+* reduce visible UI chrome
+* allow imagery to dominate
+* use minimal metadata
+* hide controls until interaction
+* allow large references
+* use variable image scale
+* create rhythm between image, video and text
+* allow focused full-screen viewing
+
+The user should feel temporarily immersed in the visual universe of the fragrance.
+
+The moodboard should feel closer to:
+
+an exhibition wall
+an editorial image sequence
+an artist’s studio
+a creative research archive
+
+than a conventional file gallery.
+
+⸻
+
+5. FOCUS MODE
+
+Introduce a reusable Focus Mode pattern.
+
+When the user opens:
+
+* an inspiration image
+* a video
+* a material
+* an evaluation
+* a formula comparison
+
+the interface can temporarily reduce surrounding navigation and distractions.
+
+The object becomes the primary focus.
+
+Examples:
+
+An inspiration photograph can open nearly full-screen.
+
+A material can open with:
+
+large material name
+sensory description
+technical information
+formula relationships
+
+A formula comparison can occupy most of the viewport without unrelated navigation.
+
+Focus Mode should feel deliberate and calm.
+
+Do not use dramatic modal animation.
+
+⸻
+
+6. MOTION
+
+Introduce subtle motion throughout MATIÈRE.
+
+Motion should feel slow, confident and almost architectural.
+
+Use possibilities such as:
+
+* gentle fade-ins
+* restrained slide transitions
+* image reveal
+* slight scale change on hover
+* subtle parallax on large imagery
+* quiet transitions between project sections
+* smooth expansion of contextual panels
+* graceful content reordering
+
+Avoid:
+
+* bouncing
+* spring-heavy animation
+* flashy page transitions
+* excessive micro-animation
+* movement simply for decoration
+
+Motion should reinforce spatial continuity.
+
+The user should feel that they are moving through one connected environment.
+
+⸻
+
+7. TRANSITIONS BETWEEN CREATIVE AND TECHNICAL SPACES
+
+Make transitions meaningful.
+
+Example:
+
+The user is viewing a moodboard image.
+
+They select:
+
+EXPLORE MATERIALS
+
+Instead of abruptly jumping to a completely unrelated page, preserve context.
+
+The transition could visually carry:
+
+the reference
+its olfactive interpretation
+the selected creative direction
+
+into the Materials experience.
+
+Likewise:
+
+MOODBOARD
+→ OLFACTIVE DIRECTION
+→ MATERIALS
+→ FORMULA
+
+should feel like one continuous creative process.
+
+Avoid making every navigation action feel like opening a separate application screen.
+
+⸻
+
+8. CONTEXT SHOULD TRAVEL WITH THE USER
+
+When a user moves deeper into the application, preserve relevant context.
+
+Example:
+
+They interpret an image as:
+
+COLD
+MINERAL
+TRANSPARENT
+GREEN
+
+When they move into Materials, this interpretation should remain subtly visible.
+
+Then materials can be explored against that direction.
+
+When they move into Formula Lab, the current project direction can remain accessible.
+
+The user should not constantly lose the creative idea they started with.
+
+This continuity is a major part of immersion.
+
+⸻
+
+9. TYPOGRAPHY AS ATMOSPHERE
+
+Use typography more expressively in atmospheric spaces.
+
+Project names can occasionally appear very large.
+
+Creative statements can occupy significant visual space.
+
+Example:
+
+NOT BOTANICAL.
+ARCHITECTURAL GREEN.
+
+could appear as a large editorial moment inside Lait Vert’s moodboard.
+
+Technical interfaces should remain more compact.
+
+This creates contrast.
+
+Use typography almost cinematically, but sparingly.
+
+⸻
+
+10. PROJECT OVERVIEW
+
+The Project Overview should feel richer than a dashboard.
+
+Use:
+
+* current creative direction
+* one strong inspiration moment
+* current mod
+* key material references
+* last evaluation
+* recent note
+
+Do not arrange everything into identical cards.
+
+Allow variation in scale.
+
+For example:
+
+a large inspiration image
+
+next to
+
+CURRENT DIRECTION
+
+followed by
+
+MOD 02
+
+then a smaller material list.
+
+The composition should feel editorial rather than modular.
+
+⸻
+
+11. FORMULA LAB
+
+Do NOT make the Formula Lab visually immersive in the same way as Inspiration.
+
+Formula Lab should become calmer and more precise.
+
+When entering Formula Lab:
+
+* imagery recedes
+* grid becomes more disciplined
+* technical information becomes primary
+* distractions disappear
+* typography tightens
+* structure becomes clearer
+
+This shift should feel intentional.
+
+The user is moving from:
+
+atmosphere → construction
+
+Formula Lab should feel like a focused workbench.
+
+⸻
+
+12. EVALUATION
+
+Evaluation should sit between atmosphere and precision.
+
+The user is smelling and reflecting.
+
+Allow space for:
+
+OPENING
+15 MIN
+1 HOUR
+4 HOURS
+DRYDOWN
+
+Use generous typography and writing space.
+
+Allow the perfumer to focus on sensory observation.
+
+Avoid making Evaluation feel like filling out a form.
+
+It should feel closer to writing in a studio notebook.
+
+⸻
+
+13. MATERIALS
+
+Materials should also benefit from immersion, but through sensory language rather than decorative imagery.
+
+A Material Detail page can lead with:
+
+MATERIAL NAME
+
+followed by a strong sensory description.
+
+Example:
+
+VIOLET LEAF ABSOLUTE
+
+Wet foliage. Crushed stems. Metallic green.
+Cold, dark and distinctly vegetal.
+
+Then technical data can follow.
+
+This creates a natural movement from:
+
+sensory understanding
+→ technical understanding.
+
+⸻
+
+14. REDUCE SOFTWARE CHROME
+
+Where appropriate, reduce persistent interface elements.
+
+Do not display every possible action all the time.
+
+Use contextual controls.
+
+For example:
+
+The moodboard can have very little visible UI until an image is selected.
+
+Project sections can surface actions when relevant.
+
+Formula Lab can expose technical controls because they are needed there.
+
+The interface should adapt to the activity.
+
+⸻
+
+15. SPATIAL HIERARCHY
+
+Use scale to create depth.
+
+Not everything should have the same visual weight.
+
+Use:
+
+LARGE
+project title / imagery / creative statement
+
+MEDIUM
+current mod / current direction / material group
+
+SMALL
+metadata / date / status / technical labels
+
+This hierarchy should make screens feel spatial rather than flat.
+
+⸻
+
+16. IMMERSIVE DOES NOT MEAN SLOW
+
+The application must remain fast and efficient.
+
+Do not introduce transitions that slow down frequent tasks.
+
+Immersion should come primarily from:
+
+* composition
+* scale
+* continuity
+* imagery
+* typography
+* context
+* restrained motion
+
+not waiting for animation to finish.
+
+⸻
+
+17. MOBILE IMMERSION
+
+Mobile should feel particularly strong.
+
+Use the screen vertically.
+
+Allow:
+
+* large edge-to-edge imagery
+* full-screen focused references
+* vertically immersive moodboards
+* project-specific visual moments
+* bottom-sheet contextual actions
+* minimal persistent navigation
+
+Do not shrink desktop compositions into tiny mobile versions.
+
+Mobile can feel almost editorial / cinematic while scrolling.
+
+But technical screens such as Formula Lab must remain extremely usable.
+
+⸻
+
+18. DESKTOP IMMERSION
+
+Desktop should use space to create stronger compositions.
+
+Allow:
+
+* asymmetric layouts
+* large image areas
+* generous whitespace
+* side-by-side creative relationships
+* larger moodboard walls
+* persistent project context when useful
+
+Avoid simply centering everything inside one narrow dashboard column.
+
+⸻
+
+19. IMPORTANT VISUAL PRINCIPLE
+
+Do not decorate the interface to make it immersive.
+
+Let the user’s creative content create the atmosphere.
+
+MATIÈRE itself should remain quiet.
+
+The perfume project provides:
+
+color
+imagery
+texture
+emotion
+visual character
+
+The interface provides:
+
+structure
+rhythm
+precision
+clarity
+
+⸻
+
+20. CORE EXPERIENCE
+
+The user journey should increasingly feel like:
+
+ENTER STUDIO
+
+↓
+
+ENTER PROJECT
+
+↓
+
+ENTER ITS VISUAL WORLD
+
+↓
+
+INTERPRET THE WORLD OLFACTIVELY
+
+↓
+
+EXPLORE MATERIALS
+
+↓
+
+BUILD THE FORMULA
+
+↓
+
+SMELL
+
+↓
+
+EVALUATE
+
+↓
+
+RETURN TO THE CREATIVE DIRECTION
+
+This loop should feel continuous.
+
+Not like navigating disconnected database screens.
+
+The final experience should communicate:
+
+MATIÈRE is not software sitting between the perfumer and the fragrance.
+
+It is the environment in which the fragrance develops.
+
+Please evolve the existing design system and interactions around this principle without sacrificing usability, restraint or technical clarity.
