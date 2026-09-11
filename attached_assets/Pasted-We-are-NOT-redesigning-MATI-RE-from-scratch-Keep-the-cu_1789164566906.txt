@@ -1,0 +1,833 @@
+We are NOT redesigning MATIÈRE from scratch.
+
+Keep the current navigation, product architecture, typography direction and overall brand language.
+
+This pass is specifically about fixing the current visual problem:
+
+**The product is too uniformly dark, too flat, too repetitive, and too visually similar from screen to screen.**
+
+MATIÈRE needs stronger environmental contrast, richer composition and clearer differences between creative spaces and technical spaces.
+
+The new visual principle is:
+
+# GALLERY → STUDIO → LABORATORY
+
+The application should feel like moving through three related environments.
+
+---
+
+# 1. CREATE THREE VISUAL MODES
+
+Do not use the same black background on every page.
+
+## MODE A — ATMOSPHERE
+
+Used for:
+
+- Studio hero
+- project introductions
+- Inspiration / Moodboard
+- Focus Mode
+- large visual moments
+
+Visual characteristics:
+
+- deep black / charcoal
+- large-scale imagery
+- cinematic compositions
+- minimal UI
+- expressive typography
+- strong contrast
+- user imagery provides color
+
+This is where MATIÈRE feels immersive.
+
+---
+
+## MODE B — STUDIO
+
+Used for:
+
+- Project Overview
+- Notes
+- Evaluation
+- general creative development
+- project research
+
+Visual characteristics:
+
+- warm bone
+- soft off-white
+- pale mineral grey
+- black / charcoal typography
+- editorial spacing
+- tactile feeling
+- thin subtle rules
+- imagery integrated with content
+
+This should feel like a working creative studio or beautifully designed notebook.
+
+---
+
+## MODE C — LAB
+
+Used for:
+
+- Formula Library
+- Formula Editor
+- Formula Comparison
+- technical material information
+- IFRA / dosage / calculations
+
+Visual characteristics:
+
+- pale neutral background
+- tighter information density
+- stronger grid
+- precise typography
+- technical mono type where useful
+- high contrast
+- minimal decorative imagery
+
+This should feel like a precise workbench.
+
+Do NOT make it sterile.
+
+It should still feel distinctly MATIÈRE.
+
+---
+
+# 2. GLOBAL COLOR CORRECTION
+
+The current interface uses:
+
+black background  
+bronze/brown rules  
+cream typography
+
+almost everywhere.
+
+This is becoming monotonous.
+
+Keep deep black as an important brand color, but do NOT use it as the default surface for every screen.
+
+Create contrast between:
+
+BLACK / CHARCOAL  
+WARM BONE  
+OFF-WHITE  
+PALE GREY
+
+Use warm bronze/brown very sparingly.
+
+Do not outline every component in brown.
+
+Do not make every divider brown.
+
+Use mostly neutral hairline rules.
+
+The user’s images and project references should provide most of the color.
+
+---
+
+# 3. STUDIO HOME
+
+Keep the left navigation.
+
+Keep the immersive current-project hero.
+
+But change the rest of the page.
+
+## HERO
+
+The current Lait Vert hero image is too washed out.
+
+Do NOT use a nearly invisible image as background wallpaper.
+
+Use a stronger project-specific image such as:
+
+- wet translucent foliage
+- pale green glass
+- cold diffused skin
+- translucent fabric
+- milky resin
+- vegetal texture
+
+The image should retain visible texture, depth and contrast.
+
+Suggested composition:
+
+LEFT SIDE:
+LAIT VERT
+
+Green · violet leaf · milky skin · transparent
+
+A green floral built around violet leaf absolute and galbanum, with a milky-skin base from Hedione and Cashmeran.
+
+MOD 02 · ACTIVE
+
+CONTINUE PROJECT →
+
+RIGHT SIDE:
+large atmospheric project image
+
+The image can partially bleed behind the text if contrast remains excellent.
+
+Do not make this look like an advertising banner.
+
+It should feel like opening a creative project.
+
+---
+
+# 4. STUDIO BELOW THE HERO
+
+After the dark hero, transition to a warm bone / off-white studio background.
+
+Do NOT keep the entire page black.
+
+Use the lighter environment for:
+
+PROJECTS IN MOTION  
+RECENT WORK  
+CURRENT FORMULA  
+EVALUATION  
+MATERIALS IN PLAY
+
+This contrast should make the dark hero feel more powerful.
+
+---
+
+# 5. PROJECTS IN MOTION
+
+The current Project list is too much like a database.
+
+Stop using identical horizontal rows with tiny thumbnails.
+
+Give each project more visual presence.
+
+Each project should contain:
+
+- larger atmospheric image
+- project name
+- olfactive direction
+- current mod
+- status
+- last edited date
+- short current observation
+
+Use examples:
+
+LAIT VERT
+
+Green · violet leaf · milky skin · transparent
+
+MOD 02
+
+“The violet leaf finally reads wet rather than cosmetic.”
+
+---
+
+SEL GRIS
+
+Marine mineral · warm skin · driftwood
+
+MOD 04
+
+“Less amber. More distance.”
+
+---
+
+RÉSINE NOIRE
+
+Resinous · warm amber · incense · dry woods
+
+MOD 07
+
+“Push the materiality of the resin without becoming sweet.”
+
+Do NOT place each project inside a generic rounded card.
+
+Use larger image/text compositions separated by space and rules.
+
+Allow project imagery to vary in aspect ratio.
+
+This section should feel closer to a creative portfolio than a project-management list.
+
+---
+
+# 6. PROJECT DETAIL
+
+Project pages should use STUDIO mode.
+
+Use a warm bone / off-white background.
+
+Do not use black for the entire page.
+
+The top may contain an atmospheric dark or image-led project introduction.
+
+Then transition into the lighter working surface.
+
+The Project Overview should contain meaningful content, not statistics.
+
+Show:
+
+CURRENT DIRECTION
+
+CURRENT MOD
+
+INSPIRATION
+
+KEY MATERIALS
+
+LATEST NOTE
+
+LATEST EVALUATION
+
+Do not show large statistic boxes such as:
+
+STATUS  
+2 MODS  
+5 MATERIALS  
+1 NOTE
+
+Those should not dominate the page.
+
+---
+
+# 7. INSPIRATION / MOODBOARD
+
+The current moodboard direction is the strongest area of MATIÈRE.
+
+KEEP IT.
+
+Push it further.
+
+Use ATMOSPHERE mode.
+
+Allow:
+
+- large photography
+- mixed aspect ratios
+- masonry rhythm
+- occasional nearly full-width imagery
+- large text fragments
+- material references
+- visual interpretation objects
+- more asymmetry
+
+Keep the surrounding UI minimal.
+
+Do NOT put every image inside a card.
+
+Do NOT add social controls.
+
+The visual content should dominate.
+
+Use text objects such as:
+
+NOT BOTANICAL.  
+ARCHITECTURAL GREEN.
+
+and:
+
+“The smell of a greenhouse after everyone has left.”
+
+Allow these text objects to become large typographic moments.
+
+---
+
+# 8. FORMULA LIBRARY
+
+The current Formula Library is too empty and too dark.
+
+Switch it completely into LAB mode.
+
+Use a pale neutral / warm grey / off-white background.
+
+Typography should become more precise and information-dense.
+
+Populate the interface with realistic content.
+
+Show at least 8 formulas:
+
+LAIT VERT — MOD 01  
+LAIT VERT — MOD 02  
+SEL GRIS — MOD 03  
+SEL GRIS — MOD 04  
+ANIMAL IN THE MIRROR — MOD 05  
+ANIMAL IN THE MIRROR — MOD 06  
+RÉSINE NOIRE — MOD 07  
+UNTITLED SKIN STUDY — MOD 03
+
+For each formula show:
+
+formula name  
+mod number  
+project  
+number of materials  
+last edited  
+last evaluated  
+olfactive direction
+
+Example:
+
+LAIT VERT — MOD 02
+
+15 materials
+
+Green · transparent floral · milky skin
+
+Edited today
+
+Last evaluation: 4 hours
+
+Do not create huge empty areas around one row.
+
+The Formula Library should feel like an active formulation archive.
+
+---
+
+# 9. FORMULA LAB
+
+Use LAB mode.
+
+The Formula Lab should feel more technical and focused than the rest of the application.
+
+Use:
+
+pale neutral surface
+
+tight but comfortable grid
+
+material name
+
+percentage
+
+weight
+
+dilution
+
+role
+
+notes
+
+technical flags
+
+Make numeric columns easy to scan.
+
+Use mono typography for technical values.
+
+Do NOT over-style.
+
+Do NOT add large decorative imagery.
+
+The emotional transition should feel like:
+
+INSPIRATION  
+→ PROJECT  
+→ FORMULATION
+
+ATMOSPHERE  
+→ STUDIO  
+→ PRECISION
+
+---
+
+# 10. MATERIALS LIBRARY
+
+The current materials page is too repetitive because every material is inside the same large rectangle.
+
+Remove most of these boxed cards.
+
+Redesign the Materials Library more like an editorial specimen catalogue.
+
+Use a light STUDIO / LAB hybrid background.
+
+Consider 2–3 columns on desktop.
+
+Each material entry should use typography and rules rather than a heavy container.
+
+Example:
+
+VIOLET LEAF ABSOLUTE
+
+Natural · Green
+
+Wet foliage  
+Crushed stems  
+Metallic  
+Cold
+
+IFRA  
+IN STOCK
+
+USED IN  
+Lait Vert
+
+---
+
+HEDIONE HC
+
+Synthetic · Floral
+
+Transparent jasmine  
+Radiance  
+Diffusion
+
+IFRA  
+IN STOCK
+
+USED IN  
+Lait Vert
+
+---
+
+STEMONE
+
+Synthetic · Green
+
+Wet leaf  
+Fig stem  
+Metallic
+
+IFRA  
+IN STOCK
+
+Use a restrained hover state.
+
+Opening a material can become a richer detail view.
+
+---
+
+# 11. MATERIAL DETAIL
+
+Material Detail should begin sensorially before becoming technical.
+
+Example:
+
+VIOLET LEAF ABSOLUTE
+
+Wet foliage. Crushed stems. Metallic green.  
+Cold, dark and distinctly vegetal.
+
+Then show:
+
+TYPE  
+SOURCE  
+ODOR FAMILY  
+STRENGTH  
+TYPICAL DOSAGE  
+IFRA  
+SUPPLIER  
+PROJECTS  
+FORMULAS  
+PERSONAL NOTES
+
+This page can transition visually from STUDIO mode at the top into LAB mode lower down.
+
+---
+
+# 12. RECENT WORK
+
+The current Recent Work section is too plain.
+
+Make each item contain more meaningful information.
+
+Example:
+
+MOD
+
+LAIT VERT — MOD 02
+
+Violet Leaf Absolute  
+2.10% → 2.40%
+
+Stemone  
+0.20% → 0.35%
+
+Reason:
+“Push the green opening without increasing density.”
+
+---
+
+EVALUATION
+
+SEL GRIS — MOD 04
+
+4 HOURS
+
+“More distance. Less amber warmth. The mineral effect is finally working.”
+
+---
+
+INSPIRATION
+
+LAIT VERT
+
+3 references added
+
+wet foliage  
+translucent glass  
+pale fabric
+
+Use compact rich entries instead of simple title/date rows.
+
+---
+
+# 13. CURRENT FORMULA PREVIEW ON HOME
+
+Add a technical preview of the current formula to the Studio homepage.
+
+Example:
+
+CURRENT FORMULA
+
+LAIT VERT — MOD 02
+
+Hedione HC                 24.00%
+Ambrettolide               11.50%
+Iso E Super                10.00%
+Cashmeran                   3.80%
+Violet Leaf Absolute        2.40%
+Galbanum Resinoid           1.20%
+Stemone                     0.35%
+
++ 8 MORE MATERIALS
+
+OPEN FORMULA →
+
+Use LAB styling inside this component.
+
+This creates contrast inside the Studio page.
+
+---
+
+# 14. EVALUATION PREVIEW
+
+Add real sensory content.
+
+Example:
+
+LATEST EVALUATION
+
+LAIT VERT — MOD 02
+
+15 MIN
+
+“The opening is finally green enough. Violet leaf reads wet rather than cosmetic.”
+
+1 HOUR
+
+“The transition into Hedione is beautiful but slightly too soft.”
+
+4 HOURS
+
+“Cashmeran may still be warming the base too much.”
+
+NEXT
+
+Explore a colder woody structure.
+
+OPEN EVALUATION →
+
+This should feel like a perfumer’s notebook, not a form.
+
+---
+
+# 15. MATERIALS IN PLAY
+
+Show a small group of materials currently influencing the active project.
+
+Example:
+
+VIOLET LEAF ABSOLUTE
+
+Wet foliage · crushed stem · metallic
+
+---
+
+HEDIONE HC
+
+Transparent floral · radiance · diffusion
+
+---
+
+CASHMERAN
+
+Dry wood · musk · mineral warmth
+
+---
+
+STEMONE
+
+Wet green · fig stem · metallic
+
+Allow the user to open the material directly.
+
+---
+
+# 16. REMOVE EXCESSIVE EMPTY SPACE
+
+Many current screens have too much empty space between content blocks.
+
+Keep premium breathing room, but increase meaningful information density.
+
+Do not use giant blank areas as a substitute for luxury.
+
+Luxury should come from:
+
+proportion  
+typography  
+materiality  
+composition  
+content  
+restraint
+
+not emptiness.
+
+---
+
+# 17. DO NOT USE THE SAME LAYOUT EVERYWHERE
+
+Avoid repeating:
+
+heading  
+divider  
+row  
+divider  
+row  
+divider
+
+on every page.
+
+Introduce varied editorial compositions.
+
+Examples:
+
+large image + text
+
+two-column content
+
+full-width technical table
+
+small metadata block
+
+large typographic statement
+
+masonry images
+
+compact material index
+
+The interface should feel consistent but not repetitive.
+
+---
+
+# 18. IMAGERY
+
+Do not use random generic images.
+
+Project imagery should always reinforce the olfactive idea.
+
+LAIT VERT:
+
+green translucency  
+wet foliage  
+skin  
+glass  
+milky fabric  
+cool daylight  
+architectural surfaces
+
+SEL GRIS:
+
+salt  
+mineral surfaces  
+grey water  
+skin  
+driftwood  
+marine distance
+
+RÉSINE NOIRE:
+
+dark resin  
+polished wood  
+smoke  
+amber material  
+paper  
+stone interiors
+
+ANIMAL IN THE MIRROR:
+
+skin  
+fur texture  
+wood  
+powder  
+mirror reflections  
+warm darkness
+
+The imagery should create distinct project worlds.
+
+---
+
+# 19. TYPOGRAPHY
+
+Keep the current large sans-serif typography.
+
+Keep mono typography for:
+
+metadata  
+formula values  
+technical labels  
+dates  
+IFRA information
+
+But do not make everything uppercase and widely letter-spaced.
+
+Creative content should feel more natural and expressive.
+
+Technical content can remain restrained and systematic.
+
+---
+
+# 20. MOTION
+
+Use restrained motion only.
+
+Allow:
+
+subtle image reveal  
+soft fade  
+small hover shift  
+smooth content expansion  
+gentle transitions between environments
+
+Do NOT add flashy animation.
+
+The most important immersive quality should come from composition, imagery and continuity.
+
+---
+
+# 21. FINAL DESIGN GOAL
+
+MATIÈRE should not feel like:
+
+a black luxury SaaS dashboard.
+
+It should feel like moving between:
+
+# A GALLERY
+where inspiration and atmosphere dominate
+
+# A STUDIO
+where ideas, notes, materials and evaluation live
+
+# A LABORATORY
+where formulas become precise and technical
+
+All three spaces must still clearly belong to one MATIÈRE design system.
+
+The interface provides structure.
+
+The user’s fragrance work provides emotion.
+
+Implement this art-direction correction across the current screens without changing the underlying navigation or core product architecture.
