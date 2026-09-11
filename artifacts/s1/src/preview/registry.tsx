@@ -6,6 +6,8 @@ import {
   OverviewPage,
 } from './foundations';
 
+// ─── Applied example primitives ───────────────────────────────────────────────
+
 function lazyPage(load: () => Promise<ComponentType>) {
   return lazy(async () => ({ default: await load() }));
 }
@@ -172,6 +174,19 @@ const ToggleGroupDemo = lazyPage(() =>
 );
 const TooltipDemo = lazyPage(() =>
   import('./demos/tooltip').then(({ TooltipDemo }) => TooltipDemo),
+);
+
+const AtmosphereStripDemo = lazyPage(() =>
+  import('./demos/atmosphere-strip').then(({ AtmosphereStripDemo }) => AtmosphereStripDemo),
+);
+const FocusViewerDemo = lazyPage(() =>
+  import('./demos/focus-viewer').then(({ FocusViewerDemo }) => FocusViewerDemo),
+);
+const NotebookEntryDemo = lazyPage(() =>
+  import('./demos/notebook-entry').then(({ NotebookEntryDemo }) => NotebookEntryDemo),
+);
+const SectionRuleDemo = lazyPage(() =>
+  import('./demos/section-rule').then(({ SectionRuleDemo }) => SectionRuleDemo),
 );
 
 export type PreviewEntry = {
@@ -597,7 +612,35 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   { name: 'Motion', entries: [] },
-  { name: 'Applied examples', entries: [] },
+  {
+    name: 'Applied examples',
+    entries: [
+      {
+        id: 'atmosphere-strip',
+        name: 'Atmosphere strip',
+        description: 'Full-bleed image bar establishing visual atmosphere for project and material surfaces.',
+        Page: AtmosphereStripDemo,
+      },
+      {
+        id: 'focus-viewer',
+        name: 'Focus viewer',
+        description: 'Full-viewport low-chrome overlay for inspecting a single reference with keyboard and focus management.',
+        Page: FocusViewerDemo,
+      },
+      {
+        id: 'notebook-entry',
+        name: 'Notebook entry',
+        description: 'Studio log record for evaluations, notes, and phased observations with optional timeline rule.',
+        Page: NotebookEntryDemo,
+      },
+      {
+        id: 'section-rule',
+        name: 'Section rule',
+        description: 'Hairline horizontal structural divider with a centred monospace label. Used between named content groups at page level.',
+        Page: SectionRuleDemo,
+      },
+    ],
+  },
 ];
 
 export const ALL_ENTRIES: PreviewEntry[] = [

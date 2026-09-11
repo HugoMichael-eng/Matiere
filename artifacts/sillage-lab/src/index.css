@@ -1,79 +1,44 @@
 /* S1 Design System — single source of theme, Tailwind, fonts, and component CSS */
 @import "@workspace/s1/styles.css";
 
-/* ─── Sillage Lab palette ─────────────────────────────────────────
-   The landing (hero) page establishes the product palette: black
-   header/sidebar, soft light-gray body, muted lilac panels, and a pale
-   lilac field-note accent. We map that palette onto the S1 semantic
-   tokens so the shared shell and Studio desk inherit the same look
-   without inventing a parallel style system. */
-:root {
-  /* Soft light-gray desk surface + near-black ink */
-  --background: 260 20% 97.5%;
-  --foreground: 0 0% 7%;
-  --border: 258 16% 87%;
+/* ─── Sillage Lab colour override ────────────────────────────────────────────
+   The app uses the S1 noir-amber palette from tokens.json as-is.
+   No overrides needed — the dark warm-charcoal ground is the product.
+   We only add font-loading and utility aliases here.           */
 
-  /* Cards sit a touch brighter than the desk */
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 7%;
-  --card-border: 258 16% 87%;
-
-  /* Black header / sidebar, matching the landing chrome */
-  --sidebar: 0 0% 0%;
-  --sidebar-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 16%;
-  --sidebar-primary: 264 14% 75%;
-  --sidebar-primary-foreground: 0 0% 7%;
-  --sidebar-accent: 0 0% 10%;
-  --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-ring: 264 14% 75%;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 7%;
-
-  /* Primary actions are ink-black, as on the landing buttons */
-  --primary: 0 0% 7%;
-  --primary-foreground: 0 0% 100%;
-
-  /* Pale lilac field-note surface for soft panels / hovers */
-  --secondary: 260 52% 94%;
-  --secondary-foreground: 0 0% 7%;
-
-  --muted: 258 22% 92%;
-  --muted-foreground: 260 6% 42%;
-
-  /* Muted lilac accent from the landing section panels (#bdb5c7) */
-  --accent: 264 14% 75%;
-  --accent-foreground: 0 0% 7%;
-
-  --destructive: 0 58% 48%;
-  --destructive-foreground: 0 0% 100%;
-  --input: 258 16% 87%;
-  --ring: 0 0% 7%;
-}
-
-/* ─── App-specific utilities ─────────────────────────────────────── */
+/* ─── App-specific utilities ─────────────────────────────────────────────────── */
 @layer utilities {
-  /* Semantic font aliases used throughout sillage.tsx */
-  .font-display { font-family: var(--app-font-serif); }
+  /* Semantic font aliases used throughout the app */
+  .font-display { font-family: var(--app-font-sans); }
   .font-mono-ui { font-family: var(--app-font-mono); }
 
-  /* Hide ugly search cancel button in Chrome until we can style it properly */
+  /* Hide search cancel button in Chrome */
   input[type='search']::-webkit-search-cancel-button {
     @apply hidden;
   }
 
-  /* Placeholder styling for contentEditable div */
+  /* Placeholder styling for contentEditable */
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
     color: hsl(var(--muted-foreground));
     pointer-events: none;
   }
+
+  /* Focus mode — full viewport, low-chrome */
+  .focus-mode-backdrop {
+    background: hsl(var(--background));
+  }
 }
 
-/* ─── App-specific animations ────────────────────────────────────── */
+/* ─── App-specific animations ──────────────────────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 .animate-fade-in { animation: fadeIn .35s ease-out both; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slideUp .3s ease-out both; }

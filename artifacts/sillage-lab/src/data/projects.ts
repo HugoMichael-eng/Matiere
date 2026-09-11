@@ -255,7 +255,21 @@ export const DEMO_PROJECTS: DemoProject[] = [
         tag: "direction",
       },
     ],
-    evaluations: [],
+    evaluations: [
+      {
+        id: "e-05",
+        modLabel: "MOD 02",
+        opening: "Cold crushed leaf with a clear metallic edge. The galbanum is present without turning sharp.",
+        fifteenMin: "The green structure begins to soften. Hedione opens space around the violet leaf rather than sweetening it.",
+        oneHour: "Milky skin appears under the vegetal accord. The transition is quiet and continuous.",
+        fourHour: "Cashmeran becomes slightly too dry at the edge, but the transparent floral body remains intact.",
+        drydown: "Pale woods and clean skin musk. The green impression survives as a cool shadow.",
+        overall: "The atmosphere is right. MOD 02 connects cold vegetal light to a soft skin base without becoming conventionally floral.",
+        whatWorks: "Violet leaf restraint, transparent diffusion, milky skin transition",
+        adjustments: "Reduce Cashmeran slightly and test a trace of Ambrettolide to soften the four-hour edge.",
+        date: "2025-01-18",
+      },
+    ],
     inspiration: [
       {
         id: "i-11",

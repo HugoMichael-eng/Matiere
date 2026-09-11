@@ -1,38 +1,12 @@
 ---
 name: S1 Design System
-description: S1 token palette, font choices, and how it's wired into Sillage Lab.
+description: Durable rules for extending and consuming the shared MATIÈRE design language.
 ---
 
 # S1 Design System
 
-## Identity
-- Artifact: `artifacts/s1`, previewPath `/s1/`
-- Design language: industrial cool-lab — CDG × Acne Studio × Arpa Studios
+Reusable, product-agnostic atmosphere and precision patterns belong in S1 and must be imported directly by consuming artifacts. Product data, routing, and page composition remain in the app.
 
-## Fonts (current)
-- **All type roles (display, UI, body)**: Jost — single-typeface system. Both `--app-font-serif` and `--app-font-sans` resolve to Jost.
-- **Mono (lab data)**: DM Mono
+**Why:** Local copies drift from the living design system and make accessibility fixes inconsistent. MATIÈRE’s atmosphere-to-precision behavior must remain one shared interaction language, not a set of page-specific effects.
 
-**History:** Bodoni Moda (user rejected — too fashion-magazine) → DM Serif Display (user rejected) → Jost everywhere (current). Single-typeface sans system by user choice.
-
-**Why Jost:** Futura PT is commercial with no Google Fonts version; Jost is the closest loadable geometric grotesque. If user provides `.woff2` files for Futura PT they can be wired in via `scripts/theme-template.css`.
-
-## Core Palette (light / dark)
-- Background: `#F2F1EF` / `#0C0D0F` — concrete beige-grey / deep cool black
-- Foreground: `#131416` / `#E5E7ED`
-- Secondary: `#C8D0DE` / `#1E2438` — definitive blue-grey
-- Muted: `#BBC4D2` / `#252B40`
-- Accent: `#EFC84A` / `#EFC84A` — German Yellow, unchanged in both modes
-- Sidebar: `#0C0D0F` / `#080910` — deep black in both modes
-
-## Radius
-Zero (`0rem`) — sharp industrial edges, no softening.
-
-## How to apply
-- Consuming app imports `@import "@workspace/s1/styles.css"` as the only theme line.
-- App-specific utilities (`.font-display`, `.font-mono-ui`, animations) go in the app CSS after the import.
-- Sillage Lab migrated this way — `artifacts/sillage-lab/src/index.css` is now a single import line + small utilities block.
-
-## What NOT to do
-- Do not hand-edit `artifacts/s1/src/index.css` or `src/generated/tokens.tsx` — they are generated from `tokens.json`.
-- Run `pnpm tokens` (inside `artifacts/s1/`) or let the dev server regenerate after any `tokens.json` change.
+**How to apply:** Add or change the S1 primitive and its dedicated preview story first, then consume it through the package export. Use semantic tokens only; do not add app-level palette overrides or decorative gradients.
