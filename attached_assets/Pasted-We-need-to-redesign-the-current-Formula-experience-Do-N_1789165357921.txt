@@ -1,0 +1,339 @@
+We need to redesign the current Formula experience.
+
+Do NOT change the underlying workflow stages or core functionality.
+
+Keep:
+
+CONCEIVE  
+CREATE  
+FORMULATE  
+ANALYZE  
+CHECK  
+OPTIMIZE  
+DOCUMENT  
+SOURCE  
+MAKE
+
+However, the current implementation has a major visual problem:
+
+**every stage looks almost identical.**
+
+The entire experience is:
+
+black background  
+brown outline  
+text panel  
+another brown outline  
+sidebar  
+another black screen
+
+This makes a potentially exciting fragrance-development journey feel like administrative software.
+
+MATIÈRE should feel much more:
+
+IMMERSIVE  
+SENSORY  
+INTERACTIVE  
+CREATIVE  
+DYNAMIC  
+VISUALLY RHYTHMIC
+
+while remaining professional and highly usable.
+
+# CORE PRINCIPLE
+
+The Formula workflow should feel like moving through a fragrance-development process, not clicking through nine database tabs.
+
+The emotional progression should be:
+
+**IMAGINE → BUILD → UNDERSTAND → TEST → REFINE → REALIZE**
+
+Each stage should feel distinct.
+
+Do NOT make all nine screens use the same layout.
+
+---
+
+# 1. STOP USING BLACK EVERYWHERE
+
+The entire workflow should not remain on a black background.
+
+Introduce environmental transitions.
+
+Use three surface families:
+
+## ATMOSPHERE
+Deep charcoal / black  
+Used for conceptual and immersive moments.
+
+## WORKSPACE
+Warm bone / parchment / soft grey  
+Used for creative development.
+
+## LAB
+Pale mineral neutral  
+Used for analytical and technical work.
+
+Suggested stage mapping:
+
+CONCEIVE → ATMOSPHERE
+
+CREATE → WORKSPACE
+
+FORMULATE → LAB
+
+ANALYZE → LAB
+
+CHECK → LAB
+
+OPTIMIZE → WORKSPACE / LAB hybrid
+
+DOCUMENT → WORKSPACE
+
+SOURCE → WORKSPACE / LAB
+
+MAKE → LAB
+
+The transition between stages should be visible.
+
+The user should feel that they are moving into a different mode of thinking.
+
+---
+
+# 2. FORMULA HEADER
+
+Keep the formula identity persistent:
+
+ANIMAL IN THE MIRROR
+
+FORMULA 011 · V2
+
+But reduce the amount of static header chrome.
+
+Do not repeat unnecessary metadata everywhere.
+
+Allow the project mood / inspiration to appear subtly in the header.
+
+For example:
+
+a faint cropped project image  
+a texture from the moodboard  
+a translucent visual fragment
+
+Do not use decorative wallpaper.
+
+Use real project content.
+
+---
+
+# 3. STAGE NAVIGATION
+
+Keep the nine-stage workflow, but redesign the navigation.
+
+The current stage bar is too rigid and visually heavy.
+
+Instead, create a thinner continuous journey.
+
+Example:
+
+01 CONCEIVE  
+02 CREATE  
+03 FORMULATE  
+04 ANALYZE  
+05 CHECK  
+06 OPTIMIZE  
+07 DOCUMENT  
+08 SOURCE  
+09 MAKE
+
+Use:
+
+subtle progression  
+active-stage animation  
+completion states  
+small status dots  
+hover states
+
+Avoid nine large boxed tabs.
+
+The bar should feel like a creative process timeline.
+
+When moving between stages:
+
+- animate the active indicator
+- transition the page surface
+- gently fade / slide content
+- preserve context
+
+The transition should be under 300ms and should never slow the user down.
+
+---
+
+# 4. CONCEIVE — MAKE THIS INSPIRATIONAL
+
+The current Conceive page is too empty and boxy.
+
+This should be the most atmospheric stage.
+
+Use:
+
+large project imagery  
+creative brief  
+olfactive direction  
+text fragments  
+reference images  
+AI exploration
+
+Example layout:
+
+LEFT
+
+ANIMAL IN THE MIRROR
+
+“A moment of self-recognition becomes stranger and more magnetic…”
+
+RIGHT / BACKGROUND
+
+2–3 large visual references from the project moodboard.
+
+Below:
+
+OLFACTIVE DIRECTION
+
+CLEAN SKIN  
+POWDER  
+POLISHED WOOD  
+ANIMALIC SHADOW
+
+Then:
+
+EXPLORE THIS DIRECTION →
+
+AI should feel contextual.
+
+Add a subtle interactive prompt:
+
+“What happens if the polished side becomes colder?”
+
+“Explore a more feral interpretation.”
+
+“Translate the visual references into material territories.”
+
+Do not use large static metric cards here.
+
+This stage should feel like entering the idea.
+
+---
+
+# 5. CREATE — MATERIAL DISCOVERY SHOULD FEEL EXPLORATORY
+
+Create should feel like gathering the palette.
+
+Do not simply show a list.
+
+Allow the user to explore materials spatially and sensorially.
+
+Introduce:
+
+MATERIAL TERRITORIES
+
+Examples:
+
+SKIN  
+POWDER  
+WOOD  
+ANIMALIC  
+METALLIC  
+FLORAL
+
+Allow the user to select a territory and see materials animate / filter into view.
+
+Example:
+
+SKIN
+
+Ambrettolide  
+Habanolide  
+Ethylene Brassylate  
+Helvetolide
+
+WOOD
+
+Iso E Super  
+Cashmeran  
+Clearwood  
+Cedramber
+
+Hover / tap should reveal:
+
+sensory description  
+strength  
+usage range  
+current project relevance
+
+Allow:
+
+ADD TO PALETTE +
+
+This should feel more like collecting materials than filling a form.
+
+---
+
+# 6. FORMULATE — TURN THIS INTO THE WORKBENCH
+
+The Formula stage should be much lighter and more precise.
+
+Use LAB mode.
+
+Background:
+
+soft warm grey / off-white.
+
+This is where the user should feel maximum clarity.
+
+Make the formula table the hero.
+
+Columns:
+
+MATERIAL  
+%  
+GRAMS  
+DILUTION  
+ROLE  
+STATUS
+
+Allow direct inline editing.
+
+Use mono typography for numbers.
+
+Add responsive micro-interactions:
+
+- edited values softly highlight
+- changed values briefly animate
+- formula total updates live
+- rows can reorder smoothly
+- material search expands in place
+- formula changes can be undone
+
+Avoid putting each material inside its own giant dark card.
+
+Use a clean continuous table / ledger.
+
+---
+
+# 7. LIVE FORMULA FEEDBACK
+
+While editing, introduce a small persistent live panel.
+
+Example:
+
+CURRENT STRUCTURE
+
+TOP      13%  
+HEART    34%  
+BASE     53%
+
+or:
+
+DIFFUSION     HIGH  
+DENSITY       MEDIUM  
