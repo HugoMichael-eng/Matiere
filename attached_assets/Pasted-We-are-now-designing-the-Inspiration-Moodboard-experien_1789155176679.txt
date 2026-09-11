@@ -1,0 +1,604 @@
+We are now designing the Inspiration / Moodboard experience inside MATIÈRE.
+
+This should become one of the most visually distinctive and creatively valuable parts of the product.
+
+Do NOT build a conventional attachment gallery.
+
+Do NOT build a generic Pinterest clone.
+
+Do NOT build a social feed.
+
+The goal is to create a highly visual creative environment for fragrance development, where imagery, text, video, materials and AI interpretation can gradually translate inspiration into olfactive direction.
+
+CORE IDEA
+
+MATIÈRE’s Inspiration space should feel like:
+
+Pinterest-level visual immersion + an artist’s working wall + an intelligent olfactive translation layer.
+
+The moodboard is not simply a place to collect references.
+
+It is a place where the perfumer builds the visual and conceptual world of a fragrance and MATIÈRE helps translate that world into scent.
+
+The creative flow should eventually feel like:
+
+IMAGE / TEXT / VIDEO → ATMOSPHERE → OLFACTIVE DIRECTION → MATERIALS → FORMULA
+
+This connection between inspiration and formulation is one of the core differentiators of MATIÈRE.
+
+⸻
+
+OVERALL VISUAL EXPERIENCE
+
+The screen should be highly visual.
+
+Images should dominate the interface.
+
+The UI around them should remain restrained and almost disappear when not needed.
+
+Avoid:
+
+* heavy cards
+* large toolbars
+* excessive metadata
+* social-media conventions
+* likes
+* comments
+* follower mechanics
+* generic rounded UI containers
+* visible AI chat windows
+
+The moodboard should feel private, editorial, artistic and immersive.
+
+It should feel like entering the visual world of the fragrance.
+
+⸻
+
+PROJECT CONTEXT
+
+Use Lait Vert as the representative project.
+
+Project navigation should remain consistent:
+
+OVERVIEW
+INSPIRATION
+NOTES
+MATERIALS
+FORMULAS
+EVALUATION
+
+INSPIRATION is the active section.
+
+Suggested header:
+
+LAIT VERT
+
+INSPIRATION                                      + ADD
+
+Keep the project identity visible, but do not allow the header to consume too much of the screen.
+
+The board itself should begin quickly.
+
+⸻
+
+MOODBOARD LAYOUT
+
+For V1, use a responsive masonry-style visual layout inspired by editorial image boards and Pinterest, but more refined and less commercial.
+
+Allow mixed image ratios:
+
+* portrait
+* landscape
+* square
+* panoramic
+* video
+* text tiles
+
+Do not force everything into uniform cards.
+
+Create visual rhythm.
+
+Images should have minimal or no visible border treatment.
+
+Use restrained spacing between objects.
+
+The board should feel composed rather than cluttered.
+
+On mobile, use a 2-column visual masonry layout where appropriate, with occasional full-width objects.
+
+On desktop, allow more columns and stronger visual composition.
+
+There must be no page-level horizontal overflow.
+
+⸻
+
+TYPES OF INSPIRATION OBJECTS
+
+The moodboard should support the following types of objects:
+
+IMAGES
+
+Photography
+Architecture
+Fashion
+Artwork
+Textures
+Objects
+Landscapes
+Screenshots
+Personal photos
+
+Images should remain the dominant object type.
+
+⸻
+
+VIDEO
+
+Allow video references.
+
+Examples:
+
+runway clips
+film excerpts
+environmental footage
+art films
+personal footage
+material movement
+
+Video tiles should feel integrated with images rather than like embedded media players.
+
+Use minimal controls.
+
+On desktop, subtle silent hover playback may be used.
+
+On mobile, playback can begin when the user intentionally opens or taps the item.
+
+⸻
+
+TEXT
+
+Text should be a first-class inspiration object.
+
+Examples:
+
+“The smell of a greenhouse after everyone has left.”
+
+“Not botanical. Architectural green.”
+
+“Cold light through translucent leaves.”
+
+Text tiles should be visually beautiful and editorial.
+
+Allow some text objects to occupy larger areas of the board.
+
+Do not make text look like generic sticky notes.
+
+⸻
+
+MATERIAL REFERENCES
+
+Allow selected fragrance materials to eventually appear inside the inspiration board.
+
+Example:
+
+VIOLET LEAF ABSOLUTE
+
+Green · metallic · wet foliage
+
+Material references should visually integrate into the board without turning it into a database.
+
+Images should still dominate.
+
+⸻
+
+ADD EXPERIENCE
+
+Create a restrained + ADD action.
+
+When selected, offer:
+
+UPLOAD IMAGE
+UPLOAD VIDEO
+ADD TEXT
+ADD LINK
+ADD MATERIAL
+
+Do not use a large modal if a compact sheet or contextual panel works better.
+
+The interaction should feel fast and direct.
+
+⸻
+
+INTERACTION WITH INDIVIDUAL REFERENCES
+
+By default, imagery should be visually clean.
+
+Controls should appear only when the user interacts with an object.
+
+Possible contextual actions:
+
+INTERPRET
+ADD NOTE
+CONNECT MATERIAL
+USE AS DIRECTION
+REMOVE
+
+Do not place permanent icon bars under every image.
+
+Avoid visual clutter.
+
+⸻
+
+INTERPRET REFERENCE
+
+This is an important MATIÈRE interaction.
+
+When a user selects INTERPRET on an image, text object or video, do not open a generic chatbot.
+
+Open a restrained contextual panel or sheet.
+
+For an image, the interpretation could contain:
+
+VISUAL READING
+
+Translucent
+Cold
+Mineral
+Diffused
+Pale green
+Fragile
+
+OLFACTIVE TRANSLATION
+
+Wet vegetal
+Airy floral
+Mineral
+Transparent musk
+Cold woods
+
+MATERIAL POSSIBILITIES
+
+Violet Leaf Absolute
+Stemone
+Hedione
+Floralozone
+Ambroxan
+Habanolide
+
+Use language like:
+
+POSSIBLE TRANSLATIONS
+MATERIAL DIRECTIONS
+EXPLORE
+
+Do not use:
+
+AI RECOMMENDS
+YOU SHOULD
+CORRECT CHOICE
+
+The perfumer remains the author.
+
+⸻
+
+EXPLORE AS SCENT
+
+Allow a user to take a single inspiration reference and choose:
+
+EXPLORE AS SCENT →
+
+This should generate a small structured olfactive direction object.
+
+Example:
+
+TRANSLUCENT GREEN GLASS
+
+CHARACTER
+Cold · vegetal · mineral · transparent
+
+STRUCTURE
+Green opening
+Diffusive floral core
+Dry mineral skin
+
+EXPLORE
+Violet Leaf Absolute
+Stemone
+Hedione
+Ambroxan
+Habanolide
+
+Possible actions:
+
+SAVE AS OLFACTIVE DIRECTION
+EXPLORE MATERIALS
+CREATE ACCORD — FUTURE
+
+Do not generate a finished perfume formula automatically.
+
+The purpose is to translate inspiration into creative olfactive language.
+
+⸻
+
+MULTI-SELECT INTERPRETATION
+
+Allow the user to select multiple references.
+
+Example:
+
+wet leaf image
+pale translucent fabric
+concrete wall
+
+Then provide:
+
+INTERPRET SELECTION →
+
+This should analyze the relationship between the references rather than simply describing each one separately.
+
+Example output:
+
+SHARED ATMOSPHERE
+
+Cold
+Restrained
+Tactile
+Diffused
+
+CREATIVE TENSIONS
+
+Organic ↔ Architectural
+Wet ↔ Dry
+Soft ↔ Mineral
+Transparent ↔ Creamy
+
+OLFACTIVE TRANSLATION
+
+Green vegetal
+Cold floral
+Skin musk
+Mineral woods
+
+MATERIAL TERRITORIES
+
+Violet Leaf Absolute
+Stemone
+Hedione
+Ambrettolide
+Cashmeran
+Ambroxan
+
+This interaction should feel like a creative director interpreting the conceptual relationship between references.
+
+⸻
+
+INTERPRET BOARD
+
+Add one important board-level action:
+
+INTERPRET BOARD →
+
+This should become one of the signature interactions of the Inspiration experience.
+
+Do not make it visually dominant at all times.
+
+It can sit in the header, appear as a subtle floating action, or surface contextually.
+
+When selected, show a structured BOARD READING.
+
+Example:
+
+BOARD READING
+
+ATMOSPHERE
+
+Cold
+Quiet
+Tactile
+Diffused
+Intimate
+
+VISUAL TENSIONS
+
+Organic ↔ Architectural
+Wet ↔ Powdery
+Transparent ↔ Creamy
+
+OLFACTIVE TERRITORIES
+
+Green vegetal
+Cold floral
+Mineral
+Skin musk
+Pale woods
+
+MATERIAL DIRECTIONS
+
+Violet Leaf Absolute
+Stemone
+Hedione
+Orris materials
+Ambrettolide
+Cashmeran
+Ambroxan
+
+AVOID
+
+Bright citrus
+Sugared florals
+Heavy amber warmth
+
+Primary action:
+
+SAVE AS OLFACTIVE DIRECTION
+
+Secondary actions:
+
+EXPLORE MATERIALS
+REFINE INTERPRETATION
+
+Do not display this as a long chatbot response.
+
+It should feel like a designed creative analysis object.
+
+⸻
+
+OLFACTIVE DIRECTION
+
+When a board interpretation is saved, it should become part of the project.
+
+Example:
+
+CURRENT OLFACTIVE DIRECTION
+
+Cold vegetal opening
+Translucent floral diffusion
+Mineral skin
+Pale dry woods
+
+This direction should later be accessible from:
+
+Overview
+Materials
+Formula Lab
+
+This creates continuity between inspiration and formulation.
+
+⸻
+
+FUTURE CANVAS MODE
+
+Do not fully build this now, but design the system so we can later add a second view:
+
+MOODBOARD
+CANVAS
+
+Moodboard = visual masonry layout.
+
+Canvas = freeform spatial arrangement.
+
+In future Canvas mode, users may manually position:
+
+images
+text
+materials
+notes
+connections
+
+Users may overlap items, group them or create relationships between references.
+
+Do NOT build full Canvas functionality in this pass.
+
+Just keep the architecture flexible enough to support it later.
+
+⸻
+
+VISUAL LANGUAGE
+
+Continue the existing MATIÈRE design language:
+
+* off-white background
+* black / charcoal typography
+* thin dividers
+* restrained mono metadata
+* strong editorial sans-serif
+* almost no rounded cards
+* high-quality spacing
+* quiet interactions
+* minimal iconography
+
+The Inspiration area can be more visually expressive than the rest of MATIÈRE because the content itself provides the color and emotion.
+
+Do not add decorative gradients or UI color merely for visual interest.
+
+Let the references create the visual identity.
+
+⸻
+
+MOBILE EXPERIENCE
+
+Mobile is critical.
+
+The moodboard should feel natural to scroll vertically, almost like an editorial visual feed.
+
+Use:
+
+* 2-column masonry when appropriate
+* occasional full-width objects
+* large enough tap targets
+* no page overflow
+* minimal persistent UI
+
+When a reference is tapped, open it into a focused viewer or bottom sheet with its interpretation and actions.
+
+Do not clutter the masonry grid itself with permanent controls.
+
+Multi-select should be simple and understandable on mobile.
+
+⸻
+
+DESKTOP EXPERIENCE
+
+Desktop should take advantage of more space.
+
+Use a wider masonry grid.
+
+Allow references to feel like a creative wall rather than a conventional gallery.
+
+Keep the grid visually irregular but controlled.
+
+Do not simply stretch the mobile layout.
+
+⸻
+
+REALISTIC CONTENT
+
+Populate Lait Vert with realistic inspiration references.
+
+Use examples such as:
+
+* wet violet leaves
+* translucent pale-green glass
+* diffused daylight on skin
+* soft white or pale-grey fabric
+* brutalist concrete
+* milky resin
+* a restrained fashion image
+* a close-up organic texture
+
+Include text objects such as:
+
+“Not botanical. Architectural green.”
+
+“The smell of a greenhouse after everyone has left.”
+
+“Cold light through translucent leaves.”
+
+Include one material reference:
+
+VIOLET LEAF ABSOLUTE
+Green · wet leaf · metallic
+
+The prototype should feel like a believable fragrance creative process.
+
+⸻
+
+IMPORTANT PRODUCT PRINCIPLE
+
+This is not a place where users simply save pictures.
+
+Every reference can eventually influence:
+
+the brief
+the olfactive direction
+material exploration
+accord creation
+formula development
+
+The experience should communicate that visual and conceptual references are part of the fragrance creation process.
+
+The human perfumer remains the author.
+
+MATIÈRE helps translate creative intuition into olfactive possibilities.
+
+Build the Inspiration / Moodboard experience around that principle.

@@ -27,14 +27,21 @@ export interface ProjectEvaluation {
   date: string;
 }
 
+export type InspirationItemType = "image" | "quote" | "material" | "note" | "text";
+
 export interface InspirationItem {
   id: string;
-  type: "image" | "quote" | "material" | "note";
+  type: InspirationItemType;
   src?: string;
   caption?: string;
   body?: string;
   materialName?: string;
+  materialSubtitle?: string;
   tag?: string;
+  /** Controls visual weight in masonry: "full" = full-width, "wide" = 2-col span, "normal" = 1 col */
+  span?: "full" | "wide" | "normal";
+  /** Intrinsic aspect ratio hint for masonry height calculation */
+  aspect?: "portrait" | "landscape" | "square" | "panoramic" | "tall";
 }
 
 export interface DemoProject {
@@ -253,20 +260,88 @@ export const DEMO_PROJECTS: DemoProject[] = [
       {
         id: "i-11",
         type: "image",
-        src: BASE + "flower.jpg",
-        caption: "Viola odorata — the starting point",
+        src: BASE + "leaves.jpg",
+        caption: "Wet violet leaves — saturated green, cold, metallic surface",
+        aspect: "landscape",
       },
       {
-        id: "i-12",
-        type: "note",
-        body: "Green but not leafy. The kind of green that reads as light through glass, not vegetation.",
+        id: "i-11b",
+        type: "text",
+        body: "Not botanical. Architectural green.",
+        span: "normal",
+        tag: "direction",
+      },
+      {
+        id: "i-11c",
+        type: "image",
+        src: BASE + "flower.jpg",
+        caption: "Diffused daylight on pale fabric — translucency as texture",
+        aspect: "portrait",
+      },
+      {
+        id: "i-11d",
+        type: "text",
+        body: "The smell of a greenhouse after everyone has left.",
+        span: "wide",
         tag: "brief fragment",
       },
       {
-        id: "i-13",
+        id: "i-11e",
+        type: "image",
+        src: BASE + "texture.jpg",
+        caption: "Milky resin surface — organic, semi-opaque",
+        aspect: "square",
+      },
+      {
+        id: "i-11f",
+        type: "image",
+        src: BASE + "mood-clean.jpg",
+        caption: "Pale grey fabric, close-woven — restrained, tactile",
+        aspect: "portrait",
+      },
+      {
+        id: "i-11g",
+        type: "image",
+        src: BASE + "botanicals.jpg",
+        caption: "Brutalist concrete surface — mineral, structural, cold",
+        aspect: "landscape",
+      },
+      {
+        id: "i-11h",
+        type: "text",
+        body: "Cold light through translucent leaves.",
+        span: "normal",
+        tag: "atmosphere",
+      },
+      {
+        id: "i-11i",
+        type: "image",
+        src: BASE + "studio-practice.jpg",
+        caption: "Restrained fashion — pale tones, structural line",
+        aspect: "portrait",
+      },
+      {
+        id: "i-11j",
+        type: "image",
+        src: BASE + "petals.jpg",
+        caption: "Close-up organic texture — pale, powdery, fragile",
+        aspect: "square",
+      },
+      {
+        id: "i-11k",
+        type: "image",
+        src: BASE + "mood-fresh.jpg",
+        caption: "Translucent pale-green glass — the core chromatic reference",
+        aspect: "landscape",
+        span: "wide",
+      },
+      {
+        id: "i-12",
         type: "material",
         materialName: "Violet Leaf Absolute",
-        body: "Metallic, green, ozonic. Very powerful — 0.3% gives the impression. The distinctive quality here is its coldness.",
+        materialSubtitle: "Green · wet leaf · metallic",
+        body: "Metallic, green, ozonic. Very powerful — 0.3% gives the impression. The distinctive quality is its coldness: it reads as plant-forward, not sweet.",
+        span: "normal",
       },
     ],
   },
