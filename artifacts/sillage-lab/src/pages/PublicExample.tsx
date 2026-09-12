@@ -286,7 +286,7 @@ export function PublicExample() {
             Sign in
           </Link>
           <Link
-            href="/sign-up"
+            href="/studio"
             data-testid="link-example-start"
             className="inline-flex items-center gap-2 bg-foreground text-background px-4 py-2.5 font-mono-ui text-[11px] uppercase tracking-[.18em] hover:opacity-80 transition-opacity"
           >
@@ -830,7 +830,7 @@ export function PublicExample() {
           </p>
           <div className="flex flex-wrap gap-4 items-center">
             <Link
-              href="/sign-up"
+              href="/studio"
               data-testid="button-example-create"
               className="inline-flex items-center gap-2.5 bg-foreground text-background px-6 py-3.5 font-mono-ui text-[12px] uppercase tracking-[.20em] hover:opacity-80 transition-opacity"
             >

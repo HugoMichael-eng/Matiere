@@ -5148,7 +5148,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
         </p>
         <div className="flex flex-wrap gap-3 shrink-0">
           <Link
-            href="/sign-up"
+            href="/studio"
             data-testid="button-demo-create-moodboard"
             className="inline-flex items-center gap-2.5 bg-foreground text-background px-6 py-3.5 font-mono-ui uppercase tracking-[.18em] hover:opacity-80 transition-opacity"
             style={{ fontSize: "14px", minHeight: "48px" }}
@@ -5249,7 +5249,7 @@ function Landing() {
               The workspace
             </Link>
             <Link
-              href="/sign-up"
+              href="/studio"
               data-testid="link-landing-nav-create"
               className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground hover:text-foreground transition-colors"
               style={{ fontSize: "14px" }}
@@ -5323,7 +5323,7 @@ function Landing() {
               className="mt-8 flex flex-wrap items-center gap-4"
             >
               <Link
-                href="/sign-up"
+                href="/studio"
                 data-testid="button-landing-create-moodboard"
                 className="inline-flex items-center gap-2.5 bg-foreground text-background px-6 py-3.5 font-mono-ui uppercase tracking-[.20em] hover:opacity-80 transition-opacity text-[20px]"
                 style={{ minHeight: "48px" }}
@@ -5774,7 +5774,7 @@ function Landing() {
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
-              href="/sign-up"
+              href="/studio"
               data-testid="link-landing-create-final"
               className="group inline-flex items-center gap-2.5 bg-foreground text-background px-6 py-3.5 font-mono-ui uppercase tracking-[.20em] hover:opacity-80 transition-opacity"
               style={{ fontSize: "14px", minHeight: "48px" }}
@@ -5826,11 +5826,18 @@ function PublicExamplePage() { return <PublicExample />; }
 function Protected({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   if (!isLoaded) return <div className="grid min-h-[100dvh] place-items-center bg-background"><Skeleton className="h-8 w-32" /></div>;
-  return isSignedIn ? <>{children}</> : <Redirect to="/sign-in" />;
+  const destination = `${window.location.pathname}${window.location.search}`;
+  return isSignedIn ? <>{children}</> : <Redirect to={`/sign-in?redirect=${encodeURIComponent(destination)}`} />;
 }
 
 function AuthPage({ kind }: { kind: "in" | "up" }) {
   const BASE = import.meta.env.BASE_URL + "images/";
+  const requestedDestination = new URLSearchParams(window.location.search).get("redirect");
+  const safeDestination = requestedDestination?.startsWith("/") && !requestedDestination.startsWith("//")
+    ? requestedDestination
+    : "/";
+  const redirectUrl = `${basePath || ""}${safeDestination}`;
+  const alternateAuthUrl = `${basePath}/${kind === "in" ? "sign-up" : "sign-in"}?redirect=${encodeURIComponent(safeDestination)}`;
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-background">
       {/* Background image — very subtle wash on the right side */}
@@ -5851,8 +5858,8 @@ function AuthPage({ kind }: { kind: "in" | "up" }) {
       <div className="relative z-10 grid min-h-[100dvh] place-items-center px-4 py-16">
         <div className="w-full max-w-[440px] border border-border bg-card p-1 shadow-sm">
           {kind === "in"
-            ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} fallbackRedirectUrl={`${basePath || ""}/`} />
-            : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} fallbackRedirectUrl={`${basePath || ""}/`} />
+            ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={alternateAuthUrl} fallbackRedirectUrl={redirectUrl} />
+            : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={alternateAuthUrl} fallbackRedirectUrl={redirectUrl} />
           }
         </div>
         {/* Bottom copy */}
