@@ -60,19 +60,19 @@ function familySensory(family: string): string {
 const FAMILY_IMAGES: Record<string, string> = {
   floral: "rose.jpg",
   woody: "vetiver.jpg",
-  resinous: "resin.jpg",
-  animalic: "resin.jpg",
-  citrus: "flower.jpg",
+  resinous: "resine-noire-01.jpg",
+  animalic: "animal-mirror-01.jpg",
+  citrus: "lait-vert-02.jpg",
   aromatic: "botanicals.jpg",
-  green: "leaves.jpg",
+  green: "lait-vert-01.jpg",
   spicy: "spice.jpg",
-  fresh: "hero-droplets.jpg",
+  fresh: "sel-gris-01.jpg",
   musk: "petals.jpg",
   fougere: "botanicals.jpg",
-  chypre: "flower.jpg",
+  chypre: "sel-gris-01.jpg",
   gourmand: "spice.jpg",
-  aquatic: "hero-droplets.jpg",
-  oriental: "amber.jpg",
+  aquatic: "sel-gris-01.jpg",
+  oriental: "resine-noire-01.jpg",
 };
 
 function familyImage(family: string): string {

@@ -1,0 +1,1068 @@
+We are NOT rebuilding MATIÈRE from scratch.
+
+Keep the current lighter direction, current navigation, current project architecture, existing formula workflow, and overall editorial restraint.
+
+However, the current implementation still feels too generic, too static, too much like tasteful minimal software, and it has lost several of the product ideas that are supposed to make MATIÈRE distinctive.
+
+This next pass must correct that.
+
+The three priorities are:
+
+1. **Introduce true quiet-luxury art direction**
+2. **Make the Canvas / Moodboard the heart of the product**
+3. **Restore the connective flow between inspiration, materials, formula, mods, and evaluation**
+
+The goal is not merely to make the interface prettier.
+
+The goal is to make MATIÈRE feel like:
+
+**a new way to create fragrance.**
+
+---
+
+# 1. KEEP THE LIGHTER PALETTE — BUT MAKE IT MORE LUXURIOUS
+
+The current move away from black is correct.
+
+Keep the brighter overall direction.
+
+But refine the palette so it feels less like generic minimal UI and more like a contemporary gallery / studio environment.
+
+Use:
+
+WARM GALLERY WHITE  
+BONE  
+PARCHMENT  
+PLASTER  
+PALE MINERAL GREY  
+SOFT STONE  
+INK / CHARCOAL  
+SMOKED BROWN-BLACK
+
+Avoid pure white everywhere.
+
+Avoid cold grey SaaS surfaces.
+
+Avoid excessive beige-on-beige monotony.
+
+The interface should feel tactile and material.
+
+---
+
+# 2. REDUCE THE ACID GREEN
+
+Keep the acid citron / chartreuse accent, but use it more sparingly.
+
+It should not become a visible brand color across every page.
+
+Use it only for:
+
+- active selection
+- connection nodes
+- drag targets
+- current mod
+- AI interpretation marker
+- subtle progress
+- one-pixel accents
+- tiny interaction details
+
+Aim for approximately 1–3% of the interface.
+
+It should feel like a small unexpected signal.
+
+Not a tech-brand color.
+
+---
+
+# 3. QUIET LUXURY PRINCIPLE
+
+Quiet luxury should come from:
+
+- exceptional proportion
+- strong typography
+- materiality
+- negative space used intentionally
+- art-directed imagery
+- subtle movement
+- interaction quality
+- calm hierarchy
+- details that feel deliberate
+
+Do NOT interpret quiet luxury as:
+
+off-white background + thin grey rules + lots of empty space.
+
+Luxury should feel designed, not merely sparse.
+
+---
+
+# 4. PHOTOGRAPHY NEEDS A COMPLETE ART-DIRECTION UPGRADE
+
+The current imagery feels too generic and often too literal.
+
+Do NOT rely on generic:
+
+mountains  
+basic roses  
+wet leaves  
+sunsets  
+nature stock photography  
+obvious ingredient photography
+
+Project imagery should feel:
+
+ART-DIRECTED  
+CULTURAL  
+TACTILE  
+STRANGE  
+MATERIAL-DRIVEN  
+FASHION-ADJACENT  
+ARCHITECTURAL  
+PHOTOGRAPHIC  
+SLIGHTLY UNEXPECTED
+
+The visual references should express the world of the fragrance, not simply illustrate the ingredient.
+
+---
+
+# 5. LAIT VERT — NEW VISUAL DIRECTION
+
+The current visual references for Lait Vert are too literal.
+
+Replace or supplement them with imagery such as:
+
+- translucent green resin
+- crushed vegetal matter in extreme macro
+- condensation on architectural glass
+- green-tinted acrylic
+- skin under cold overcast light
+- pale translucent textile
+- fogged surfaces
+- fluorescent green reflection
+- mineral concrete
+- pale glass objects
+- laboratory material photographed editorially
+- abstract plant structure
+- wet metal
+- milky synthetic surfaces
+- botanical forms photographed in an almost architectural way
+
+The tension should be:
+
+NATURAL ↔ SYNTHETIC
+
+WET ↔ DRY
+
+SOFT ↔ MINERAL
+
+BOTANICAL ↔ ARCHITECTURAL
+
+TRANSPARENT ↔ MILKY
+
+This is more important than showing literal leaves.
+
+---
+
+# 6. SEL GRIS — VISUAL DIRECTION
+
+Use:
+
+- salt crystallization
+- cold grey skin
+- marine fog
+- mineral surfaces
+- wet limestone
+- eroded metal
+- distant horizon
+- pale driftwood
+- translucent grey resin
+- brushed steel
+- skin after swimming
+- fogged glass
+
+Avoid generic beach photography.
+
+---
+
+# 7. ANIMAL IN THE MIRROR — VISUAL DIRECTION
+
+Use:
+
+- mirror reflections
+- skin
+- powder
+- polished dark wood
+- fur-like textures
+- white florals photographed strangely
+- cosmetic powder residue
+- shadow
+- reflected light
+- lacquered surfaces
+- smeared glass
+- close human texture without literal portraiture
+
+The project should feel:
+
+controlled  
+intimate  
+beautiful  
+slightly uncanny
+
+---
+
+# 8. RÉSINE NOIRE — VISUAL DIRECTION
+
+Use:
+
+- dark resin
+- charred wood
+- ecclesiastical stone
+- old paper
+- smoke residue
+- lacquer
+- amber material
+- blackened botanical matter
+- beeswax
+- worn leather
+- architectural interiors
+- aged timber
+
+Avoid obvious “amber resin on bark” stock images unless treated in a highly editorial way.
+
+---
+
+# 9. TYPOGRAPHIC HIERARCHY NEEDS MORE TENSION
+
+The current typography is clean but too evenly weighted.
+
+Introduce stronger contrast between:
+
+LARGE EDITORIAL MOMENTS  
+and  
+WHISPERED TECHNICAL DETAIL
+
+Examples:
+
+LAIT VERT
+
+very large, expressive
+
+then:
+
+MOD 02 / 17.01 / GREEN STUDY
+
+very small, technical
+
+Then an oversized creative statement:
+
+NOT BOTANICAL.  
+ARCHITECTURAL GREEN.
+
+Use these large statements sparingly.
+
+Do not make every heading huge.
+
+The rhythm should feel editorial.
+
+---
+
+# 10. STOP MAKING EVERY SCREEN FEEL LIKE A PAGE
+
+The current site still feels like:
+
+Home  
+then Projects  
+then Formula  
+then Materials
+
+with each one behaving like a separate page.
+
+We need continuity.
+
+MATIÈRE should feel like one creative process.
+
+The core loop is:
+
+IMAGE
+
+↓
+
+IDEA
+
+↓
+
+OLFACTIVE DIRECTION
+
+↓
+
+MATERIAL
+
+↓
+
+FORMULA
+
+↓
+
+MOD
+
+↓
+
+SMELL
+
+↓
+
+EVALUATION
+
+↓
+
+RETURN TO CREATIVE DIRECTION
+
+This relationship should be visible throughout the interface.
+
+---
+
+# 11. THE CANVAS / MOODBOARD IS THE HEART OF MATIÈRE
+
+This is non-negotiable.
+
+The current Canvas still feels like a static collage preview.
+
+It must become a real creative tool.
+
+The Canvas should be the most memorable experience in the product.
+
+Make it:
+
+spatial  
+interactive  
+editable  
+layered  
+tactile  
+alive
+
+It should feel like an art director’s working wall.
+
+---
+
+# 12. FREEFORM CANVAS
+
+Allow the user to:
+
+- drag objects freely
+- resize objects
+- overlap objects
+- stack objects
+- create groups
+- reposition clusters
+- create negative space
+- place text freely
+- place materials beside imagery
+- connect references
+- pan around the canvas
+- zoom in and out
+
+Do NOT constrain everything to a fixed grid.
+
+The user should be able to compose a visual world.
+
+---
+
+# 13. STACKING — RESTORE THIS FEATURE
+
+Stacking is one of the signature interactions.
+
+Allow the user to overlap multiple references and create a stack.
+
+Example:
+
+wet glass  
+skin  
+pale textile
+
+When stacked:
+
+the images overlap slightly like physical prints.
+
+On hover:
+
+they fan slightly.
+
+On click:
+
+EXPAND STACK
+
+Other actions:
+
+INTERPRET STACK  
+UNSTACK  
+GROUP
+
+This should feel smooth and tactile.
+
+---
+
+# 14. INTERPRET STACK
+
+If the user selects several references and chooses:
+
+INTERPRET STACK
+
+MATIÈRE should analyze the relationship between them.
+
+Example output:
+
+SHARED CHARACTER
+
+COLD  
+WET  
+TRANSPARENT  
+INTIMATE
+
+TENSIONS
+
+ORGANIC ↔ SYNTHETIC
+
+SOFT ↔ METALLIC
+
+SKIN ↔ GLASS
+
+OLFACTIVE TERRITORY
+
+GREEN VEGETAL  
+TRANSPARENT FLORAL  
+MINERAL MUSK
+
+MATERIAL TERRITORY
+
+VIOLET LEAF ABSOLUTE  
+STEMONE  
+HEDIONE  
+HABANOLIDE
+
+This output should appear directly on the Canvas as a designed object.
+
+Do not open a chatbot.
+
+---
+
+# 15. IMAGE → MATERIAL CONNECTIONS
+
+Restore the ability to connect objects visually.
+
+Example:
+
+[translucent glass image]
+
+connected to
+
+[COLD / MINERAL / DIFFUSED]
+
+connected to
+
+[HABANOLIDE]
+
+connected to
+
+[MOD 03]
+
+Use elegant thin connection lines.
+
+Allow connection points to use the acid accent very subtly.
+
+This creates a visual record of creative reasoning.
+
+---
+
+# 16. MATERIALS AS CANVAS OBJECTS
+
+Allow materials from the library to be dragged onto the Canvas.
+
+Example object:
+
+VIOLET LEAF ABSOLUTE
+
+wet foliage  
+metallic  
+crushed stem
+
+Possible actions:
+
+OPEN MATERIAL  
+CONNECT TO REFERENCE  
+ADD TO FORMULA  
+REMOVE FROM CANVAS
+
+The material should feel like part of the composition, not a database card.
+
+---
+
+# 17. TEXT AS A VISUAL OBJECT
+
+Restore text as a first-class Canvas object.
+
+Allow the user to create:
+
+large statement  
+small note  
+quote  
+creative direction  
+memory  
+observation
+
+Example:
+
+NOT BOTANICAL.  
+ARCHITECTURAL GREEN.
+
+This can become large and visually dominant.
+
+Another:
+
+greenhouse after closing time
+
+can remain small beside an image.
+
+Do not style these as sticky notes.
+
+Use editorial typography.
+
+---
+
+# 18. FOCUS MODE
+
+Opening an image should become immersive.
+
+On double-click / open:
+
+- surrounding UI recedes
+- image becomes large
+- background becomes calm
+- minimal interpretation appears beside it
+
+Example:
+
+VISUAL READING
+
+translucent  
+cold  
+reflective  
+soft  
+synthetic
+
+OLFACTIVE TRANSLATION
+
+mineral  
+wet green  
+transparent musk  
+pale woods
+
+MATERIAL TERRITORY
+
+Violet Leaf Absolute  
+Stemone  
+Hedione  
+Ambroxan
+
+Actions:
+
+CONNECT MATERIAL  
+SAVE DIRECTION  
+RETURN TO CANVAS
+
+When closed, the image should return smoothly to its exact Canvas position.
+
+---
+
+# 19. MULTISELECT
+
+Allow the user to select several Canvas objects.
+
+A small floating contextual toolbar should appear:
+
+GROUP  
+STACK  
+INTERPRET  
+CONNECT  
+MOVE
+
+Do not show a permanent giant control panel.
+
+---
+
+# 20. EDIT MODE / VIEW MODE
+
+Restore two Canvas states.
+
+## EDIT MODE
+
+User can:
+
+drag  
+resize  
+stack  
+connect  
+write  
+group  
+interpret  
+add materials
+
+## VIEW MODE
+
+Most editing UI disappears.
+
+The Canvas becomes almost like an exhibition.
+
+This mode should feel beautiful enough for:
+
+client presentation  
+creative review  
+B2B fragrance pitch  
+internal creative presentation
+
+---
+
+# 21. CANVAS PREVIEW ON HOME
+
+The Home page should not just show a collage.
+
+Show a live preview of the actual Canvas.
+
+Include visible relationships:
+
+overlapping images  
+a material object  
+a text statement  
+a connection line  
+an olfactive interpretation object
+
+The user should immediately understand that the Canvas is interactive.
+
+CTA:
+
+ENTER CANVAS →
+
+---
+
+# 22. HOME HERO NEEDS BETTER ART DIRECTION
+
+The current Home hero is cleaner but still feels too safe.
+
+Do not rely on a generic landscape photograph.
+
+Use a stronger project-specific art-directed image.
+
+For Lait Vert:
+
+use something like:
+
+translucent green material  
+cold skin  
+abstract botanical surface  
+glass / condensation  
+milky synthetic form
+
+The hero should create intrigue.
+
+Not explain the project literally.
+
+---
+
+# 23. PROJECTS PAGE NEEDS MORE VISUAL IDENTITY
+
+The current Projects page is still mostly a list with thumbnails.
+
+Each project should feel like entering a distinct visual world.
+
+Increase the role of the project image.
+
+Allow one larger image crop per project.
+
+Use more asymmetry.
+
+Example:
+
+large image on left
+
+SEL GRIS
+
+marine mineral  
+warm skin  
+driftwood
+
+current mod
+
+latest creative note
+
+then next project may invert the composition.
+
+Do not make every project row identical.
+
+---
+
+# 24. MATERIALS PAGE SHOULD CONNECT BACK TO PROJECTS
+
+Materials should never feel isolated from inspiration.
+
+When opening a material, show:
+
+USED IN PROJECTS
+
+CONNECTED REFERENCES
+
+CURRENT FORMULAS
+
+Example:
+
+VIOLET LEAF ABSOLUTE
+
+Connected to:
+
+LAIT VERT
+
+Reference:
+translucent green acrylic
+
+Reference:
+wet mineral surface
+
+MOD 02
+
+This reinforces the visual-to-material relationship.
+
+---
+
+# 25. FORMULA LAB SHOULD CARRY CREATIVE CONTEXT
+
+When the user moves from Canvas to Formula, do not erase the creative context.
+
+Keep a small collapsible project-direction strip.
+
+Example:
+
+CURRENT DIRECTION
+
+COLD  
+MINERAL  
+TRANSPARENT  
+SKIN
+
+FROM CANVAS
+
+3 connected references
+
+The Formula remains precise and technical, but the original creative intent remains present.
+
+---
+
+# 26. MATERIAL → FORMULA FLOW
+
+If a material is selected from Canvas or Materials:
+
+offer:
+
+ADD TO CURRENT MOD →
+
+The selected material should animate / transition into the formula context.
+
+Do not simply navigate away.
+
+The relationship should feel continuous.
+
+---
+
+# 27. FORMULA → EVALUATION → CANVAS LOOP
+
+After the user evaluates a MOD, allow:
+
+ADD OBSERVATION TO CANVAS →
+
+Example evaluation:
+
+“Too warm after 4 hours.”
+
+This could become a Canvas object.
+
+Then the user may respond visually:
+
+add colder mineral references  
+connect a different material  
+shift direction
+
+This makes the process truly cyclical.
+
+---
+
+# 28. RESTORE CONTEXTUAL AI THROUGHOUT
+
+Do not use generic AI chat.
+
+Examples:
+
+CANVAS
+
+INTERPRET SELECTION
+
+MATERIALS
+
+WHAT MATERIALS EXPRESS THIS DIRECTION?
+
+FORMULA
+
+WHAT IS CAUSING THE WARMTH?
+
+EVALUATION
+
+SUMMARIZE THIS MOD
+
+OPTIMIZE
+
+EXPLORE A COLDER VERSION
+
+AI should always operate on the current creative context.
+
+---
+
+# 29. FLOW BETWEEN SCREENS
+
+Introduce subtle continuity transitions.
+
+Examples:
+
+Canvas image selected
+
+→ Materials opens with that image / interpretation still visible
+
+Material selected
+
+→ Formula opens with the material highlighted
+
+Formula evaluated
+
+→ Project Overview shows the latest evaluation
+
+Evaluation saved
+
+→ Canvas offers to add observation
+
+Do not make the application feel like disconnected routes.
+
+---
+
+# 30. MOTION NEEDS MORE SOPHISTICATION
+
+Add more motion, but keep it quiet.
+
+Examples:
+
+image softly lifts on hover
+
+stack fans open
+
+connection line draws itself
+
+material object glides into a group
+
+Canvas object settles after dragging
+
+active formula row highlights when updated
+
+page transitions preserve visual context
+
+creative statement softly reveals during scroll
+
+Do not use:
+
+bounce  
+elastic animation  
+cartoon motion  
+large fade-everything effects
+
+Movement should feel physical and calm.
+
+---
+
+# 31. SCROLL RHYTHM
+
+The Home and Project pages need better flow.
+
+Use more varied compositions:
+
+large image
+
+↓
+
+text statement
+
+↓
+
+canvas preview
+
+↓
+
+project note
+
+↓
+
+materials
+
+↓
+
+formula preview
+
+↓
+
+evaluation
+
+Do not create endless horizontal divider rows.
+
+Use section scale changes and image rhythm.
+
+---
+
+# 32. DO NOT OVERUSE THIN RULES
+
+The current design uses many thin horizontal lines.
+
+Reduce them.
+
+Use spacing and alignment first.
+
+Only use rules where they add clarity.
+
+Too many dividers make the product feel like a catalogue or spreadsheet.
+
+---
+
+# 33. QUIET LUXURY INTERACTION DETAIL
+
+Small moments matter.
+
+Examples:
+
+hovering a project image:
+very subtle crop shift
+
+hovering a material:
+olfactive descriptors fade in
+
+selecting a Canvas object:
+1px accent outline appears
+
+active mod:
+tiny accent line
+
+dragging:
+object gains gentle depth
+
+opening material:
+title transitions smoothly from list into detail
+
+Everything should feel intentional.
+
+---
+
+# 34. PHOTOGRAPHY RULES
+
+Do not use photography simply to fill blank space.
+
+Every image must do one of these:
+
+create atmosphere
+
+create tension
+
+suggest texture
+
+introduce an idea
+
+connect to a material
+
+express a memory
+
+challenge the olfactive direction
+
+If an image is generic or obvious, remove it.
+
+The photography must carry authorship.
+
+---
+
+# 35. CONTENT NEEDS MORE CREATIVE SPECIFICITY
+
+Do not fill the product with generic copy.
+
+Use believable creative notes such as:
+
+“Too beautiful. Needs friction.”
+
+“The green is reading botanical instead of structural.”
+
+“Drydown needs less warmth, more distance.”
+
+“Keep the skin effect but remove cosmetic softness.”
+
+“Could the mineral feeling come from transparency rather than another material?”
+
+“Cold without smelling marine.”
+
+These fragments make the product feel genuinely used.
+
+---
+
+# 36. PROJECT OVERVIEW SHOULD BECOME A LIVING CREATIVE SNAPSHOT
+
+Do not show project statistics as the main content.
+
+The page should include:
+
+CURRENT WORLD
+
+CURRENT OLFACTIVE DIRECTION
+
+CURRENT MOD
+
+LATEST EVALUATION
+
+KEY MATERIALS
+
+LATEST NOTE
+
+CANVAS FRAGMENT
+
+NEXT CREATIVE QUESTION
+
+Example:
+
+NEXT QUESTION
+
+“How do we keep the green wet without making it botanical?”
+
+This gives the project narrative momentum.
+
+---
+
+# 37. FORMULA LIBRARY
+
+The lighter Formula Library is an improvement, but it still feels empty.
+
+Populate it with more realistic formulas.
+
+Use at least:
+
+Lait Vert — MOD 01  
+Lait Vert — MOD 02  
+Lait Vert — MOD 03  
+Sel Gris — MOD 03  
+Sel Gris — MOD 04  
+Animal in the Mirror — MOD 05  
+Animal in the Mirror — MOD 06  
+Résine Noire — MOD 07
+
+Show:
+
+project  
+mod  
+materials  
+last evaluation  
+direction  
+status

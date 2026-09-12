@@ -31,12 +31,14 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 
-function Logo({ light = false }: { light?: boolean }) {
+function Logo({ _light = false }: { _light?: boolean }) {
   const { isSignedIn } = useAuth();
   const dest = isSignedIn ? "/studio" : "/";
   return (
-    <Link href={dest} data-testid="link-brand" className="flex items-center gap-2 group">
-      <span className={`font-serif text-[11px] font-medium tracking-[.28em] uppercase transition-opacity group-hover:opacity-70 ${light ? "text-foreground/90" : "text-foreground"}`}>MATIÈRE</span>
+    <Link href={dest} data-testid="link-brand" className="group">
+      <span className="font-mono-ui text-[10px] font-medium tracking-[.32em] uppercase text-foreground/85 transition-opacity group-hover:opacity-60">
+        MATIÈRE
+      </span>
     </Link>
   );
 }
@@ -120,10 +122,10 @@ function IfraCategoryPicker({ value, onChange, testId }: { value: string; onChan
 }
 
 const navItems = [
-  { href: "/studio", label: "Studio", icon: Gauge },
-  { href: "/projects", label: "Projects", icon: BookOpen },
-  { href: "/formulas", label: "Formulas", icon: FlaskConical },
-  { href: "/materials", label: "Materials", icon: Leaf },
+  { href: "/studio",    label: "Studio"    },
+  { href: "/projects",  label: "Projects"  },
+  { href: "/formulas",  label: "Formulas"  },
+  { href: "/materials", label: "Materials" },
 ];
 
 function Sidebar() {
@@ -131,50 +133,47 @@ function Sidebar() {
   const { user } = useUser();
   const { signOut } = useClerk();
   return (
-    <aside className="hidden min-h-[100dvh] w-[200px] shrink-0 flex-col bg-sidebar px-5 py-7 text-sidebar-foreground md:flex border-r border-border">
+    <aside
+      className="hidden min-h-[100dvh] w-[180px] shrink-0 flex-col bg-sidebar px-6 py-8 text-sidebar-foreground md:flex border-r border-border"
+      style={{ borderColor: "hsl(20 6% 11%)" }}
+    >
       <Logo />
-      <div className="mt-14">
-        <nav className="space-y-0">
-          {navItems.map(({ href, label }) => {
-            const active = location === href || (href !== "/studio" && location.startsWith(href));
-            return (
-              <Link
-                href={href}
-                key={href}
-                data-testid={`link-nav-${label.toLowerCase().replaceAll(" ", "-")}`}
-                className={[
-                  "flex items-center gap-0 py-2.5 text-[10px] tracking-[.20em] uppercase font-medium transition-all duration-150",
-                  "focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4",
-                  active
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                ].join(" ")}
-              >
-                {active && (
-                  <span className="mr-2.5 h-[1px] w-4 bg-accent inline-block" aria-hidden />
-                )}
-                {!active && <span className="mr-2.5 h-[1px] w-4 inline-block" aria-hidden />}
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-      {/* Accent dot — sparse citron presence */}
-      <div className="my-8 h-[1px] w-8 bg-accent" aria-hidden />
+      <nav className="mt-16 space-y-0">
+        {navItems.map(({ href, label }) => {
+          const active = location === href || (href !== "/studio" && location.startsWith(href));
+          return (
+            <Link
+              href={href}
+              key={href}
+              data-testid={`link-nav-${label.toLowerCase().replaceAll(" ", "-")}`}
+              className={[
+                "flex items-center gap-3 py-2.5 font-mono-ui text-[9px] tracking-[.22em] uppercase transition-colors duration-150",
+                "focus-visible:outline-none",
+                active ? "text-foreground" : "text-muted-foreground/60 hover:text-foreground/80",
+              ].join(" ")}
+            >
+              {active
+                ? <span className="h-[1px] w-3 bg-accent shrink-0" aria-hidden />
+                : <span className="h-[1px] w-3 shrink-0" aria-hidden />
+              }
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
+
       <div className="mt-auto">
-        <div className="flex items-center gap-3 border-t border-border pt-4">
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[9px] font-medium text-foreground">{user?.firstName ?? "Studio"}</p>
-            <p className="truncate text-[8px] text-muted-foreground mt-0.5">{user?.primaryEmailAddress?.emailAddress ?? "Account"}</p>
-          </div>
+        <div className="border-t pt-5" style={{ borderColor: "hsl(20 6% 11%)" }}>
+          <p className="truncate font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground/50">
+            {user?.firstName ?? "Studio"}
+          </p>
           <button
             onClick={() => signOut({ redirectUrl: basePath || "/" })}
             data-testid="button-sign-out"
-            className="text-muted-foreground/60 hover:text-foreground transition-colors"
+            className="mt-3 font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground/40 hover:text-foreground/60 transition-colors inline-flex items-center gap-2"
             aria-label="Sign out"
           >
-            <LogOut size={13} />
+            <LogOut size={10} strokeWidth={1.5} /> Sign out
           </button>
         </div>
       </div>
@@ -186,27 +185,28 @@ function MobileNav() {
   const [open, setOpen] = useState(false);
   const [location] = useLocation();
   return (
-    <div className="relative flex items-center justify-between border-b border-border bg-background px-5 py-4 md:hidden">
+    <div className="relative flex items-center justify-between border-b bg-background px-5 py-4 md:hidden" style={{ borderColor: "hsl(20 6% 11%)" }}>
       <Logo />
       <button
         onClick={() => setOpen(!open)}
         data-testid="button-mobile-menu"
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
-        className="p-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none"
+        className="p-1 text-muted-foreground/50 transition-colors hover:text-foreground focus-visible:outline-none"
       >
-        {open ? <X size={16} strokeWidth={1.5} /> : <Menu size={16} strokeWidth={1.5} />}
+        {open ? <X size={14} strokeWidth={1.5} /> : <Menu size={14} strokeWidth={1.5} />}
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.nav
             key="mobile-menu"
-            initial={{ opacity: 0, y: -6 }}
+            initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute left-0 right-0 top-full z-40 border-b border-border bg-background"
+            exit={{ opacity: 0, y: -3 }}
+            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-0 right-0 top-full z-40 border-b bg-background"
+            style={{ borderColor: "hsl(20 6% 11%)" }}
           >
             {navItems.map(({ href, label }) => {
               const active = location === href || (href !== "/studio" && location.startsWith(href));
@@ -217,13 +217,14 @@ function MobileNav() {
                   onClick={() => setOpen(false)}
                   data-testid={`link-mobile-${label.toLowerCase().replaceAll(" ", "-")}`}
                   className={[
-                    "flex items-center border-t border-border px-5 py-4 gap-3",
-                    "font-mono-ui text-[10px] uppercase tracking-[.20em]",
+                    "flex items-center gap-3 border-t px-5 py-4",
+                    "font-mono-ui text-[9px] uppercase tracking-[.22em]",
                     "transition-colors duration-150",
-                    active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                    active ? "text-foreground" : "text-muted-foreground/50 hover:text-foreground/80",
                   ].join(" ")}
+                  style={{ borderColor: "hsl(20 6% 11%)" }}
                 >
-                  {active && <span className="h-[1px] w-3 bg-accent inline-block shrink-0" aria-hidden />}
+                  {active && <span className="h-[1px] w-3 bg-accent shrink-0" aria-hidden />}
                   {label}
                 </Link>
               );
@@ -241,7 +242,7 @@ function Shell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="min-w-0 flex-1 overflow-x-hidden">
         <MobileNav />
-        <main className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12 pb-16 overflow-x-hidden">
+        <main className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12 pb-20 overflow-x-hidden">
           {children}
         </main>
       </div>
@@ -4685,298 +4686,300 @@ function FieldNoteCard() {
 
 function Landing() {
   const BASE = import.meta.env.BASE_URL + "images/";
-  const focusProject = { name: "Lait Vert", direction: "Green · violet leaf · milky skin · transparent", mod: "MOD 02" };
 
   return (
-    <div className="min-h-[100dvh] overflow-x-hidden bg-background">
-      {/* ── Nav ── */}
-      <motion.header
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-10"
-      >
-        <Logo />
-        <div className="flex items-center gap-6">
-          <Link
-            href="/sign-in"
-            data-testid="link-landing-sign-in"
-            className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-muted-foreground hover:text-foreground transition-colors"
+    <div className="min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
+
+      {/* ── HERO — full-bleed cinematic ───────────────────────────────────────── */}
+      <section className="relative min-h-[100dvh] overflow-hidden" data-testid="landing-hero">
+        {/* Full-bleed background image */}
+        <motion.div
+          className="absolute inset-0"
+          initial={{ scale: 1.04 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <img
+            src={BASE + "hero-editorial.jpg"}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover object-center"
+            onError={(e) => {
+              // fallback to animal-mirror if editorial not ready
+              (e.currentTarget as HTMLImageElement).src = BASE + "animal-mirror-01.jpg";
+            }}
+          />
+          {/* Cinematic vignette — heavier on the left where text lives */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(to right, rgba(12,10,9,0.88) 0%, rgba(12,10,9,0.45) 55%, rgba(12,10,9,0.15) 100%)",
+            }}
+          />
+          {/* Bottom vignette */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(to top, rgba(12,10,9,0.7) 0%, transparent 50%)",
+            }}
+          />
+        </motion.div>
+
+        {/* ── Top nav ── */}
+        <motion.header
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-7 py-7 sm:px-12"
+        >
+          <Logo />
+          {/* Nav items — spaced across top like reference */}
+          <nav className="hidden md:flex items-center gap-8">
+            {["Studio", "Projects", "Formulas", "Materials"].map((label) => (
+              <Link
+                key={label}
+                href={`/${label.toLowerCase()}`}
+                data-testid={`link-landing-nav-${label.toLowerCase()}`}
+                className="font-mono-ui text-[9px] uppercase tracking-[.28em] text-foreground/50 hover:text-foreground transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-5">
+            <Link
+              href="/sign-in"
+              data-testid="link-landing-sign-in"
+              className="font-mono-ui text-[9px] uppercase tracking-[.28em] text-foreground/50 hover:text-foreground transition-colors hidden sm:block"
+            >
+              Sign in
+            </Link>
+          </div>
+        </motion.header>
+
+        {/* ── Hero copy — left-aligned, editorial scale ── */}
+        <div className="relative z-10 flex min-h-[100dvh] flex-col justify-center px-7 sm:px-12 lg:px-16">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-lg"
           >
-            Sign in
-          </Link>
+            <h1
+              className="font-display tracking-[-0.02em] leading-[.90] text-foreground"
+              style={{ fontSize: "clamp(3.8rem, 9vw, 8.5rem)" }}
+              data-testid="heading-landing"
+            >
+              FRAGRANCE<br />
+              BEYOND<br />
+              THE VISIBLE
+            </h1>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.55 }}
+              className="mt-7 space-y-0.5"
+            >
+              {["ARTISTRY.", "INTELLIGENCE.", "YOU."].map((line) => (
+                <p key={line} className="font-mono-ui text-[9px] uppercase tracking-[.32em] text-foreground/45">
+                  {line}
+                </p>
+              ))}
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* ── Lower left — small horizontal mark + vertical micro-copy ── */}
+        <motion.div
+          className="absolute bottom-8 left-7 sm:left-12 z-10 flex flex-col gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.75 }}
+        >
+          <div className="h-[1px] w-8 bg-foreground/30" aria-hidden />
+          <p
+            className="font-mono-ui text-[7px] uppercase tracking-[.22em] text-foreground/30 leading-5"
+            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+          >
+            A NEW LANGUAGE OF SCENT
+          </p>
+        </motion.div>
+
+        {/* ── Lower right — START CREATING ── */}
+        <motion.div
+          className="absolute bottom-8 right-7 sm:right-12 z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.85 }}
+        >
           <Link
             href="/sign-up"
-            data-testid="link-landing-sign-up"
-            className="border border-foreground px-4 py-2 font-mono-ui text-[9px] uppercase tracking-[.18em] hover:bg-foreground hover:text-background transition-colors"
+            data-testid="button-landing-start"
+            className="group inline-flex items-center gap-3 font-mono-ui text-[9px] uppercase tracking-[.28em] text-foreground/55 hover:text-foreground transition-colors"
           >
-            Open studio
+            START CREATING
+            <ArrowRight
+              size={10}
+              strokeWidth={1.5}
+              className="transition-transform duration-200 group-hover:translate-x-1"
+            />
           </Link>
-        </div>
-      </motion.header>
+        </motion.div>
+      </section>
 
-      {/* ── Hero — warm editorial split ── */}
-      <main>
-        <section className="mx-auto max-w-7xl px-5 sm:px-10">
-          <div className="grid items-stretch gap-0 lg:grid-cols-[1fr_1fr] min-h-[80vh]">
-            {/* Left — text column */}
-            <div className="flex flex-col justify-center py-16 lg:py-24 lg:pr-16">
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.05 }}
-                className="font-mono-ui text-[9px] uppercase tracking-[.30em] text-muted-foreground"
-              >
-                A creative perfumery workspace
-              </motion.p>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-                className="mt-5 font-display tracking-[-0.045em] leading-[.88] text-foreground"
-                style={{ fontSize: "clamp(3.2rem, 7vw, 6.5rem)" }}
-              >
-                Where world becomes scent.
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.22 }}
-                className="mt-7 max-w-md text-base leading-8 text-muted-foreground"
-              >
-                Build a visual world. Translate it into atmosphere, materials, formula, and evaluation. MATIÈRE connects creative instinct with technical precision.
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.32 }}
-                className="mt-10 flex flex-wrap items-center gap-6"
-              >
-                <Link
-                  href="/sign-up"
-                  data-testid="button-landing-start"
-                  className="border border-foreground bg-foreground text-background px-6 py-3 font-mono-ui text-[10px] uppercase tracking-[.18em] hover:opacity-80 transition-opacity"
-                >
-                  Start making
-                </Link>
-                <Link
-                  href="/sign-in"
-                  data-testid="link-landing-learn"
-                  className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-2"
-                >
-                  Sign in <ArrowRight size={10} strokeWidth={1.5} />
-                </Link>
-              </motion.div>
-            </div>
-
-            {/* Right — hero image, full height */}
+      {/* ── BELOW THE FOLD — three world pillars ──────────────────────────────── */}
+      <section className="border-t border-border">
+        <div className="mx-auto max-w-7xl">
+          {[
+            {
+              num: "01",
+              title: "Canvas",
+              body: "Build a visual world on a spatial, freeform canvas. Layer images, texts, materials, and olfactive interpretations into the composition that drives the fragrance.",
+              img: "animal-mirror-01.jpg",
+            },
+            {
+              num: "02",
+              title: "Studio",
+              body: "Develop the project through briefs, evaluations, and notes. Every iteration stays connected to its visual and sensory origin.",
+              img: "sel-gris-01.jpg",
+            },
+            {
+              num: "03",
+              title: "Laboratory",
+              body: "Translate visual direction into formula with technical precision. IFRA compliance, allergen review, and batch calculation included.",
+              img: "resine-noire-01.jpg",
+            },
+          ].map(({ num, title, body, img }, i) => (
             <motion.div
-              initial={{ opacity: 0, scale: 1.02 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="relative hidden lg:block overflow-hidden"
-              style={{ minHeight: "520px" }}
+              key={num}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-30px" }}
+              transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+              className={[
+                "grid sm:grid-cols-[1fr_2fr] border-b border-border",
+                i % 2 === 1 ? "sm:grid-cols-[2fr_1fr]" : "",
+              ].join(" ")}
             >
-              <img
-                src={BASE + "leaves.jpg"}
-                alt=""
-                aria-hidden
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              {/* Current project overlay — bottom solid strip, no gradient */}
-              <div className="absolute bottom-0 inset-x-0 p-8 bg-foreground/80">
-                <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-primary-foreground/50">Current project</p>
-                <p className="mt-1 font-display text-3xl text-primary-foreground">{focusProject.name}</p>
-                <p className="mt-1 font-mono-ui text-[8px] uppercase tracking-[.16em] text-primary-foreground/50">{focusProject.direction}</p>
-                <div className="mt-4">
-                  <Link
-                    href="/sign-in"
-                    data-testid="link-landing-continue"
-                    className="inline-flex items-center gap-2 font-mono-ui text-[9px] uppercase tracking-[.20em] text-primary-foreground/70 hover:text-primary-foreground transition-colors"
-                  >
-                    {focusProject.mod} · Continue <ArrowRight size={10} strokeWidth={1.5} />
-                  </Link>
-                </div>
+              <div
+                className={[
+                  "overflow-hidden relative",
+                  i % 2 === 1 ? "sm:order-2" : "",
+                ].join(" ")}
+                style={{ minHeight: "clamp(200px, 22vw, 280px)" }}
+              >
+                <img
+                  src={BASE + img}
+                  alt=""
+                  aria-hidden
+                  className="absolute inset-0 h-full w-full object-cover opacity-55"
+                />
+              </div>
+              <div className={`flex flex-col justify-center px-8 py-10 lg:px-12 ${i % 2 === 1 ? "sm:order-1" : ""}`}>
+                <p className="font-mono-ui text-[7px] uppercase tracking-[.28em] text-accent/70 mb-4">{num}</p>
+                <h3
+                  className="font-display tracking-[-0.03em] leading-[.88] text-foreground"
+                  style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)" }}
+                >
+                  {title}
+                </h3>
+                <p className="mt-4 text-sm leading-7 text-muted-foreground/70 max-w-sm">{body}</p>
               </div>
             </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── MATERIAL PALETTE ──────────────────────────────────────────────────── */}
+      <section className="border-t border-border py-16">
+        <div className="mx-auto max-w-7xl px-7 sm:px-12">
+          <div className="flex items-end justify-between mb-10">
+            <p className="font-mono-ui text-[7px] uppercase tracking-[.32em] text-muted-foreground/50">
+              Key materials
+            </p>
+            <div className="h-[1px] flex-1 mx-8 bg-border/50" aria-hidden />
+            <p className="font-mono-ui text-[7px] uppercase tracking-[.20em] text-muted-foreground/30 italic">
+              Representative palette
+            </p>
           </div>
-        </section>
-
-        {/* ── Canvas preview section ── */}
-        <section className="border-t border-border mt-0">
-          <div className="mx-auto max-w-7xl px-5 sm:px-10 py-16">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <p className="font-mono-ui text-[8px] uppercase tracking-[.30em] text-muted-foreground">Creative canvas</p>
-                <h2 className="mt-2 font-display text-3xl sm:text-5xl tracking-[-0.03em] leading-[.9]">
-                  Build a world first.
-                </h2>
-              </div>
-              <p className="hidden sm:block font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground text-right max-w-xs">
-                Visual research becomes olfactive direction
-              </p>
-            </div>
-
-            {/* Simulated canvas composition */}
-            <div
-              className="relative w-full overflow-hidden bg-card"
-              style={{ height: "clamp(320px, 55vw, 560px)" }}
-              aria-hidden
-            >
-              {/* Large background image */}
-              <div className="absolute top-0 left-0 w-[55%] h-[85%] overflow-hidden">
-                <img src={BASE + "mood-fresh.jpg"} alt="" className="w-full h-full object-cover" />
-              </div>
-              {/* Portrait image — offset */}
-              <div className="absolute top-[10%] left-[38%] w-[28%] h-[70%] overflow-hidden" style={{ zIndex: 2 }}>
-                <img src={BASE + "flower.jpg"} alt="" className="w-full h-full object-cover" />
-              </div>
-              {/* Small accent image */}
-              <div className="absolute bottom-0 left-[8%] w-[22%] h-[35%] overflow-hidden" style={{ zIndex: 3 }}>
-                <img src={BASE + "texture.jpg"} alt="" className="w-full h-full object-cover" />
-              </div>
-              {/* Text object — editorial */}
-              <div className="absolute top-[6%] right-[6%] max-w-[220px]" style={{ zIndex: 4 }}>
-                <p className="font-display text-2xl leading-snug text-foreground">Not botanical. Architectural green.</p>
-              </div>
-              {/* Material object */}
-              <div className="absolute bottom-[8%] right-[4%] border border-border bg-background px-4 py-3" style={{ zIndex: 5 }}>
-                <p className="font-mono-ui text-[7px] uppercase tracking-[.18em] text-muted-foreground">Material</p>
-                <p className="mt-1 font-display text-lg">Violet Leaf Absolute</p>
-                <p className="mt-0.5 font-mono-ui text-[7px] uppercase tracking-[.12em] text-muted-foreground">Green · wet leaf · metallic</p>
-              </div>
-              {/* Olfactive direction label */}
-              <div className="absolute bottom-[8%] left-[34%] bg-background/90 border-l-2 border-accent px-3 py-2" style={{ zIndex: 5 }}>
-                <p className="font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground">Olfactive direction</p>
-                <p className="mt-0.5 font-mono-ui text-[9px] text-foreground">Green · transparent · mineral skin</p>
-              </div>
-              {/* Enter canvas CTA */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ zIndex: 6 }}>
-                <Link
-                  href="/sign-up"
-                  data-testid="link-landing-canvas"
-                  className="bg-foreground text-background px-5 py-3 font-mono-ui text-[9px] uppercase tracking-[.22em] hover:opacity-80 transition-opacity inline-flex items-center gap-2"
-                >
-                  Enter Canvas <ArrowRight size={10} strokeWidth={1.5} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Three-column feature strip ── */}
-        <section className="border-t border-border">
-          <div className="mx-auto max-w-7xl">
+          <div className="grid gap-px sm:grid-cols-3" style={{ background: "hsl(20 6% 11%)" }}>
             {[
-              {
-                num: "01",
-                title: "Gallery",
-                body: "Build a visual world on a spatial canvas. Layer images, text, materials, and olfactive interpretations into a composition that drives the fragrance.",
-              },
-              {
-                num: "02",
-                title: "Studio",
-                body: "Develop the project through briefs, evaluations, and notes. Every iteration connects back to its visual origin.",
-              },
-              {
-                num: "03",
-                title: "Laboratory",
-                body: "Translate visual direction into formula. Precise, compact, information-rich. IFRA compliance and allergen review included.",
-              },
-            ].map(({ num, title, body }, i) => (
+              { name: "Violet Leaf Absolute", family: "Green", img: "leaves.jpg", note: "Cold, metallic, ozonic. The smell of crushed plant. Rare in a formula for its abstraction." },
+              { name: "Rose Absolute", family: "Floral", img: "rose.jpg", note: "The most complex natural in the palette. Honey, geraniol, damascenone. Nothing replaces it." },
+              { name: "Labdanum Absolute", family: "Resinous", img: "resin.jpg", note: "Warm, leathery, animalic. The backbone of chypre. Irreplaceable as a fixative." },
+            ].map(({ name, family, img, note }, i) => (
               <motion.div
-                key={num}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className={[
-                  "border-b border-border px-5 py-10 sm:px-10",
-                  i < 2 ? "lg:border-r" : "",
-                  "lg:grid lg:grid-cols-[80px_1fr] lg:gap-8 lg:border-b-0",
-                  i === 0 ? "lg:border-t border-t border-border" : "",
-                ].join(" ")}
+                key={name}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="group overflow-hidden bg-card"
               >
-                <p className="font-mono-ui text-[8px] uppercase tracking-[.24em] text-accent mb-4 lg:mb-0 lg:mt-1">{num}</p>
-                <div>
-                  <h3 className="font-display text-3xl tracking-[-0.02em]">{title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-muted-foreground max-w-sm">{body}</p>
+                <div className="relative overflow-hidden" style={{ height: "clamp(140px, 16vw, 200px)" }}>
+                  <img
+                    src={BASE + img}
+                    alt=""
+                    aria-hidden
+                    className="h-full w-full object-cover opacity-50 transition-all duration-700 group-hover:opacity-70 group-hover:scale-[1.03]"
+                  />
+                </div>
+                <div className="px-5 py-5 border-t border-border">
+                  <p className="font-mono-ui text-[7px] uppercase tracking-[.22em] text-muted-foreground/50">{family}</p>
+                  <h3 className="mt-1 font-display text-xl tracking-[-0.02em] text-foreground">{name}</h3>
+                  <p className="mt-2 text-xs leading-5 text-muted-foreground/55">{note}</p>
                 </div>
               </motion.div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── Material showcase ── */}
-        <section className="border-t border-border py-16">
-          <div className="mx-auto max-w-7xl px-5 sm:px-10">
-            <p className="font-mono-ui text-[8px] uppercase tracking-[.30em] text-muted-foreground mb-10">The palette · key materials</p>
-            <div className="grid gap-px sm:grid-cols-3 border border-border">
-              {[
-                { name: "Violet Leaf Absolute", family: "Green", img: "leaves.jpg", note: "Cold, metallic, ozonic. The smell of crushed plant. Rare in a formula for its sheer abstraction." },
-                { name: "Rose Absolute", family: "Floral", img: "rose.jpg", note: "The most complex natural in the palette. Honey, geraniol, damascenone. Nothing replaces it." },
-                { name: "Labdanum Absolute", family: "Resinous", img: "resin.jpg", note: "Warm, leathery, animalic. The backbone of chypre. Irreplaceable as a fixative." },
-              ].map(({ name, family, img, note }, i) => (
-                <motion.div
-                  key={name}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-30px" }}
-                  transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className="group overflow-hidden bg-card"
-                >
-                  <div className="relative h-40 overflow-hidden">
-                    <img
-                      src={BASE + img}
-                      alt=""
-                      aria-hidden
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                    />
-                  </div>
-                  <div className="p-5 border-t border-border">
-                    <p className="font-mono-ui text-[7px] uppercase tracking-[.20em] text-muted-foreground">{family}</p>
-                    <h3 className="mt-1 font-display text-2xl">{name}</h3>
-                    <p className="mt-2 text-xs leading-5 text-muted-foreground">{note}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── CTA ── */}
-        <section className="border-t border-border py-20">
-          <div className="mx-auto max-w-7xl px-5 sm:px-10 text-center">
-            <motion.h2
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="font-display tracking-[-0.04em] leading-[.9]"
-              style={{ fontSize: "clamp(2.8rem, 6vw, 5.5rem)" }}
+      {/* ── FINAL CTA — cinematic dark full-bleed ─────────────────────────────── */}
+      <section className="relative border-t border-border overflow-hidden" style={{ minHeight: "50vh" }}>
+        <div className="absolute inset-0">
+          <img src={BASE + "lait-vert-01.jpg"} alt="" aria-hidden className="h-full w-full object-cover opacity-20" />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, hsl(20 8% 6% / 0.97) 40%, hsl(20 8% 6% / 0.7) 100%)" }} />
+        </div>
+        <div className="relative z-10 mx-auto max-w-7xl px-7 sm:px-12 py-24 flex flex-col items-start justify-center" style={{ minHeight: "50vh" }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="font-display tracking-[-0.04em] leading-[.9] text-foreground"
+            style={{ fontSize: "clamp(2.8rem, 6vw, 5.5rem)" }}
+          >
+            From world<br />to scent.
+          </motion.h2>
+          <p className="mt-6 text-sm leading-7 text-muted-foreground/60 max-w-sm">
+            The only fragrance workspace where visual culture and formula precision are one process.
+          </p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="mt-10"
+          >
+            <Link
+              href="/sign-up"
+              data-testid="button-landing-final"
+              className="group inline-flex items-center gap-3 font-mono-ui text-[9px] uppercase tracking-[.28em] text-foreground/60 hover:text-foreground transition-colors border-b border-foreground/20 pb-2 hover:border-foreground/50"
             >
-              From world to scent.
-            </motion.h2>
-            <p className="mt-6 text-sm leading-7 text-muted-foreground max-w-md mx-auto">
-              The only fragrance workspace where visual culture and formula precision meet.
-            </p>
-            <div className="mt-10">
-              <Link
-                href="/sign-up"
-                data-testid="button-landing-final"
-                className="border border-foreground bg-foreground text-background px-8 py-4 font-mono-ui text-[10px] uppercase tracking-[.22em] hover:opacity-80 transition-opacity"
-              >
-                Open your studio
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
+              Open your studio
+              <ArrowRight size={10} strokeWidth={1.5} className="transition-transform duration-200 group-hover:translate-x-1" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
 
-      <footer className="border-t border-border px-5 py-8 sm:px-10">
+      {/* ── Footer ── */}
+      <footer className="border-t px-7 py-6 sm:px-12" style={{ borderColor: "hsl(20 6% 11%)" }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <span className="font-mono-ui text-[9px] uppercase tracking-[.14em] text-muted-foreground">MATIÈRE · for independent noses</span>
-          <span className="font-mono-ui text-[8px] text-muted-foreground/50">Made for the long drydown.</span>
+          <span className="font-mono-ui text-[8px] uppercase tracking-[.18em] text-muted-foreground/30">MATIÈRE · Sillage Lab</span>
+          <span className="font-mono-ui text-[7px] text-muted-foreground/20">Made for the long drydown.</span>
         </div>
       </footer>
     </div>
@@ -5003,7 +5006,38 @@ function Protected({ children }: { children: ReactNode }) {
 }
 
 function AuthPage({ kind }: { kind: "in" | "up" }) {
-  return <div className="grid min-h-[100dvh] place-items-center px-4 py-10 bg-background"><div className="absolute left-6 top-6 sm:left-10 sm:top-8"><Logo /></div><div className="relative z-10 w-full max-w-[440px] border border-border bg-card p-2 shadow-2xl">{kind === "in" ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} fallbackRedirectUrl={`${basePath}/studio`} /> : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} fallbackRedirectUrl={`${basePath}/studio`} />}</div></div>;
+  const BASE = import.meta.env.BASE_URL + "images/";
+  return (
+    <div className="relative min-h-[100dvh] overflow-hidden bg-background">
+      {/* Background image — subtle, mostly obscured */}
+      <div className="absolute inset-0">
+        <img
+          src={BASE + (kind === "in" ? "sel-gris-01.jpg" : "lait-vert-01.jpg")}
+          alt=""
+          aria-hidden
+          className="h-full w-full object-cover opacity-15"
+        />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, hsl(20 8% 5% / 0.97) 0%, hsl(20 8% 5% / 0.85) 100%)" }} />
+      </div>
+      {/* Logo */}
+      <div className="absolute left-7 top-7 sm:left-12 sm:top-8 z-10">
+        <Logo />
+      </div>
+      {/* Auth form */}
+      <div className="relative z-10 grid min-h-[100dvh] place-items-center px-4 py-16">
+        <div className="w-full max-w-[440px] border bg-card/80 p-1" style={{ borderColor: "hsl(20 6% 14%)" }}>
+          {kind === "in"
+            ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} fallbackRedirectUrl={`${basePath}/studio`} />
+            : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} fallbackRedirectUrl={`${basePath}/studio`} />
+          }
+        </div>
+        {/* Bottom copy */}
+        <p className="absolute bottom-8 font-mono-ui text-[7px] uppercase tracking-[.22em] text-muted-foreground/25">
+          {kind === "in" ? "Return to the studio." : "A place for the work between first thought and final blotter."}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 function NotFoundView() {

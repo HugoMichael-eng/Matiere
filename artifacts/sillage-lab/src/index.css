@@ -1,52 +1,84 @@
-/* MATIÈRE — Single source of theme, Tailwind, fonts, and component CSS */
+/* MATIÈRE — cinematic dark theme */
 @import "@workspace/verve-design-system/styles.css";
 
-/* ─── MATIÈRE Gallery / Studio mode — force light mode ──────────────────────
-   The redesign calls for warm gallery white as the primary surface.
-   The verve-design-system light palette is exactly right — we activate it
-   by default and reserve the dark shell only for cinematic moments
-   implemented in-component via explicit dark overrides.                        */
+/* ─── Force dark mode globally ──────────────────────────────────────────────
+   The visual language is full-bleed dark: near-black ground, warm off-white
+   text, acid citron only as a tiny active signal. We override the design
+   system's light default at the :root level.                                 */
+:root {
+  color-scheme: dark;
+  /* Ground — near-black warm charcoal */
+  --background:    20 8% 6%;
+  /* Surface lifted just above ground */
+  --card:          20 8% 9%;
+  /* Secondary surface */
+  --secondary:     20 6% 13%;
+  --secondary-foreground: 30 15% 88%;
+  /* Muted */
+  --muted:         20 6% 13%;
+  --muted-foreground: 30 8% 45%;
+  /* Primary text — warm off-white */
+  --foreground:    30 15% 90%;
+  --primary:       30 15% 90%;
+  --primary-foreground: 20 8% 6%;
+  /* Border — very subtle warm grey */
+  --border:        20 6% 16%;
+  --input:         20 6% 16%;
+  --ring:          20 6% 22%;
+  /* Accent — acid citron, used sparingly */
+  --accent:        68 80% 48%;
+  --accent-foreground: 68 80% 12%;
+  /* Destructive */
+  --destructive:   0 60% 45%;
+  --destructive-foreground: 0 0% 95%;
+  /* Popover */
+  --popover:       20 8% 9%;
+  --popover-foreground: 30 15% 88%;
+  /* Sidebar — same as card */
+  --sidebar:       20 8% 8%;
+  --sidebar-foreground: 30 10% 65%;
+  --sidebar-border: 20 6% 14%;
+  /* Radius — zero for precision */
+  --radius: 0rem;
+}
 
 /* ─── App-specific utilities ─────────────────────────────────────────────────── */
 @layer utilities {
-  /* Semantic font aliases used throughout the app */
-  .font-display  { font-family: var(--app-font-serif);  }   /* Bricolage Grotesque */
-  .font-mono-ui  { font-family: var(--app-font-mono);   }   /* IBM Plex Mono */
+  .font-display  { font-family: var(--app-font-serif);  }
+  .font-mono-ui  { font-family: var(--app-font-mono);   }
 
-  /* Hide search cancel button in Chrome */
   input[type='search']::-webkit-search-cancel-button {
     @apply hidden;
   }
 
-  /* Placeholder styling for contentEditable */
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
     color: hsl(var(--muted-foreground));
     pointer-events: none;
   }
 
-  /* Canvas surface — uses the card token, slightly lighter than background */
+  /* Canvas surface */
   .canvas-surface {
     background-color: hsl(var(--card));
   }
 
-  /* Deep cinematic surface — foreground as background, text-background for text */
+  /* Deep cinematic — truly dark shell for full-bleed hero sections */
   .dark-cinematic {
-    background-color: hsl(var(--foreground));
-    color: hsl(var(--background));
+    background-color: hsl(20 8% 4%);
+    color: hsl(var(--foreground));
   }
 
-  /* Gallery image — physical, no heavy card treatment */
+  /* Gallery image */
   .gallery-img {
     @apply block overflow-hidden;
   }
 
-  /* Acid citron selection indicator */
+  /* Acid citron active indicator */
   .accent-indicator {
     background-color: hsl(var(--accent));
   }
 
-  /* LAB surface — pale, precise */
+  /* Lab surface */
   .lab-surface {
     background-color: hsl(var(--card));
   }
@@ -54,14 +86,13 @@
   /* Editorial hairline */
   .rule-h { height: 1px; background-color: hsl(var(--border)); }
 
-  /* Focus rings use the design-system ring token */
-
-  /* Cursor variants for canvas */
-  .cursor-grab  { cursor: grab;  }
+  /* Canvas cursors */
+  .cursor-grab      { cursor: grab; }
   .cursor-crosshair { cursor: crosshair; }
+  .cursor-se-resize { cursor: se-resize; }
 }
 
-/* ─── App-specific animations ──────────────────────────────────────────────── */
+/* ─── Animations ────────────────────────────────────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -80,14 +111,13 @@
 }
 .animate-slide-down { animation: slideDown 0.22s ease-out both; }
 
-/* Canvas object lift on drag */
+/* Canvas drag animations */
 @keyframes liftObj {
-  from { box-shadow: 0 1px 3px rgba(0,0,0,.10); transform: scale(1);   }
-  to   { box-shadow: 0 12px 32px rgba(0,0,0,.18); transform: scale(1.015); }
+  from { box-shadow: 0 1px 3px rgba(0,0,0,.30); transform: scale(1); }
+  to   { box-shadow: 0 12px 32px rgba(0,0,0,.55); transform: scale(1.015); }
 }
-.obj-lifted { animation: liftObj 0.15s ease-out forwards; }
+.obj-lifted  { animation: liftObj 0.15s ease-out forwards; }
 
-/* Settle after drop */
 @keyframes settleObj {
   0%   { transform: scale(1.015); }
   60%  { transform: scale(0.997); }
@@ -95,11 +125,9 @@
 }
 .obj-settled { animation: settleObj 0.25s ease-out forwards; }
 
-/* Reduced-motion overrides */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -109,17 +137,20 @@
   .animate-slide-down { animation: none; opacity: 1; transform: none; }
 }
 
-/* ─── Sidebar — use sidebar token surface, not black ─────────────────────── */
-/* Sidebar in light mode: warm pale grey from the design system */
-
-/* ─── Focus rings — acid citron accent ──────────────────────────────────────── */
+/* ─── Focus rings — acid citron ─────────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid hsl(var(--accent));
+  outline: 1px solid hsl(var(--accent));
   outline-offset: 2px;
 }
 button:focus-visible,
 a:focus-visible,
 [role="tab"]:focus-visible {
-  outline: 2px solid hsl(var(--accent));
+  outline: 1px solid hsl(var(--accent));
   outline-offset: 2px;
 }
+
+/* ─── Scrollbar — near invisible on dark ────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
