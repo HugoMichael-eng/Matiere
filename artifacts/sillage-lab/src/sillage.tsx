@@ -5240,14 +5240,14 @@ function Landing() {
             >
               See an example
             </Link>
-            <a
-              href="#platform"
+            <Link
+              href="/studio"
               data-testid="link-landing-nav-platform"
               className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground hover:text-foreground transition-colors"
               style={{ fontSize: "14px" }}
             >
               The workspace
-            </a>
+            </Link>
             <Link
               href="/sign-up"
               data-testid="link-landing-nav-create"
