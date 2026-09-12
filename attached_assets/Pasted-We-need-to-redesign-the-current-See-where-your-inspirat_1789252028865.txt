@@ -1,0 +1,663 @@
+We need to redesign the current **“See where your inspiration could lead”** section.
+
+Do NOT change the underlying product logic.
+
+The current section works functionally, but visually it feels too flat, too software-like and too one-dimensional.
+
+Right now the experience is:
+
+moodboard on the left  
+radio-button style suggested directions on the right  
+text explanation underneath
+
+This feels like a configuration panel.
+
+MATIÈRE should instead make this moment feel like:
+
+**a visual world transforming into scent.**
+
+This is one of the most important moments in the entire product and it needs significantly more emotional, spatial and interactive impact.
+
+---
+
+# CORE IDEA
+
+The user has created a visual world.
+
+MATIÈRE should now reveal several possible olfactive interpretations of that world.
+
+Do not present those interpretations as form options.
+
+Present them as:
+
+# THREE POSSIBLE WORLDS
+
+Each direction should feel like a distinct creative interpretation.
+
+The experience should communicate:
+
+ONE MOODBOARD  
+→  
+MULTIPLE POSSIBLE SCENT WORLDS
+
+---
+
+# 1. REMOVE THE CURRENT 50 / 50 SOFTWARE SPLIT
+
+The current rigid left / right division feels too administrative.
+
+Replace it with a more fluid, asymmetric composition.
+
+The moodboard should occupy approximately 55–65% of the visual space.
+
+The interpretation layer can overlap, float beside, or partially enter the visual composition.
+
+Avoid a visible hard vertical dividing line.
+
+Use negative space, layering and typography instead.
+
+The experience should feel spatial.
+
+---
+
+# 2. MAKE THE MOODBOARD FEEL PHYSICAL
+
+The reference images should not look like three static rectangles.
+
+Create more depth.
+
+Use:
+
+- overlapping imagery
+- different object sizes
+- slight depth
+- visual stacking
+- intentional negative space
+- occasional image crop beyond expected boundaries
+
+Do not make the collage chaotic.
+
+Think contemporary exhibition installation / art direction wall.
+
+On hover:
+
+image lifts very slightly  
+scale changes approximately 1–2%  
+related references subtly respond
+
+On click:
+
+allow Focus Mode.
+
+---
+
+# 3. REPLACE “SUGGESTED DIRECTIONS” LIST
+
+Do not show the three scent directions as radio-button rows.
+
+This currently feels like filling out a form.
+
+Instead create three **direction experiences**.
+
+Use the existing examples:
+
+SOFT FOCUS
+
+AFTER DARK
+
+WARM SURFACE
+
+But present each as an olfactive world.
+
+---
+
+# 4. DIRECTION EXPERIENCE
+
+For each direction show:
+
+large expressive name
+
+short sensory statement
+
+3–5 olfactive descriptors
+
+small material territory preview
+
+one subtle visual reference / texture
+
+Example:
+
+# SOFT FOCUS
+
+Close skin. Diffused edges. Air moving through pale woods.
+
+TRANSPARENT  
+SKIN-CLOSE  
+AIRY  
+PALE WOODS
+
+MATERIAL TERRITORY
+
+Ambroxan  
+Cashmeran  
+Iso E Super
+
+EXPLORE DIRECTION →
+
+Do not surround this with a heavy card.
+
+Use scale, typography and spacing.
+
+---
+
+# 5. CREATE VISUAL DIFFERENCE BETWEEN DIRECTIONS
+
+Each interpretation should have its own subtle atmosphere.
+
+SOFT FOCUS
+
+pale  
+blurred  
+translucent  
+quiet
+
+AFTER DARK
+
+deeper shadow  
+floral darkness  
+polished surfaces  
+contrast
+
+WARM SURFACE
+
+resin  
+skin  
+dry texture  
+amber light
+
+Do NOT change the entire MATIÈRE brand palette.
+
+Instead use imagery, tonal surfaces and typography to suggest the difference.
+
+---
+
+# 6. INTERACTION — HOVER / FOCUS
+
+On desktop:
+
+Hovering one direction should subtly affect the composition.
+
+Example:
+
+hover SOFT FOCUS
+
+the other two directions fade slightly
+
+the references most relevant to SOFT FOCUS become visually emphasized
+
+the moodboard may subtly shift focus toward:
+
+fogged glass  
+skin  
+soft reflection
+
+No dramatic movement.
+
+This should feel intelligent and quiet.
+
+---
+
+# 7. SELECTING A DIRECTION
+
+When the user selects a direction:
+
+do NOT simply add a checkbox.
+
+The direction should expand.
+
+The other interpretations should recede.
+
+The layout can gently reorganize.
+
+Example:
+
+SOFT FOCUS becomes larger
+
+its material territory expands
+
+its olfactive interpretation becomes visible
+
+the selected moodboard references remain connected
+
+Then reveal:
+
+REFINE DIRECTION
+
+EXPLORE MATERIALS
+
+SAVE TO PROJECT
+
+---
+
+# 8. SHOW THE RELATIONSHIP BETWEEN IMAGE AND SCENT
+
+This is extremely important.
+
+MATIÈRE should visually explain WHY it reached the interpretation.
+
+Example:
+
+FOGGED GLASS
+
+→
+
+TRANSPARENT  
+DIFFUSED  
+COLD SURFACE
+
+→
+
+AMBROXAN  
+HABANOLIDE
+
+WARM SKIN
+
+→
+
+INTIMATE  
+SOFT  
+CLOSE
+
+→
+
+CASHMERAN  
+AMBRETTOLIDE
+
+Use extremely thin connection lines, spatial alignment, or hover relationships.
+
+Do not turn this into a flowchart.
+
+Keep it refined.
+
+---
+
+# 9. MATERIALS SHOULD FEEL LIKE DISCOVERIES
+
+The current:
+
+CANDIDATE MATERIALS TO EXPLORE
+
+is too text-heavy.
+
+Instead let materials appear as elegant interactive objects.
+
+Example:
+
+AMBROXAN
+
+warm mineral skin  
+transparent diffusion
+
+CASHMERAN
+
+soft woody texture  
+warmth / fuzz
+
+ISO E SUPER
+
+dry transparent wood  
+diffusion
+
+On hover:
+
+show a richer sensory description.
+
+On click:
+
+OPEN MATERIAL
+
+CONNECT TO CANVAS
+
+ADD TO DIRECTION
+
+ADD TO MOD
+
+---
+
+# 10. REPLACE “WHAT WOULD YOU CHANGE?” BUTTON ROW
+
+The current buttons:
+
+LESS FLORAL  
+MORE MINERAL  
+EXPLORE ANOTHER DIRECTION
+
+feel generic.
+
+Make this interaction more conversational and creative.
+
+Use:
+
+REFINE THIS DIRECTION
+
+Then offer subtle prompts such as:
+
+MAKE IT COLDER →
+
+LESS FLORAL →
+
+MORE MINERAL →
+
+MORE ABSTRACT →
+
+LESS COMFORTABLE →
+
+PUSH THE CONTRAST →
+
+These should feel like creative provocations, not filter buttons.
+
+Selecting one should visibly reshape the direction.
+
+---
+
+# 11. DIRECTION MORPHING
+
+When the user selects:
+
+MORE MINERAL
+
+do not simply replace text.
+
+Animate the transformation.
+
+Example:
+
+SOFT FOCUS
+
+becomes:
+
+SOFT FOCUS / MINERAL
+
+Descriptors shift:
+
+TRANSPARENT  
+SKIN-CLOSE  
+MINERAL  
+COOL
+
+Material suggestions update.
+
+Connected references may shift emphasis.
+
+The change should feel like the concept evolving.
+
+---
+
+# 12. TEXT HIERARCHY
+
+The current typography is too uniform.
+
+Create stronger contrast.
+
+Use:
+
+very large direction title
+
+medium sensory statement
+
+tiny technical / metadata labels
+
+Example:
+
+SOFT FOCUS
+
+large
+
+“Something close to skin, but blurred.”
+
+medium
+
+TRANSPARENT / AIRY / MINERAL
+
+small mono
+
+This tension will make the experience feel more editorial.
+
+---
+
+# 13. MAKE THE SECTION LESS BOXED
+
+Reduce visible rectangles and borders.
+
+Do not wrap every object in a container.
+
+Use:
+
+space  
+alignment  
+layering  
+surface shifts  
+typography  
+image scale
+
+instead of:
+
+box  
+box  
+box  
+divider  
+box
+
+Quiet luxury should come from composition.
+
+---
+
+# 14. ADD ONE IMMERSIVE MOMENT
+
+When a direction is selected, briefly allow a larger atmospheric transition.
+
+For example:
+
+the selected visual reference expands slightly
+
+the page background shifts by a very subtle tonal amount
+
+the direction name moves into a stronger position
+
+materials softly appear underneath
+
+Duration:
+
+400–600ms maximum
+
+This should create a small sense of discovery.
+
+---
+
+# 15. MOBILE
+
+On mobile do not recreate the desktop split-screen.
+
+Use:
+
+MOODBOARD
+
+↓
+
+SWIPE / SCROLL THROUGH DIRECTIONS
+
+Each direction can occupy most of the viewport.
+
+Selecting one expands it vertically.
+
+Keep imagery large.
+
+Do not reduce the experience to small cards.
+
+---
+
+# 16. REDESIGN THE NEXT SECTION: “ONE PROCESS FROM INSPIRATION TO FORMULA”
+
+The current six-box grid below this section is too corporate and too static.
+
+Remove the large feature matrix.
+
+Instead create one continuous horizontal or vertical narrative:
+
+01
+
+CANVAS
+
+Build the world.
+
+↓
+
+02
+
+INTERPRET
+
+Discover olfactive possibilities.
+
+↓
+
+03
+
+MATERIALIZE
+
+Connect visual ideas to materials.
+
+↓
+
+04
+
+FORMULATE
+
+Construct and iterate.
+
+↓
+
+05
+
+EVALUATE
+
+Smell, observe and refine.
+
+↓
+
+06
+
+RETURN
+
+Feed evaluation back into the creative world.
+
+This should feel like one journey.
+
+Not six product cards.
+
+---
+
+# 17. USE VISUAL CONTENT IN THE JOURNEY
+
+Each stage should contain a small visual artifact.
+
+CANVAS
+
+stacked imagery
+
+INTERPRET
+
+olfactive words
+
+MATERIALIZE
+
+material object
+
+FORMULATE
+
+formula fragment
+
+EVALUATE
+
+short smelling note
+
+RETURN
+
+evaluation note reconnecting to Canvas
+
+This visually demonstrates that MATIÈRE keeps everything connected.
+
+---
+
+# 18. DO NOT SHOW ROADMAP / AVAILABILITY LABELS HERE
+
+Remove labels such as:
+
+AVAILABLE
+
+PLANNED
+
+COMING SOON
+
+from this storytelling section.
+
+They make the experience feel like a product requirements page.
+
+The public-facing / conceptual experience should focus on the creative process.
+
+Feature availability can live elsewhere if necessary.
+
+---
+
+# 19. QUIET LUXURY
+
+This section should feel more elevated through:
+
+- fewer borders
+- better image scale
+- more asymmetry
+- stronger typography
+- calm motion
+- large moments followed by small details
+- restrained color
+- excellent spacing
+- tactile interaction
+
+Do not add decoration.
+
+Do not add gradients.
+
+Do not add more UI merely to make it feel rich.
+
+The richness should come from the content and interaction.
+
+---
+
+# 20. FINAL EXPERIENCE
+
+The current section says:
+
+“Here are three AI suggestions based on your moodboard.”
+
+The redesigned section should feel like:
+
+**“I built a visual world, and now I can watch several possible fragrances emerge from it.”**
+
+This is a critical distinction.
+
+The transformation from:
+
+VISUAL REFERENCE
+
+to
+
+OLFACTIVE DIRECTION
+
+to
+
+MATERIAL POSSIBILITY
+
+should feel almost magical while remaining credible to a perfumer.
+
+This is one of MATIÈRE’s signature experiences.
+
+Make it feel like one.

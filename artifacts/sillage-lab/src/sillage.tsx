@@ -4855,6 +4855,9 @@ const REFINEMENTS: Refinement[] = [
 function MoodboardDemo({ BASE }: { BASE: string }) {
   const [selectedDir, setSelectedDir] = useState<string>("soft-focus");
   const [selectedRefinement, setSelectedRefinement] = useState<string | null>(null);
+  const [hoveredDir, setHoveredDir] = useState<string | null>(null);
+  const [focusedImage, setFocusedImage] = useState<string | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
 
   const direction = SCENT_DIRECTIONS.find(d => d.id === selectedDir) ?? SCENT_DIRECTIONS[0];
   const activeRefinements = REFINEMENTS.filter(r => r.directionId === selectedDir);
@@ -4867,6 +4870,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
   const handleDirSelect = (id: string) => {
     setSelectedDir(id);
     setSelectedRefinement(null);
+    setSelectedMaterial(null);
   };
 
   const handleRefinement = (id: string) => {
@@ -4880,7 +4884,9 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
   return (
     <section
       id="moodboard-demo"
-      className="border-t border-border"
+      className={`border-t border-border transition-colors duration-500 ${
+        selectedDir === "after-dark" ? "bg-secondary/45" : selectedDir === "warm-surface" ? "bg-card/55" : "bg-background"
+      }`}
       aria-label="One moodboard, three scent directions — interactive example"
       data-testid="section-moodboard-demo"
     >
@@ -4894,7 +4900,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
       >
         <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
           <p className="font-mono-ui uppercase tracking-[.28em] text-muted-foreground" style={{ fontSize: "12px" }}>
-            One moodboard. Three scent directions.
+            One moodboard → multiple possible scent worlds
           </p>
           <span className="inline-flex items-center gap-1.5 border border-accent/35 px-2.5 py-1" style={{ fontSize: "11px" }}>
             <span className="inline-block h-1.5 w-1.5 bg-accent shrink-0" aria-hidden />
@@ -4906,34 +4912,42 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
           style={{ fontSize: "clamp(1.8rem, 3.8vw, 3.2rem)" }}
           data-testid="heading-moodboard-demo"
         >
-          See where your inspiration could lead.
+          Three possible worlds.
         </h2>
         <p className="mt-4 leading-8 text-foreground/65 max-w-2xl" style={{ fontSize: "clamp(1rem, 1.6vw, 1.05rem)" }}>
           Bring together images, video, and notes. Explore possible scent directions you can question, reshape, and develop.
         </p>
       </motion.div>
 
-      {/* ── Two-column body ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 border-b border-border">
+      {/* ── Asymmetric spatial composition ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(360px,2fr)] gap-8 lg:gap-4 px-8 pb-12 sm:px-12">
 
         {/* LEFT — Your moodboard */}
         <motion.div
-          className="border-b border-border lg:border-b-0 lg:border-r lg:border-border"
+          className="relative min-h-[560px]"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.55 }}
         >
-          <div className="px-7 py-5 sm:px-9 border-b border-border">
+          <div className="py-5">
             <p className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground" style={{ fontSize: "12px" }}>
               Your moodboard
             </p>
           </div>
 
           {/* Collage — three images: fogged glass, warm skin, dark lacquer */}
-          <div className="relative" style={{ height: "clamp(220px, 28vw, 360px)" }}>
+          <div className="relative" style={{ height: "clamp(390px, 42vw, 620px)" }}>
             {/* Fogged glass — left 48%, tall */}
-            <div className="absolute top-0 left-0 overflow-hidden" style={{ width: "48%", height: "92%", zIndex: 1 }}>
+            <button
+              type="button"
+              onClick={() => setFocusedImage(BASE + "lait-vert-02.jpg")}
+              className={`absolute top-[4%] left-0 overflow-hidden text-left transition-all duration-200 hover:-translate-y-1 hover:scale-[1.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                hoveredDir === "after-dark" ? "opacity-45" : "opacity-100"
+              }`}
+              style={{ width: "56%", height: "78%", zIndex: selectedDir === "soft-focus" ? 3 : 1 }}
+              aria-label="Focus fogged glass reference"
+            >
               <img
                 src={BASE + "lait-vert-02.jpg"}
                 alt="Fogged glass — example reference"
@@ -4941,25 +4955,42 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                 className="h-full w-full object-cover"
                 onError={e => { (e.currentTarget as HTMLImageElement).src = BASE + "glass-vessel-01.jpg"; }}
               />
-            </div>
+              <span className="absolute bottom-3 left-3 font-mono-ui uppercase tracking-[.16em] text-white/80" style={{ fontSize: "11px" }}>Fogged glass</span>
+            </button>
             {/* Warm skin — right 36%, top offset */}
-            <div className="absolute overflow-hidden" style={{ top: "6%", left: "42%", width: "36%", height: "68%", zIndex: 2 }}>
+            <button
+              type="button"
+              onClick={() => setFocusedImage(BASE + "human-skin-01.jpg")}
+              className="absolute overflow-hidden text-left transition-all duration-200 hover:-translate-y-1 hover:scale-[1.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              style={{ top: "18%", left: "46%", width: "38%", height: "60%", zIndex: selectedDir === "warm-surface" ? 4 : 2 }}
+              aria-label="Focus warm skin reference"
+            >
               <img
                 src={BASE + "human-skin-01.jpg"}
                 alt="Warm skin — example reference"
                 loading="lazy"
                 className="h-full w-full object-cover"
               />
-            </div>
+              <span className="absolute bottom-3 left-3 font-mono-ui uppercase tracking-[.16em] text-white/80" style={{ fontSize: "11px" }}>Warm skin</span>
+            </button>
             {/* Dark lacquer — bottom right */}
-            <div className="absolute overflow-hidden" style={{ bottom: 0, right: 0, width: "38%", height: "48%", zIndex: 3 }}>
+            <button
+              type="button"
+              onClick={() => setFocusedImage(BASE + "animal-mirror-01.jpg")}
+              className={`absolute overflow-hidden text-left transition-all duration-200 hover:-translate-y-1 hover:scale-[1.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                hoveredDir === "soft-focus" ? "opacity-50" : "opacity-100"
+              }`}
+              style={{ bottom: "2%", right: 0, width: "46%", height: "48%", zIndex: selectedDir === "after-dark" ? 5 : 3 }}
+              aria-label="Focus dark lacquer reference"
+            >
               <img
                 src={BASE + "animal-mirror-01.jpg"}
                 alt="Dark lacquer — example reference"
                 loading="lazy"
                 className="h-full w-full object-cover"
               />
-            </div>
+              <span className="absolute bottom-3 left-3 font-mono-ui uppercase tracking-[.16em] text-white/80" style={{ fontSize: "11px" }}>Dark lacquer</span>
+            </button>
             {/* Acid citron connection node */}
             <svg className="pointer-events-none absolute inset-0 h-full w-full" style={{ zIndex: 4 }} aria-hidden>
               <circle cx="48%" cy="46%" r="3" fill="hsl(var(--accent))" />
@@ -4969,7 +5000,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
           </div>
 
           {/* Example note — clearly labeled user input */}
-          <div className="px-7 py-5 sm:px-9 border-t border-border">
+          <div className="absolute bottom-0 left-[8%] z-10 max-w-sm bg-background/95 px-6 py-5">
             <div className="flex items-center gap-2.5 mb-3">
               <span className="font-mono-ui uppercase tracking-[.14em] border border-border text-muted-foreground/70 px-2 py-0.5" style={{ fontSize: "11px" }}>
                 Example note — user input
@@ -4984,64 +5015,59 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
           </div>
         </motion.div>
 
-        {/* RIGHT — Suggested directions */}
+        {/* RIGHT — Three olfactive worlds */}
         <motion.div
-          className="flex flex-col"
+          className="flex flex-col pt-10 lg:pt-24"
           initial={{ opacity: 0, x: 8 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.5, delay: 0.08 }}
         >
-          <div className="px-7 py-5 sm:px-9 border-b border-border">
+          <div className="pb-8">
             <p className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground mb-1" style={{ fontSize: "12px" }}>
-              Suggested directions
+              Three possible interpretations
             </p>
             <p className="text-muted-foreground/70" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
               Three possible interpretations of the same moodboard. Choose one to explore.
             </p>
           </div>
 
-          {/* Direction cards — three equal, selectable */}
+          {/* Direction worlds — typographic, spatial, expandable */}
           <div
-            role="radiogroup"
+            role="list"
             aria-label="Scent directions"
-            className="border-b border-border"
+            className="space-y-1"
           >
             {SCENT_DIRECTIONS.map(dir => {
               const isActive = selectedDir === dir.id;
               return (
-                <button
+                <motion.button
                   key={dir.id}
-                  role="radio"
-                  aria-checked={isActive}
+                  role="listitem"
+                  aria-pressed={isActive}
                   onClick={() => handleDirSelect(dir.id)}
+                  onMouseEnter={() => setHoveredDir(dir.id)}
+                  onMouseLeave={() => setHoveredDir(null)}
                   data-testid={`direction-card-${dir.id}`}
                   className={[
-                    "w-full text-left px-7 py-5 sm:px-9 border-t border-border first:border-t-0",
-                    "transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
+                    "relative w-full text-left py-7 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
                     isActive
-                      ? "bg-foreground/4 border-l-2 border-l-accent"
-                      : "hover:bg-secondary/30",
+                      ? "opacity-100"
+                      : hoveredDir && hoveredDir !== dir.id ? "opacity-35" : "opacity-65 hover:opacity-100",
                   ].join(" ")}
-                  style={{ borderLeft: isActive ? "2px solid hsl(var(--accent))" : undefined }}
+                  animate={{ x: isActive ? -18 : 0, scale: isActive ? 1.025 : 1 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <div className="flex items-start gap-3">
-                    <span
-                      className={`shrink-0 mt-1 h-3.5 w-3.5 border flex items-center justify-center transition-colors ${isActive ? "border-accent bg-accent" : "border-border bg-background"}`}
-                      aria-hidden
-                    >
-                      {isActive && <span className="h-1.5 w-1.5 bg-background block" />}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-mono-ui uppercase tracking-[.16em] text-foreground/85 mb-0.5" style={{ fontSize: "14px" }}>
-                        {dir.label}
+                  <div className="flex items-end justify-between gap-5">
+                    <div>
+                      <p className="font-title uppercase leading-[.88] tracking-[-0.04em] text-foreground" style={{ fontSize: isActive ? "clamp(2.8rem, 5vw, 5.6rem)" : "clamp(2rem, 3.6vw, 3.8rem)" }}>
+                        {dir.label}{isActive && refinement ? ` / ${refinement.label.replace("More ", "")}` : ""}
                       </p>
-                      <p className="text-muted-foreground leading-6" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
-                        {dir.tagline}
-                      </p>
+                      <p className="mt-3 max-w-md text-foreground/65 leading-7" style={{ fontSize: "17px" }}>{dir.tagline}</p>
                     </div>
+                    <ArrowRight size={18} className={`mb-2 shrink-0 transition-transform ${isActive ? "translate-x-1 text-accent" : "text-muted-foreground"}`} />
                   </div>
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -5076,30 +5102,57 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                 {displayRationale}
               </p>
 
-              {/* Candidate materials */}
-              <div className="space-y-3 mb-6">
+              {/* Material discoveries */}
+              <div className="mb-8">
                 <p className="font-mono-ui uppercase tracking-[.18em] text-muted-foreground" style={{ fontSize: "11px" }}>
-                  Candidate materials to explore
+                  Material territory
                 </p>
-                {displayMaterials.map(mat => (
-                  <div key={mat.name} className="flex gap-3">
-                    <span className="inline-block h-[3px] w-[3px] bg-accent shrink-0 mt-2.5" aria-hidden />
-                    <div>
-                      <p className="font-mono-ui uppercase tracking-[.14em] text-foreground/80" style={{ fontSize: "13px" }}>
-                        {mat.name}
-                      </p>
-                      <p className="text-muted-foreground leading-6 mt-0.5" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
-                        {mat.reason}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                <div className="mt-4 grid gap-5 sm:grid-cols-3">
+                  {displayMaterials.map(mat => {
+                    const isOpen = selectedMaterial === mat.name;
+                    return (
+                      <button
+                        type="button"
+                        key={mat.name}
+                        onClick={() => setSelectedMaterial(isOpen ? null : mat.name)}
+                        aria-expanded={isOpen}
+                        className="group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                      >
+                        <span className="block h-[1px] w-5 bg-accent transition-all duration-200 group-hover:w-12" aria-hidden />
+                        <span className="mt-3 block font-mono-ui uppercase tracking-[.14em] text-foreground/90" style={{ fontSize: "13px" }}>
+                          {mat.name}
+                        </span>
+                        <span className="mt-2 block text-muted-foreground leading-6" style={{ fontSize: "14px" }}>
+                          {mat.reason.split(".")[0]}.
+                        </span>
+                        <AnimatePresence initial={false}>
+                          {isOpen && (
+                            <motion.span
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="mt-3 block overflow-hidden"
+                            >
+                              <span className="block text-foreground/65 leading-6" style={{ fontSize: "14px" }}>{mat.reason}</span>
+                              <span className="mt-3 flex flex-col gap-1 font-mono-ui uppercase tracking-[.12em] text-foreground/55" style={{ fontSize: "11px" }}>
+                                <span>Open material →</span>
+                                <span>Connect to canvas →</span>
+                                <span>Add to direction →</span>
+                              </span>
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Refinement controls */}
-              <div className="border-t border-border pt-5">
+              <div className="pt-4">
                 <p className="font-mono-ui uppercase tracking-[.18em] text-muted-foreground mb-3" style={{ fontSize: "12px" }}>
-                  What would you change?
+                  Refine this direction
                 </p>
                 <div className="flex flex-wrap gap-2 mb-2" role="group" aria-label="Refinement options">
                   {activeRefinements.map(ref => (
@@ -5109,15 +5162,15 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                       aria-pressed={selectedRefinement === ref.id}
                       data-testid={`refinement-${ref.id}`}
                       className={[
-                        "px-4 py-2 font-mono-ui uppercase tracking-[.14em] border transition-colors duration-150",
+                        "py-2 pr-5 font-mono-ui uppercase tracking-[.14em] transition-colors duration-150",
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
                         selectedRefinement === ref.id
-                          ? "bg-foreground text-background border-foreground"
-                          : "border-border text-foreground/65 hover:border-foreground/50 hover:text-foreground",
+                          ? "text-foreground"
+                          : "text-foreground/55 hover:text-foreground",
                       ].join(" ")}
                       style={{ fontSize: "14px", minHeight: "40px" }}
                     >
-                      {ref.label}
+                      {ref.label === "Explore another direction" ? "More abstract →" : `${ref.label} →`}
                     </button>
                   ))}
                   {selectedRefinement && (
@@ -5128,7 +5181,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                       style={{ fontSize: "14px", minHeight: "40px" }}
                       aria-label="Reset to original direction"
                     >
-                      Reset
+                      Reset direction
                     </button>
                   )}
                 </div>
@@ -5169,6 +5222,38 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
       <p className="px-8 pb-5 sm:px-12 font-mono-ui text-muted-foreground/45" style={{ fontSize: "11px" }}>
         An account is required to create and save your own moodboard. Exploring this example does not require sign-in.
       </p>
+
+      <AnimatePresence>
+        {focusedImage && (
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Focused moodboard reference"
+            className="fixed inset-0 z-50 grid place-items-center bg-foreground/90 p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setFocusedImage(null)}
+          >
+            <motion.img
+              src={focusedImage}
+              alt="Focused moodboard reference"
+              className="max-h-[82vh] max-w-[88vw] object-contain"
+              initial={{ scale: 0.98 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.4 }}
+            />
+            <button
+              type="button"
+              onClick={() => setFocusedImage(null)}
+              className="absolute right-6 top-6 font-mono-ui uppercase tracking-[.18em] text-background"
+              style={{ fontSize: "13px" }}
+            >
+              Close
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
@@ -5602,74 +5687,79 @@ function Landing() {
             One process from inspiration to formula
           </h2>
           <p className="mt-5 leading-8 text-foreground/65 max-w-2xl" style={{ fontSize: "clamp(1rem, 1.7vw, 1.1rem)" }}>
-            MATIÈRE keeps your moodboard, notes, material selections, and formula versions connected in a single private workspace. Below is an honest account of what is currently available.
+            MATIÈRE keeps the visual world and the developing fragrance in one continuous creative loop.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+        <div className="relative">
           {[
             {
-              label: "Image and reference workspace",
-              status: "Available",
-              body: "Build a moodboard by uploading images and arranging them on a freeform canvas. Add text, notes, material cards, and directional annotations. Drag, resize, stack, and connect references.",
+              number: "01",
+              label: "Canvas",
+              body: "Build the world.",
+              artifact: "stacked imagery",
             },
             {
-              label: "AI scent interpretation",
-              status: "Available",
-              body: "Select images or a group of references on the canvas and interpret them into olfactive qualities, tensions, and material territory. Results are contextual and based on your canvas content — not live generation for this example.",
+              number: "02",
+              label: "Interpret",
+              body: "Discover olfactive possibilities.",
+              artifact: "transparent · skin-close · mineral",
             },
             {
-              label: "Formula ideation and builder",
-              status: "Available",
-              body: "Create formula records with a brief, ingredient list, concentrations, roles, and dilutions. Track version history. Move through a nine-stage workflow from concept to batch sheet.",
+              number: "03",
+              label: "Materialize",
+              body: "Connect visual ideas to materials.",
+              artifact: "Ambroxan / mineral skin",
             },
             {
-              label: "Material library",
-              status: "Available",
-              body: "Browse a curated ingredient library with olfactive families, notes, and descriptions. Search and filter. Link materials to your moodboard and formula.",
+              number: "04",
+              label: "Formulate",
+              body: "Construct and iterate.",
+              artifact: "Ambroxan 1.50 · Iso E Super 7.00",
             },
             {
-              label: "IFRA guidance",
-              status: "Available — guidance only",
-              body: "Check ingredients against IFRA category limits for a specified product type. Presented as guidance for reference — always confirm with your supplier and regulatory advisor before manufacture.",
+              number: "05",
+              label: "Evaluate",
+              body: "Smell, observe and refine.",
+              artifact: "The opening is still too polished.",
             },
             {
-              label: "Collaboration — shared briefs and comments",
-              status: "Planned",
-              body: "Shared projects, comments, and feedback loops between collaborators are on the roadmap. Not yet available.",
+              number: "06",
+              label: "Return",
+              body: "Feed evaluation back into the creative world.",
+              artifact: "Bring back the cold surface.",
             },
-          ].map(item => (
+          ].map((item, index) => (
             <motion.div
               key={item.label}
-              className="bg-background p-7 sm:p-8"
-              initial={{ opacity: 0, y: 6 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              className={`grid grid-cols-[52px_1fr] gap-5 py-8 sm:grid-cols-[70px_minmax(180px,0.7fr)_minmax(220px,1fr)] sm:items-center ${
+                index < 5 ? "border-b border-border/60" : ""
+              }`}
+              initial={{ opacity: 0, x: -8 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-20px" }}
-              transition={{ duration: 0.4 }}
+              transition={{ duration: 0.45, delay: index * 0.04 }}
             >
-              <div className="flex items-start gap-3 mb-4">
-                <span className="inline-block h-1 w-1 bg-accent shrink-0 mt-2" aria-hidden />
-                <div>
-                  <p className="font-mono-ui uppercase tracking-[.16em] text-foreground/80 leading-snug" style={{ fontSize: "13px" }}>
-                    {item.label}
-                  </p>
-                  <span
-                    className={`inline-block mt-1 font-mono-ui uppercase tracking-[.12em] border px-1.5 py-0.5 ${
-                      item.status === "Planned"
-                        ? "border-border text-muted-foreground/50"
-                        : item.status.includes("guidance")
-                        ? "border-accent/30 text-accent-foreground/70"
-                        : "border-border text-muted-foreground"
-                    }`}
-                    style={{ fontSize: "10px" }}
-                  >
-                    {item.status}
-                  </span>
-                </div>
+              <div className="relative self-stretch">
+                <span className="font-mono-ui text-muted-foreground" style={{ fontSize: "12px" }}>{item.number}</span>
+                {index < 5 && <span className="absolute left-[4px] top-7 h-[calc(100%+28px)] w-px bg-border" aria-hidden />}
               </div>
-              <p className="leading-7 text-muted-foreground" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
-                {item.body}
-              </p>
+              <div>
+                <h3 className="font-title uppercase tracking-[-0.03em] text-foreground" style={{ fontSize: "clamp(1.8rem, 3vw, 3.1rem)" }}>{item.label}</h3>
+                <p className="mt-1 text-foreground/60" style={{ fontSize: "17px" }}>{item.body}</p>
+              </div>
+              <div className="col-start-2 sm:col-start-3">
+                {index === 0 ? (
+                  <div className="relative h-20 w-36">
+                    <img src={BASE + "lait-vert-02.jpg"} alt="" className="absolute left-0 top-0 h-16 w-20 object-cover" />
+                    <img src={BASE + "human-skin-01.jpg"} alt="" className="absolute bottom-0 right-0 h-14 w-20 object-cover" />
+                  </div>
+                ) : (
+                  <p className={`max-w-sm ${index === 4 || index === 5 ? "font-display italic" : "font-mono-ui uppercase tracking-[.13em]"} text-foreground/55`} style={{ fontSize: index === 4 || index === 5 ? "18px" : "12px" }}>
+                    {item.artifact}
+                  </p>
+                )}
+              </div>
             </motion.div>
           ))}
         </div>
