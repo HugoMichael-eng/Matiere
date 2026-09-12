@@ -5279,14 +5279,14 @@ function Landing() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-[52%] min-w-[280px]"
+            className="max-w-[52%] min-w-[280px] mt-[-42px] mb-[-42px]"
           >
             {/* ── Secondary proposition — above the masthead ── */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.12 }}
-              className="font-mono-ui uppercase tracking-[.30em] text-muted-foreground font-medium text-[19px] mt-[14px] mb-[64px]"
+              className="font-mono-ui uppercase tracking-[.30em] text-muted-foreground font-medium text-[19px] mt-[-12px] mb-[10px]"
             >
               Fragrance beyond boundaries
             </motion.p>
@@ -5294,7 +5294,7 @@ function Landing() {
             {/* ── Monumental MATIÈRE masthead ── */}
             <h1
               data-testid="heading-landing"
-              className="font-title text-foreground text-[109px]"
+              className="font-title text-foreground text-[109px] pt-[0px] pb-[0px]"
               style={{
                 fontSize: "clamp(4.5rem, 13vw, 14rem)",
                 fontWeight: 900,
@@ -5309,7 +5309,7 @@ function Landing() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.45 }}
-              className="mt-6 leading-8 text-foreground/65 max-w-sm"
+              className="leading-8 text-foreground/65 max-w-sm mt-[-12px]"
               style={{ fontSize: "clamp(1rem, 1.6vw, 1.1rem)" }}
             >
               Build a moodboard from images, video, and notes. Explore AI-suggested scent directions and materials, then develop your fragrance in one creative workspace.
