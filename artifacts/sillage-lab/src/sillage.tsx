@@ -36,7 +36,7 @@ function Logo({ _light = false }: { _light?: boolean }) {
   const dest = isSignedIn ? "/studio" : "/";
   return (
     <Link href={dest} data-testid="link-brand" className="group">
-      <span className="font-mono-ui text-[10px] font-medium tracking-[.32em] uppercase text-foreground/85 transition-opacity group-hover:opacity-60">
+      <span className="font-mono-ui tracking-[.32em] uppercase text-foreground/85 transition-opacity group-hover:opacity-60 text-[127px] font-bold">
         MATIÈRE
       </span>
     </Link>
@@ -4683,199 +4683,219 @@ function Landing() {
   const BASE = import.meta.env.BASE_URL + "images/";
 
   return (
-    <div className="min-h-[100dvh] overflow-x-hidden bg-background font-mono-ui">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-background">
 
-      {/* ─────────────────────────────────────────────────────────────────────────
-          HERO MODULE — asymmetric split: warm type left / photography right
-          Exactly matches reference image 2: ivory ground, top-nav spaced,
-          large display headline flush left, small tracked sub-copy below,
-          vertical micro-copy lower-left, START CREATING lower-right.
-      ──────────────────────────────────────────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 1 — HERO
+          Monumental MATIÈRE masthead (800–900 weight), secondary proposition,
+          explanatory copy, dual CTAs. Readable nav at 14–15px.
+      ══════════════════════════════════════════════════════════════════════ */}
       <section
         className="relative overflow-hidden"
         style={{ minHeight: "100dvh" }}
         data-testid="landing-hero"
+        aria-label="Hero"
       >
-        {/* Background — very subtle warm texture, not a photographic dark ground */}
+        {/* Warm parchment ground */}
         <div className="absolute inset-0 bg-background" />
 
-        {/* Right-side photograph — occupies ~55% width, bleeds to right edge */}
+        {/* Right-side photograph — warm skin, editorial */}
         <motion.div
           className="absolute inset-y-0 right-0 overflow-hidden"
-          style={{ width: "58%", left: "auto" }}
-          initial={{ opacity: 0, scale: 1.04 }}
+          style={{ width: "55%" }}
+          initial={{ opacity: 0, scale: 1.03 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
+          aria-hidden
         >
           <img
             src={BASE + "human-skin-01.jpg"}
             alt=""
             aria-hidden
             className="h-full w-full object-cover object-center"
-            onError={e => {
-              (e.currentTarget as HTMLImageElement).src = BASE + "hero-editorial.jpg";
-            }}
+            onError={e => { (e.currentTarget as HTMLImageElement).src = BASE + "hero-editorial.jpg"; }}
           />
-          {/* Warm fade on left edge — text side bleeds into image naturally */}
           <div
             className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to right, hsl(var(--background)) 0%, hsl(var(--background) / 0.5) 18%, transparent 50%)",
-            }}
+            style={{ background: "linear-gradient(to right, hsl(var(--background)) 0%, hsl(var(--background)/0.55) 22%, transparent 55%)" }}
           />
         </motion.div>
 
-        {/* ── Restrained top nav — exactly like reference ── */}
+        {/* ── Nav ── */}
         <motion.header
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.05 }}
-          className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-8 py-8 sm:px-14"
+          className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-8 py-7 sm:px-12"
         >
-          <Logo />
-          <nav className="hidden md:flex items-center gap-10" aria-label="Site">
-            {["CREATE", "EXPLORE", "LEARN", "SHOP"].map(label => (
-              <Link
-                key={label}
-                href={label === "CREATE" ? "/sign-up" : label === "EXPLORE" ? "/projects" : label === "LEARN" ? "/materials" : "/shop"}
-                data-testid={`link-landing-nav-${label.toLowerCase()}`}
-                className="font-mono-ui text-[8px] uppercase tracking-[.30em] text-foreground/45 hover:text-foreground transition-colors"
-              >
-                {label}
-              </Link>
-            ))}
+          {/* Logo — always readable */}
+          <Link
+            href="/"
+            data-testid="link-brand-landing"
+            className="font-mono-ui font-medium tracking-[.32em] uppercase text-foreground/85 hover:opacity-60 transition-opacity"
+            style={{ fontSize: "11px" }}
+          >
+            MATIÈ<span>R</span>E
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-8" aria-label="Site navigation">
+            <Link
+              href="/example"
+              data-testid="link-landing-nav-example"
+              className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground hover:text-foreground transition-colors"
+              style={{ fontSize: "14px" }}
+            >
+              See an example
+            </Link>
+            <a
+              href="#platform"
+              data-testid="link-landing-nav-platform"
+              className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground hover:text-foreground transition-colors"
+              style={{ fontSize: "14px" }}
+            >
+              The workspace
+            </a>
+            <Link
+              href="/sign-up"
+              data-testid="link-landing-nav-create"
+              className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground hover:text-foreground transition-colors"
+              style={{ fontSize: "14px" }}
+            >
+              Create
+            </Link>
           </nav>
-          <div className="flex items-center gap-4">
+
+          <div className="flex items-center gap-5">
             <Link
               href="/sign-in"
               data-testid="link-landing-sign-in"
-              className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-foreground/45 hover:text-foreground transition-colors"
+              className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground hover:text-foreground transition-colors"
+              style={{ fontSize: "14px" }}
             >
-              SIGN IN
+              Sign in
             </Link>
-            {/* Circle icon — reference detail */}
-            <div className="hidden sm:flex h-7 w-7 items-center justify-center border border-foreground/20 text-foreground/40 hover:border-foreground/40 transition-colors cursor-pointer">
-              <div className="h-[3px] w-[3px] rounded-full bg-current" />
-            </div>
           </div>
         </motion.header>
 
-        {/* ── Hero copy — flush left, large display scale ── */}
+        {/* ── Hero copy ── */}
         <div
-          className="relative z-10 flex flex-col justify-center px-8 sm:px-14"
+          className="relative z-10 flex flex-col justify-center px-8 sm:px-12"
           style={{ minHeight: "100dvh" }}
         >
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-[420px]"
+            transition={{ duration: 0.65, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-[52%] min-w-[280px]"
           >
+            {/* ── Secondary proposition — above the masthead ── */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.12 }}
+              className="font-mono-ui uppercase tracking-[.30em] text-muted-foreground mb-4"
+              style={{ fontSize: "13px" }}
+            >
+              Fragrance beyond boundaries
+            </motion.p>
+
+            {/* ── Monumental MATIÈRE masthead ── */}
             <h1
-              className="font-display font-medium tracking-[-0.015em] leading-[.88] text-foreground"
-              style={{ fontSize: "clamp(2.65rem, 7.5vw, 7.2rem)", letterSpacing: "-0.02em" }}
               data-testid="heading-landing"
+              className="font-display leading-[.86] text-foreground"
+              style={{
+                fontSize: "clamp(4.5rem, 13vw, 14rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.025em",
+              }}
             >
-              FRAGRANCE<br />
-              BEYOND<br />
-              BOUNDARIES
+              MATI<span>È</span>RE
             </h1>
-            <motion.div
+
+            {/* ── Explanatory copy ── */}
+            <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.48 }}
-              className="mt-5"
+              transition={{ duration: 0.5, delay: 0.45 }}
+              className="mt-6 leading-8 text-foreground/65 max-w-sm"
+              style={{ fontSize: "clamp(1rem, 1.6vw, 1.1rem)" }}
             >
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.28em] text-foreground/50 leading-6">
-                AI MEETS ARTISTRY<br />
-                FOR A MORE SENSORY WORLD.
-              </p>
-            </motion.div>
+              Build a moodboard from images, video, and notes. Explore AI-suggested scent directions and materials, then develop your fragrance in one creative workspace.
+            </motion.p>
+
+            {/* ── CTAs ── */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.7 }}
-              className="mt-8"
+              transition={{ duration: 0.4, delay: 0.62 }}
+              className="mt-8 flex flex-wrap items-center gap-4"
             >
               <Link
                 href="/sign-up"
-                data-testid="button-landing-start-hero"
-                className="inline-flex items-center gap-3 bg-foreground text-background px-5 py-3 font-mono-ui text-[9px] uppercase tracking-[.22em] hover:opacity-80 transition-opacity"
+                data-testid="button-landing-create-moodboard"
+                className="inline-flex items-center gap-2.5 bg-foreground text-background px-6 py-3.5 font-mono-ui uppercase tracking-[.20em] hover:opacity-80 transition-opacity"
+                style={{ fontSize: "14px", minHeight: "48px" }}
               >
-                CREATE A FRAGRANCE
-                <ArrowRight size={10} strokeWidth={1.5} />
+                Create a moodboard
+                <ArrowRight size={12} strokeWidth={1.5} />
+              </Link>
+              <Link
+                href="/example"
+                data-testid="button-landing-explore-example"
+                className="inline-flex items-center gap-2 border border-foreground/20 px-6 py-3.5 font-mono-ui uppercase tracking-[.20em] text-foreground/60 hover:border-foreground/50 hover:text-foreground transition-colors"
+                style={{ fontSize: "14px", minHeight: "48px" }}
+              >
+                Explore an example
               </Link>
             </motion.div>
           </motion.div>
 
-          {/* ── Right-column stacked labels — reference detail ── */}
+          {/* Decorative vertical micro-copy — non-essential */}
           <motion.div
-            className="absolute right-8 sm:right-14 top-1/2 -translate-y-1/2 hidden md:flex flex-col gap-1 text-right"
+            className="absolute bottom-9 left-8 sm:left-12 z-10 flex flex-col gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.9 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
             aria-hidden
           >
-            {["IDEAS", "MATERIALS", "PEOPLE", "POSSIBILITIES"].map(w => (
-              <p key={w} className="font-mono-ui text-[7px] uppercase tracking-[.24em] text-foreground/30">{w}</p>
-            ))}
+            <div className="h-[1px] w-6 bg-foreground/25" />
+            <p
+              className="font-mono-ui uppercase tracking-[.24em] text-foreground/30 leading-5"
+              style={{ fontSize: "9px", writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+            >
+              A new language for scent
+            </p>
           </motion.div>
         </div>
-
-        {/* ── Lower-left — horizontal rule + vertical micro-copy ── */}
-        <motion.div
-          className="absolute bottom-9 left-8 sm:left-14 z-10 flex flex-col gap-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-          aria-hidden
-        >
-          <div className="h-[1px] w-6 bg-foreground/30" />
-          <p
-            className="font-mono-ui text-[6px] uppercase tracking-[.24em] text-foreground/35 leading-5"
-            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-          >
-            A NEW LANGUAGE FOR SCENT
-          </p>
-        </motion.div>
-
-        {/* ── Lower-right — START CREATING → ── */}
-        <motion.div
-          className="absolute bottom-9 right-8 sm:right-14 z-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.9 }}
-        >
-          <Link
-            href="/sign-up"
-            data-testid="button-landing-start"
-            className="group inline-flex items-center gap-2.5 font-mono-ui text-[8px] uppercase tracking-[.28em] text-foreground/40 hover:text-foreground transition-colors"
-          >
-            START CREATING
-            <ArrowRight size={9} strokeWidth={1.5} className="transition-transform duration-200 group-hover:translate-x-1" />
-          </Link>
-        </motion.div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────────────
-          BELOW-FOLD GRID — six editorial modules exactly matching reference img 2:
-          Row 1 (left 2/3): botanical still life dark panel | dark text panel
-          Row 1 (right 1/3 tall): human editorial + micro copy
-          Row 2: moodboard light | dark text | precision/dropper dark | footer text
-      ──────────────────────────────────────────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 2 — ONE MOODBOARD. THREE SCENT DIRECTIONS.
+          Interactive demo: left collage + note, right selectable directions.
+          Fully curated — no live AI. Keyboard/touch/reduced-motion accessible.
+      ══════════════════════════════════════════════════════════════════════ */}
+      <MoodboardDemo BASE={BASE} />
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 3 — EDITORIAL FEATURE MODULES
+          Four modular panels. Moodboard is primary.
+          Typography: headings ~28–40px, body 16–18px, labels 14px.
+      ══════════════════════════════════════════════════════════════════════ */}
       <section className="border-t border-border" aria-label="Feature modules">
 
-        {/* 2×2 editorial grid — desktop asymmetric, mobile single-column */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]" style={{ minHeight: "clamp(420px, 52vw, 660px)" }}>
-
-          {/* A — Botanical dark still life (large, left) */}
+        {/* Row 1 — four columns, moodboard dominant */}
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]"
+          style={{ minHeight: "clamp(360px, 48vw, 600px)" }}
+        >
+          {/* A — Botanical still life */}
           <motion.div
-            className="relative overflow-hidden col-span-1"
+            className="relative overflow-hidden"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            style={{ minHeight: "clamp(280px, 32vw, 440px)" }}
+            style={{ minHeight: "clamp(260px, 30vw, 400px)" }}
           >
             <img
               src={BASE + "petal-01.jpg"}
@@ -4884,16 +4904,14 @@ function Landing() {
               className="absolute inset-0 h-full w-full object-cover"
               onError={e => { (e.currentTarget as HTMLImageElement).src = BASE + "lait-vert-01.jpg"; }}
             />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--foreground) / 0.55) 30%, transparent 70%)" }} />
-            <div className="absolute bottom-0 left-0 p-6 sm:p-8">
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.22em] text-white/50 mb-2">RAW</p>
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-white/50">NATURAL</p>
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-white/50">SYNTHETIC</p>
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-white/50">TOGETHER</p>
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--foreground)/0.55) 28%, transparent 66%)" }} />
+            <div className="absolute bottom-0 left-0 p-6 sm:p-8" aria-hidden>
+              <p className="font-mono-ui uppercase tracking-[.18em] text-white/50 mb-1" style={{ fontSize: "12px" }}>Raw</p>
+              <p className="font-mono-ui uppercase tracking-[.14em] text-white/45" style={{ fontSize: "12px" }}>Natural · synthetic · together</p>
             </div>
           </motion.div>
 
-          {/* B — Dark text panel: Explore a world of ingredients */}
+          {/* B — Ingredient world (dark) */}
           <motion.div
             className="relative flex flex-col justify-end p-6 sm:p-8 dark-cinematic"
             initial={{ opacity: 0 }}
@@ -4901,7 +4919,6 @@ function Landing() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.06 }}
           >
-            {/* Water ripple image — subtle bg */}
             <img
               src={BASE + "animal-mirror-01.jpg"}
               alt=""
@@ -4911,22 +4928,25 @@ function Landing() {
             <div className="relative z-10">
               <h3
                 className="font-display leading-[.88] tracking-[-0.02em] text-white"
-                style={{ fontSize: "clamp(1.6rem, 3vw, 2.6rem)" }}
+                style={{ fontSize: "clamp(1.4rem, 2.6vw, 2.2rem)" }}
               >
-                EXPLORE<br />A WORLD OF<br />INGREDIENTS
+                Explore a world of ingredients
               </h3>
-              <div className="mt-5 h-[1px] w-5 bg-white/30" aria-hidden />
+              <div className="mt-4 h-[1px] w-5 bg-white/25" aria-hidden />
               <Link
-                href="/materials"
+                href="/sign-up"
                 data-testid="link-landing-discover"
-                className="mt-4 inline-flex items-center gap-2 font-mono-ui text-[8px] uppercase tracking-[.24em] text-white/50 hover:text-white transition-colors"
+                className="mt-4 inline-flex items-center gap-2 font-mono-ui uppercase tracking-[.20em] text-white/55 hover:text-white transition-colors"
+                style={{ fontSize: "13px" }}
               >
-                DISCOVER <ArrowRight size={9} strokeWidth={1.5} />
+                Browse the library
+                <ArrowRight size={10} strokeWidth={1.5} />
               </Link>
+              <p className="mt-2 font-mono-ui uppercase tracking-[.12em] text-white/30" style={{ fontSize: "11px" }}>Sign in required</p>
             </div>
           </motion.div>
 
-          {/* C — Moodboard / Canvas light panel */}
+          {/* C — Moodboard / Canvas (light, most prominent text) */}
           <motion.div
             className="relative overflow-hidden bg-card"
             initial={{ opacity: 0 }}
@@ -4938,20 +4958,20 @@ function Landing() {
               src={BASE + "moodboard-01.jpg"}
               alt=""
               aria-hidden
-              className="absolute inset-0 h-full w-full object-cover opacity-65"
+              className="absolute inset-0 h-full w-full object-cover opacity-60"
               onError={e => { (e.currentTarget as HTMLImageElement).src = BASE + "sel-gris-01.jpg"; }}
             />
-            <div className="absolute inset-0 bg-background/40" />
+            <div className="absolute inset-0 bg-background/45" />
             <div className="relative z-10 flex flex-col justify-between h-full p-6 sm:p-7">
               <div>
                 <h3
                   className="font-display leading-[.90] tracking-[-0.02em] text-foreground"
-                  style={{ fontSize: "clamp(1.3rem, 2.5vw, 2rem)" }}
+                  style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.8rem)" }}
                 >
-                  BUILD<br />YOUR MOODBOARD
+                  Build your moodboard
                 </h3>
-                <p className="mt-3 font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground leading-5">
-                  IMAGES. NOTES. SENSATIONS.<br />LET AI SUGGEST NEW IDEAS.
+                <p className="mt-3 leading-7 text-muted-foreground" style={{ fontSize: "clamp(0.875rem, 1.4vw, 0.9rem)" }}>
+                  Images, video, and notes. Visual culture and formula precision as one process.
                 </p>
               </div>
               <div>
@@ -4959,15 +4979,16 @@ function Landing() {
                 <Link
                   href="/sign-up"
                   data-testid="link-landing-canvas"
-                  className="inline-flex items-center gap-2 font-mono-ui text-[8px] uppercase tracking-[.22em] text-foreground/50 hover:text-foreground transition-colors"
+                  className="inline-flex items-center gap-2 font-mono-ui uppercase tracking-[.20em] text-foreground/55 hover:text-foreground transition-colors"
+                  style={{ fontSize: "13px" }}
                 >
-                  START CREATING <ArrowRight size={9} strokeWidth={1.5} />
+                  Create a moodboard <ArrowRight size={10} strokeWidth={1.5} />
                 </Link>
               </div>
             </div>
           </motion.div>
 
-          {/* D — Precision + dropper dark panel */}
+          {/* D — Precision meets poetry (dropper dark) — heading always visible */}
           <motion.div
             className="relative overflow-hidden dark-cinematic"
             initial={{ opacity: 0 }}
@@ -4982,37 +5003,38 @@ function Landing() {
               className="absolute inset-0 h-full w-full object-cover opacity-50"
               onError={e => { (e.currentTarget as HTMLImageElement).src = BASE + "resine-noire-01.jpg"; }}
             />
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--foreground) / 0.80) 20%, transparent 70%)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, hsl(var(--foreground)/0.78) 18%, transparent 65%)" }} />
             <div className="relative z-10 flex flex-col justify-between h-full p-6 sm:p-7">
+              {/* Always visible — not hidden behind animation */}
               <div className="text-right">
                 <h3
                   className="font-display leading-[.88] tracking-[-0.02em] text-white"
-                  style={{ fontSize: "clamp(1.3rem, 2.5vw, 2rem)" }}
+                  style={{ fontSize: "clamp(1.2rem, 2.2vw, 1.8rem)" }}
                 >
-                  PRECISION<br />MEETS<br />POETRY
+                  Precision meets poetry
                 </h3>
               </div>
               <div>
-                <div className="mb-3 h-[1px] w-5 bg-white/25" aria-hidden />
+                <div className="mb-3 h-[1px] w-5 bg-white/22" aria-hidden />
                 <Link
-                  href="/formulas"
-                  data-testid="link-landing-tech"
-                  className="inline-flex items-center gap-2 font-mono-ui text-[8px] uppercase tracking-[.22em] text-white/45 hover:text-white transition-colors"
+                  href="/sign-up"
+                  data-testid="link-landing-formula-workspace"
+                  className="inline-flex items-center gap-2 font-mono-ui uppercase tracking-[.20em] text-white/45 hover:text-white transition-colors"
+                  style={{ fontSize: "13px" }}
                 >
-                  OUR TECHNOLOGY <ArrowRight size={9} strokeWidth={1.5} />
+                  Formula workspace <ArrowRight size={10} strokeWidth={1.5} />
                 </Link>
+                <p className="mt-1 font-mono-ui uppercase tracking-[.12em] text-white/28" style={{ fontSize: "11px" }}>Sign in required</p>
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* Second row — human portrait tall (left 2) + fragrance house text (right) */}
+        {/* Row 2 — human portrait + platform text */}
         <div className="grid grid-cols-1 sm:grid-cols-[3fr_2fr] border-t border-border">
-
-          {/* Human editorial — large right, photograph dominant */}
           <motion.div
             className="relative overflow-hidden"
-            style={{ minHeight: "clamp(320px, 42vw, 520px)" }}
+            style={{ minHeight: "clamp(300px, 40vw, 480px)" }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -5025,22 +5047,13 @@ function Landing() {
               className="absolute inset-0 h-full w-full object-cover object-top"
               onError={e => { (e.currentTarget as HTMLImageElement).src = BASE + "hero-editorial.jpg"; }}
             />
-            {/* Right column text overlay — reference detail */}
-            <div className="absolute top-0 right-0 p-7 flex flex-col gap-2 text-right hidden sm:flex" aria-hidden>
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.22em] text-white/50">A NEW</p>
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.22em] text-white/50">LANGUAGE</p>
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.22em] text-white/50">FOR</p>
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.22em] text-white/50">SCENT</p>
-            </div>
-            {/* Bottom right stacked micro-copy — reference */}
-            <div className="absolute bottom-0 right-0 p-7 text-right hidden sm:block" aria-hidden>
-              {["HUMAN", "INTUITION", "ARTIFICIAL", "INTELLIGENCE", "REAL EMOTION"].map(w => (
-                <p key={w} className="font-mono-ui text-[6px] uppercase tracking-[.18em] text-white/30 leading-5">{w}</p>
+            <div className="absolute top-0 right-0 p-7 flex flex-col gap-1.5 text-right hidden sm:flex" aria-hidden>
+              {["A new", "language", "for scent"].map(w => (
+                <p key={w} className="font-mono-ui uppercase tracking-[.20em] text-white/45" style={{ fontSize: "11px" }}>{w}</p>
               ))}
             </div>
           </motion.div>
 
-          {/* Fragrance house — light text panel */}
           <motion.div
             className="flex flex-col justify-between p-8 sm:p-12 bg-background border-l border-border"
             initial={{ opacity: 0 }}
@@ -5051,254 +5064,199 @@ function Landing() {
             <div>
               <h3
                 className="font-display leading-[.9] tracking-[-0.02em] text-foreground"
-                style={{ fontSize: "clamp(1.6rem, 3vw, 2.6rem)" }}
+                style={{ fontSize: "clamp(1.5rem, 2.8vw, 2.4rem)" }}
               >
-                A FRAGRANCE HOUSE<br />FOR WHAT&apos;S NEXT
+                A fragrance workspace for what comes next
               </h3>
-              <div className="mt-5 h-[1px] w-6 bg-foreground/25" aria-hidden />
-              <p className="mt-5 font-mono-ui text-[8px] uppercase tracking-[.18em] text-muted-foreground">
-                PERFUMERY. COMMUNITY. CULTURE.
+              <div className="mt-4 h-[1px] w-6 bg-foreground/22" aria-hidden />
+              <p className="mt-5 font-mono-ui uppercase tracking-[.16em] text-muted-foreground" style={{ fontSize: "13px" }}>
+                Sillage Lab — the MATIÈRE creation workspace
               </p>
-              <p className="mt-6 text-sm leading-7 text-muted-foreground max-w-xs">
-                A new kind of fragrance studio — where visual language, olfactive science, and AI interpretation exist as one creative system.
+              <p className="mt-5 leading-8 text-muted-foreground max-w-xs" style={{ fontSize: "clamp(0.95rem, 1.5vw, 1rem)" }}>
+                Where visual culture, olfactive science, and AI interpretation work as one creative system. Your moodboards, notes, materials, and formula versions stay connected.
               </p>
             </div>
             <div className="mt-8">
-              <div className="mb-4 h-[1px] w-6 bg-foreground/20" aria-hidden />
-              <Link
-                href="/sign-up"
-                data-testid="button-landing-final"
-                className="inline-flex items-center gap-2 font-mono-ui text-[8px] uppercase tracking-[.24em] text-foreground/45 hover:text-foreground transition-colors"
+              <div className="mb-4 h-[1px] w-6 bg-foreground/18" aria-hidden />
+              <a
+                href="#platform"
+                data-testid="link-landing-learn-more"
+                className="inline-flex items-center gap-2 font-mono-ui uppercase tracking-[.22em] text-foreground/50 hover:text-foreground transition-colors"
+                style={{ fontSize: "13px" }}
               >
-                LEARN MORE <ArrowRight size={9} strokeWidth={1.5} />
-              </Link>
+                Learn more <ArrowRight size={10} strokeWidth={1.5} />
+              </a>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ─────────────────────────────────────────────────────────────────────
-          MATERIAL TRANSLATION — the creative logic made visible.
-          One dominant project reference image. A direction statement.
-          Three materials with WHY they belong + where they lead.
-          Asymmetric, varied scale, generous negative space, full light ground.
-          No equal cards, no dark backdrop, no stock imagery.
-      ──────────────────────────────────────────────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 4 — PLATFORM FUNCTIONALITY
+          Accurate descriptions of what exists. Planned features labeled.
+          id="platform" for Learn more link target.
+      ══════════════════════════════════════════════════════════════════════ */}
       <section
-        id="material-translation"
-        className="border-t border-border"
-        aria-label="From world to material"
-        data-testid="section-material-translation"
+        id="platform"
+        className="border-t border-border px-8 py-16 sm:px-12 sm:py-20"
+        aria-label="What MATIÈRE does"
+        data-testid="section-platform"
       >
-        {/* ── Section label ── */}
-        <div className="flex items-center gap-6 px-8 py-6 sm:px-14 border-b border-border">
-          <p className="font-mono-ui text-[7px] uppercase tracking-[.32em] text-muted-foreground shrink-0">
-            World → Material
+        <div className="mb-12">
+          <p className="font-mono-ui uppercase tracking-[.28em] text-muted-foreground mb-3" style={{ fontSize: "12px" }}>
+            The workspace
           </p>
-          <div className="h-[1px] flex-1 bg-border" aria-hidden />
-          <p className="font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground/50 shrink-0 italic">
-            Current project · Animal in the Mirror
+          <h2
+            className="font-display leading-[.9] tracking-[-0.03em] text-foreground max-w-2xl"
+            style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}
+          >
+            One process from inspiration to formula
+          </h2>
+          <p className="mt-5 leading-8 text-foreground/65 max-w-2xl" style={{ fontSize: "clamp(1rem, 1.7vw, 1.1rem)" }}>
+            MATIÈRE keeps your moodboard, notes, material selections, and formula versions connected in a single private workspace. Below is an honest account of what is currently available.
           </p>
         </div>
 
-        {/* ── Main layout: image left (dominant) + material logic right ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[5fr_4fr]">
-
-          {/* Left — dominant reference image, near full height */}
-          <motion.div
-            className="relative overflow-hidden"
-            style={{ minHeight: "clamp(320px, 44vw, 580px)" }}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <img
-              src={BASE + "animal-mirror-01.jpg"}
-              alt=""
-              aria-hidden
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            {/* Warm bleed from right into text column */}
-            <div
-              className="absolute inset-y-0 right-0 w-24 hidden lg:block"
-              style={{ background: "linear-gradient(to right, transparent, hsl(var(--background)))" }}
-            />
-            {/* Creative direction overlay — lower left of the image */}
-            <div className="absolute bottom-0 left-0 right-0 p-7 sm:p-9">
-              <div
-                className="inline-block"
-                style={{ background: "hsl(var(--background) / 0.88)", padding: "16px 20px" }}
-              >
-                <p className="font-mono-ui text-[6px] uppercase tracking-[.24em] text-muted-foreground mb-2">
-                  Creative direction
-                </p>
-                <p
-                  className="font-display leading-[.9] tracking-[-0.02em] text-foreground"
-                  style={{ fontSize: "clamp(1.1rem, 2.2vw, 1.7rem)" }}
-                >
-                  The animal exists in reflection.<br />
-                  Lacquer. Warmth. Something turning.
-                </p>
-                <p className="mt-2 font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground/60">
-                  MOD 04 · olfactive direction: dark floral · animalic skin
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Right — material logic, varied scale, editorial hierarchy */}
-          <motion.div
-            className="flex flex-col border-l border-border bg-background"
-            initial={{ opacity: 0, x: 12 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.65, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {/* ── Material 1 — DOMINANT: Rose Absolute ── */}
-            {/* Large, leads. The primary material. */}
-            <div className="flex flex-col border-b border-border px-7 py-8 sm:px-9">
-              <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+          {[
+            {
+              label: "Image and reference workspace",
+              status: "Available",
+              body: "Build a moodboard by uploading images and arranging them on a freeform canvas. Add text, notes, material cards, and directional annotations. Drag, resize, stack, and connect references.",
+            },
+            {
+              label: "AI scent interpretation",
+              status: "Available",
+              body: "Select images or a group of references on the canvas and interpret them into olfactive qualities, tensions, and material territory. Results are contextual and based on your canvas content — not live generation for this example.",
+            },
+            {
+              label: "Formula ideation and builder",
+              status: "Available",
+              body: "Create formula records with a brief, ingredient list, concentrations, roles, and dilutions. Track version history. Move through a nine-stage workflow from concept to batch sheet.",
+            },
+            {
+              label: "Material library",
+              status: "Available",
+              body: "Browse a curated ingredient library with olfactive families, notes, and descriptions. Search and filter. Link materials to your moodboard and formula.",
+            },
+            {
+              label: "IFRA guidance",
+              status: "Available — guidance only",
+              body: "Check ingredients against IFRA category limits for a specified product type. Presented as guidance for reference — always confirm with your supplier and regulatory advisor before manufacture.",
+            },
+            {
+              label: "Collaboration — shared briefs and comments",
+              status: "Planned",
+              body: "Shared projects, comments, and feedback loops between collaborators are on the roadmap. Not yet available.",
+            },
+          ].map(item => (
+            <motion.div
+              key={item.label}
+              className="bg-background p-7 sm:p-8"
+              initial={{ opacity: 0, y: 6 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-20px" }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="flex items-start gap-3 mb-4">
+                <span className="inline-block h-1 w-1 bg-accent shrink-0 mt-2" aria-hidden />
                 <div>
-                  <p className="font-mono-ui text-[6px] uppercase tracking-[.22em] text-accent mb-2">
-                    Primary · Floral
+                  <p className="font-mono-ui uppercase tracking-[.16em] text-foreground/80 leading-snug" style={{ fontSize: "13px" }}>
+                    {item.label}
                   </p>
-                  <h3
-                    className="font-display leading-[.88] tracking-[-0.03em] text-foreground"
-                    style={{ fontSize: "clamp(1.6rem, 3vw, 2.4rem)" }}
+                  <span
+                    className={`inline-block mt-1 font-mono-ui uppercase tracking-[.12em] border px-1.5 py-0.5 ${
+                      item.status === "Planned"
+                        ? "border-border text-muted-foreground/50"
+                        : item.status.includes("guidance")
+                        ? "border-accent/30 text-accent-foreground/70"
+                        : "border-border text-muted-foreground"
+                    }`}
+                    style={{ fontSize: "10px" }}
                   >
-                    Rose Absolute
-                  </h3>
-                </div>
-                {/* Small image — tactile, not stock */}
-                <div
-                  className="shrink-0 overflow-hidden hidden sm:block"
-                  style={{ width: "72px", height: "72px" }}
-                >
-                  <img
-                    src={BASE + "petal-01.jpg"}
-                    alt=""
-                    aria-hidden
-                    className="w-full h-full object-cover opacity-80"
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = BASE + "lait-vert-01.jpg"; }}
-                  />
+                    {item.status}
+                  </span>
                 </div>
               </div>
-              {/* Why it belongs — creative note, not catalog copy */}
-              <p className="text-sm leading-7 text-muted-foreground mb-5">
-                The mirror demands something alive at its centre. Rose Absolute carries honeyed depth, a damascenone edge that reads as animal heat — it's the reflection, not the subject.
+              <p className="leading-7 text-muted-foreground" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
+                {item.body}
               </p>
-              <div className="flex flex-wrap items-center gap-5">
-                <Link
-                  href="/materials?search=Rose+Absolute"
-                  data-testid="link-mt-rose-detail"
-                  className="group inline-flex items-center gap-2 font-mono-ui text-[7px] uppercase tracking-[.18em] text-foreground/50 hover:text-foreground transition-colors"
-                >
-                  Material detail <ArrowRight size={8} strokeWidth={1.5} className="transition-transform group-hover:translate-x-0.5" />
-                </Link>
-                <Link
-                  href="/projects/proj-04/inspiration"
-                  data-testid="link-mt-rose-canvas"
-                  className="group inline-flex items-center gap-2 font-mono-ui text-[7px] uppercase tracking-[.18em] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-                >
-                  <span className="inline-block h-[3px] w-[3px] bg-accent shrink-0" aria-hidden />
-                  View on canvas
-                </Link>
-              </div>
-            </div>
-
-            {/* ── Material 2 — SECONDARY: Iso E Super ── */}
-            {/* Smaller. The material that complicates. */}
-            <div className="flex items-start gap-6 border-b border-border px-7 py-6 sm:px-9">
-              <div className="min-w-0 flex-1">
-                <p className="font-mono-ui text-[6px] uppercase tracking-[.22em] text-muted-foreground mb-1.5">
-                  Modifier · Woody
-                </p>
-                <h3 className="font-display text-xl tracking-[-0.02em] text-foreground">
-                  Iso E Super
-                </h3>
-                <p className="mt-2 text-xs leading-6 text-muted-foreground">
-                  Creates the skin effect: a transparent woody warmth that makes the rose feel less like a flower and more like memory. Diffuses. Blurs edges. Keeps the composition from being literal.
-                </p>
-                <div className="mt-3 flex items-center gap-5">
-                  <Link
-                    href="/materials?search=Iso+E+Super"
-                    data-testid="link-mt-isoe-detail"
-                    className="group inline-flex items-center gap-1.5 font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground/50 hover:text-foreground transition-colors"
-                  >
-                    Material detail <ArrowRight size={8} strokeWidth={1.5} className="transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </div>
-              </div>
-              {/* Micro-scale accent image — glass/lab */}
-              <div
-                className="shrink-0 overflow-hidden hidden sm:block self-center"
-                style={{ width: "48px", height: "64px" }}
-              >
-                <img
-                  src={BASE + "glass-vessel-01.jpg"}
-                  alt=""
-                  aria-hidden
-                  className="w-full h-full object-cover opacity-60"
-                  onError={e => { (e.currentTarget as HTMLImageElement).src = BASE + "lait-vert-02.jpg"; }}
-                />
-              </div>
-            </div>
-
-            {/* ── Material 3 — ANCHOR: Labdanum Absolute ── */}
-            {/* Smallest treatment. The base logic. No image — negative space. */}
-            <div className="flex-1 flex flex-col justify-between px-7 py-6 sm:px-9">
-              <div>
-                <p className="font-mono-ui text-[6px] uppercase tracking-[.22em] text-muted-foreground mb-1.5">
-                  Base · Resinous
-                </p>
-                <h3 className="font-display text-lg tracking-[-0.02em] text-foreground">
-                  Labdanum Absolute
-                </h3>
-                <p className="mt-2 text-xs leading-6 text-muted-foreground max-w-xs">
-                  The ancient underneath. Warm, leathery, animalic. It is what remains when everything else has evaporated — the part that reads on skin as something personal.
-                </p>
-              </div>
-              {/* Where it leads next */}
-              <div className="mt-6 border-t border-border pt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <p className="font-mono-ui text-[6px] uppercase tracking-[.20em] text-muted-foreground/50">
-                  Continue building
-                </p>
-                <div className="flex flex-wrap gap-5">
-                  <Link
-                    href="/materials?search=Labdanum"
-                    data-testid="link-mt-labdanum-detail"
-                    className="group inline-flex items-center gap-1.5 font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground/50 hover:text-foreground transition-colors"
-                  >
-                    Material <ArrowRight size={8} strokeWidth={1.5} className="transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                  <Link
-                    href="/projects/proj-04"
-                    data-testid="link-mt-project-mod"
-                    className="group inline-flex items-center gap-1.5 font-mono-ui text-[7px] uppercase tracking-[.16em] text-foreground/55 hover:text-foreground transition-colors"
-                  >
-                    <span className="inline-block h-[3px] w-[3px] bg-accent shrink-0" aria-hidden />
-                    Current mod <ArrowRight size={8} strokeWidth={1.5} className="transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
-      {/* ── Final CTA — editorial image + open studio, full light ── */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 5 — FUTURE ECOSYSTEM (compact, clearly labeled)
+      ══════════════════════════════════════════════════════════════════════ */}
+      <section
+        className="border-t border-border px-8 py-12 sm:px-12"
+        aria-label="MATIÈRE ecosystem"
+        data-testid="section-ecosystem"
+      >
+        <p className="font-mono-ui uppercase tracking-[.26em] text-muted-foreground mb-8" style={{ fontSize: "12px" }}>
+          Beyond the workspace
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border">
+          {[
+            {
+              name: "Shop",
+              status: "Coming soon",
+              body: "Curated materials, accords, and sample collections for the working perfumer.",
+            },
+            {
+              name: "Custom fragrance experiences",
+              status: "Coming soon",
+              body: "Guided commissions — a bespoke fragrance developed with a MATIÈRE perfumer, using the same tools.",
+            },
+            {
+              name: "Workshops",
+              status: "Planned",
+              body: "In-person and digital workshops connecting the platform's creative process with hands-on blending.",
+            },
+            {
+              name: "Artist collaborations",
+              status: "Planned",
+              body: "Projects with artists, designers, and cultural figures — fragrance as material in a broader practice.",
+            },
+          ].map(item => (
+            <div key={item.name} className="bg-background p-6 sm:p-7">
+              <p className="font-mono-ui uppercase tracking-[.16em] text-foreground/75 mb-1" style={{ fontSize: "13px" }}>
+                {item.name}
+              </p>
+              <span
+                className="inline-block font-mono-ui uppercase tracking-[.12em] border border-border text-muted-foreground/50 px-1.5 py-0.5 mb-4"
+                style={{ fontSize: "10px" }}
+              >
+                {item.status}
+              </span>
+              <p className="leading-7 text-muted-foreground" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
+                {item.body}
+              </p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 font-mono-ui uppercase tracking-[.14em] text-muted-foreground/50" style={{ fontSize: "11px" }}>
+          The creative workspace is the primary focus. All ecosystem offerings will be introduced here as they become available.
+        </p>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          SECTION 6 — FINAL CTA
+          Strong "Create a moodboard" close.
+      ══════════════════════════════════════════════════════════════════════ */}
       <section
         className="border-t border-border grid grid-cols-1 sm:grid-cols-[1fr_1fr]"
-        aria-label="Open studio"
+        aria-label="Create a moodboard"
       >
         <motion.div
           className="relative overflow-hidden"
-          style={{ minHeight: "clamp(220px, 26vw, 320px)" }}
+          style={{ minHeight: "clamp(200px, 24vw, 300px)" }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
+          aria-hidden
         >
           <img
             src={BASE + "glass-vessel-01.jpg"}
@@ -5315,37 +5273,47 @@ function Landing() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.08 }}
         >
-          <p className="font-mono-ui text-[7px] uppercase tracking-[.28em] text-muted-foreground mb-5">
-            Sillage Lab
+          <p className="font-mono-ui uppercase tracking-[.26em] text-muted-foreground mb-4" style={{ fontSize: "12px" }}>
+            Sillage Lab — the MATIÈRE creation workspace
           </p>
           <h2
             className="font-display leading-[.9] tracking-[-0.03em] text-foreground"
-            style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}
+            style={{ fontSize: "clamp(1.8rem, 3.6vw, 3.2rem)" }}
           >
             From world<br />to scent.
           </h2>
-          <p className="mt-5 text-sm leading-7 text-muted-foreground max-w-xs">
-            The only fragrance workspace where visual culture and formula precision are one process.
+          <p className="mt-5 leading-8 text-foreground/65 max-w-xs" style={{ fontSize: "clamp(1rem, 1.5vw, 1rem)" }}>
+            Your moodboard, notes, materials, and formula — one connected workspace, private to your account.
           </p>
-          <div className="mt-8">
+          <div className="mt-8 flex flex-wrap gap-4">
             <Link
               href="/sign-up"
-              data-testid="link-landing-open-studio"
-              className="group inline-flex items-center gap-2.5 border-b border-foreground/20 pb-2 font-mono-ui text-[8px] uppercase tracking-[.24em] text-foreground/50 hover:text-foreground hover:border-foreground/50 transition-colors"
+              data-testid="link-landing-create-final"
+              className="group inline-flex items-center gap-2.5 bg-foreground text-background px-6 py-3.5 font-mono-ui uppercase tracking-[.20em] hover:opacity-80 transition-opacity"
+              style={{ fontSize: "14px", minHeight: "48px" }}
             >
-              Open your studio <ArrowRight size={9} strokeWidth={1.5} className="transition-transform group-hover:translate-x-0.5" />
+              Create a moodboard
+              <ArrowRight size={11} strokeWidth={1.5} className="transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href="/example"
+              data-testid="link-landing-example-final"
+              className="inline-flex items-center gap-2 border border-foreground/20 px-6 py-3.5 font-mono-ui uppercase tracking-[.20em] text-foreground/55 hover:border-foreground/40 hover:text-foreground transition-colors"
+              style={{ fontSize: "14px", minHeight: "48px" }}
+            >
+              Explore an example
             </Link>
           </div>
         </motion.div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-border px-8 py-6 sm:px-14">
-        <div className="flex items-center justify-between">
-          <span className="font-mono-ui text-[7px] uppercase tracking-[.20em] text-muted-foreground">
-            MATIÈRE · SILLAGE LAB
+      <footer className="border-t border-border px-8 py-6 sm:px-12">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <span className="font-mono-ui uppercase tracking-[.20em] text-muted-foreground" style={{ fontSize: "11px" }}>
+            MATIÈRE
           </span>
-          <span className="font-mono-ui text-[6px] text-muted-foreground/50">
+          <span className="font-mono-ui text-muted-foreground/45" style={{ fontSize: "10px" }}>
             Made for the long drydown.
           </span>
         </div>

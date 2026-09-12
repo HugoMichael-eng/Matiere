@@ -1,0 +1,115 @@
+Replace the current “World → Material / Animal in the Mirror” landing-page section with an interactive demonstration titled “One moodboard. Three scent directions.”
+
+Work from the latest MATIÈRE development preview. Change this section only, preserving the surrounding page, warm neutral palette, editorial typography, and sensory photography.
+
+PURPOSE
+
+Show how a user’s visual references and written intention can lead to several possible fragrance directions. Clearly distinguish user inputs from AI suggestions and make the user’s creative choices visible.
+
+The current section jumps from an abstract photograph to specific ingredients with overly poetic explanations. Replace that experience with a clear, approachable exploration.
+
+SECTION INTRODUCTION
+
+Eyebrow:
+“ONE MOODBOARD. THREE SCENT DIRECTIONS.”
+
+Heading:
+“See where your inspiration could lead.”
+
+Description:
+“Bring together images, video, and notes. Explore possible scent directions you can question, reshape, and develop.”
+
+Only describe media capabilities as available if they are implemented. Label this interaction “Interactive example” and clearly identify its responses as curated demonstration content.
+
+LAYOUT
+
+Desktop: use two balanced columns.
+Mobile: stack the moodboard above the suggested directions.
+
+LEFT — YOUR MOODBOARD
+
+Replace the single oversized photograph with a small editorial collage of three complementary references:
+- Fogged glass.
+- Warm skin.
+- Dark lacquer or another suitable dark, reflective texture.
+
+Reuse suitable existing assets where possible. Preserve image quality and intentional cropping.
+
+Include a clearly labelled example note:
+“Something intimate, warm, and a little strange. Nothing sugary.”
+
+Label the whole area “Your moodboard.”
+Present the note as example user input, distinct from the suggested output. Do not make it look editable unless editing actually works.
+
+RIGHT — SUGGESTED DIRECTIONS
+
+Show three selectable cards with equal visual importance:
+
+1. Soft focus
+“Airy woods, gentle warmth, a close-to-skin feeling.”
+
+2. After dark
+“A floral direction with shadow, depth, and contrast.”
+
+3. Warm surface
+“Resinous warmth balanced with dry, textured elements.”
+
+Label the group “Suggested directions.”
+Add a short explanation:
+“Three possible interpretations of the same moodboard. Choose one to explore.”
+
+INTERACTION
+
+Select “Soft focus” initially.
+
+Selecting another direction should:
+- Clearly update the selected card.
+- Reveal three or four descriptive keywords.
+- Update a short, plain-language explanation connecting the direction to the example note and references.
+- Show two or three candidate materials below, with a concise reason to explore each.
+
+Keep ingredients secondary to the creative direction. Use existing material-library information where available. Present materials as candidates to explore, not a finished formula or an objective translation of an image.
+
+Remove the current long poetic ingredient paragraphs, unexplained “Current mod” terminology, and claims such as “the mirror demands.”
+
+REFINEMENT
+
+Below the selected direction, add:
+“What would you change?”
+
+Provide working refinement buttons such as:
+- “Less floral”
+- “More mineral”
+- “Explore another direction”
+
+Use prepared responses appropriate to each direction. Clicking a refinement must visibly change the suggested description or candidates. Include a reset control.
+
+Clearly state that these are curated example responses. Do not simulate a live AI request, fake processing, or offer a free-text field that does not work.
+
+CALL TO ACTION
+
+End with:
+“Your references start the conversation. You decide where it goes.”
+
+Primary CTA:
+“Create your own moodboard”
+
+Use the existing appropriate onboarding route and make it clear if an account is required. Exploring this landing-page example must not require sign-in or access private projects.
+
+VISUAL DESIGN AND MOTION
+
+- Use readable body text: 16–18 px minimum.
+- Use 14–16 px button text and 12–14 px supporting labels.
+- Maintain strong contrast and generous spacing.
+- Give selected cards a clear border, background, or restrained accent.
+- Use subtle 150–250 ms transitions when the selected content changes.
+- Avoid excessive floating cards, decorative animation, or oversized empty space.
+- Keep all essential information visible without hovering.
+- Respect reduced-motion preferences and support keyboard navigation.
+- Ensure updates are accessible to screen readers.
+
+VERIFY
+
+Test all three directions, refinement buttons, reset behaviour, and the CTA. Check desktop and mobile layouts for overflow, clipping, contrast, and readable text.
+
+Keep this change in the development preview. Do not publish to production. When finished, briefly explain what changed and what was verified.

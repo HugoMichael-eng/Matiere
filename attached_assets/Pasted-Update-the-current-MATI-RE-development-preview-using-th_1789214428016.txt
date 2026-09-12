@@ -1,0 +1,125 @@
+Update the current MATIÈRE development preview using the requirements below. Work from the latest design featuring “FRAGRANCE BEYOND BOUNDARIES,” warm skin photography, modular image sections, and the “World → Material / Animal in the Mirror” example. Do not revert to the older landing page.
+
+Preserve the warm neutral palette, sensory imagery, editorial composition, and art direction. Improve readability, brand presence, product clarity, and interaction. Implement the changes, rather than only proposing them.
+
+1. STRENGTHEN THE HERO AND BRAND
+
+Make MATIÈRE a monumental, near-full-width masthead with a genuinely extra-heavy typeface or supported weight of 800–900. Use tight tracking and line spacing while preserving the È accent. Scale responsively without clipping or horizontal overflow.
+
+Keep “Fragrance beyond boundaries” as a secondary proposition. Balance the dense typography with the softness of the existing photography.
+
+Add a clear, readable explanation:
+“Build a moodboard from images, video, and notes. Explore AI-suggested scent directions and materials, then develop your fragrance in one creative workspace.”
+
+Primary CTA: “Create a moodboard.”
+Secondary CTA: “Explore an example.”
+
+Only present capabilities as available when they are implemented. Clearly label planned capabilities.
+
+2. FIX TYPOGRAPHY AND CONTRAST THROUGHOUT
+
+Replace the current 6–9 px functional text with a readable type system:
+- Navigation and buttons: 14–16 px.
+- Main body copy: 18–20 px desktop; 16–18 px mobile.
+- Material descriptions: 16–18 px.
+- Useful metadata and supporting labels: 12–14 px minimum.
+
+Reserve tiny editorial annotations for nonessential decoration. Use comfortable line spacing, readable paragraph widths, and sufficient contrast over photography. Ensure buttons and links have generous touch targets.
+
+3. MAKE MOODBOARDS THE CENTRE OF THE STORY
+
+Move the “World → Material” demonstration immediately after the hero.
+
+Expand “Animal in the Mirror” into a convincing example workspace showing:
+- Multiple visual references.
+- A video thumbnail.
+- Written notes and annotations.
+- AI-interpreted qualities and scent directions.
+- Suggested materials with explanations.
+- A visible next step into fragrance development.
+
+Communicate this sequence clearly:
+Collect references → Explore scent directions → Select materials → Develop and refine.
+
+Make the moodboard visually more prominent than supporting ingredient or technology modules.
+
+4. CREATE A PUBLIC INTERACTIVE EXAMPLE
+
+Make “Explore an example” and “View on canvas” open a public, read-only example moodboard without requiring sign-in.
+
+Use curated demonstration content, clearly identified as an example. Keep real user projects private.
+
+Implement meaningful interactions:
+- Selecting a reference highlights associated scent descriptors and materials.
+- Selecting a suggested material reveals why it relates to the creative direction.
+- Visitors can inspect example notes and switch between curated scent directions.
+- Where supported, show two example iterations and explain what changed.
+
+Invite visitors to create their own project after exploring. Do not imply that curated example responses are live AI generation.
+
+5. EXPLAIN THE PLATFORM’S FUNCTIONALITY
+
+Add concise copy and relevant interface previews covering:
+- Uploading images, video, and notes.
+- AI interpretation of visual references into creative scent suggestions.
+- Fragrance ideation, accords, and formulation support.
+- Ingredient intelligence and material exploration.
+- Contextual IFRA guidance.
+- Saved projects containing moodboards, notes, material selections, and formula versions.
+- Artist use and collaboration through shared briefs, comments, and feedback, where available.
+
+Inspect the existing application before writing claims. Distinguish available functionality from planned features. Do not invent working upload, collaboration, AI, or formulation capabilities.
+
+Present IFRA information as guidance with appropriate source, version, and applicable context. Do not show unsupported numerical limits or imply automatic safety certification.
+
+6. CLARIFY THE FUTURE ECOSYSTEM
+
+Add a compact lower-page section introducing:
+- The shop.
+- Custom fragrance experiences.
+- Workshops.
+- Artist collaborations.
+
+Label each offering according to its actual availability. Keep the primary page narrative focused on the creative workspace.
+
+7. REFINE MOTION AND MICRO-INTERACTIONS
+
+Use restrained motion that explains relationships:
+- One brief masthead entrance.
+- Subtle image movement where appropriate.
+- Clear hover, focus, pressed, and selected states.
+- Reference-to-material highlighting in the example.
+- Smooth expansion of material explanations.
+
+Use approximately 150–220 ms for control feedback and 400–650 ms for larger transitions.
+
+Fix the moodboard and “Precision meets poetry” headings: they were present in the page structure but not visible during inspection. Check clipping, layering, and reveal behaviour. Essential content must remain visible if animations fail or reduced motion is enabled.
+
+Support keyboard use, touch, and reduced-motion preferences. Avoid scroll hijacking, hover-only information, and prolonged low-opacity text.
+
+8. FIX NAVIGATION AND BRAND CONSISTENCY
+
+Ensure each label accurately describes its destination:
+- “Explore an example” opens the public demonstration.
+- “Learn more” opens explanatory content rather than unexpectedly opening sign-up.
+- Rename “Our technology” if its destination is actually the formula workspace.
+- Clearly communicate when an action requires an account.
+
+Use MATIÈRE consistently. If Sillage Lab is an intentional workspace name, introduce it explicitly as “Sillage Lab — the MATIÈRE creation workspace”; otherwise remove the unexplained secondary branding.
+
+Finish with a strong, consistent “Create a moodboard” CTA.
+
+9. VERIFY THE FINISHED EXPERIENCE
+
+Check desktop, tablet, and mobile layouts. Verify:
+- No clipped headings, broken accent marks, or horizontal overflow.
+- Readable navigation, descriptions, metadata, and buttons.
+- Clear contrast on all image backgrounds.
+- Working links and accurate destinations.
+- Public example access while signed out.
+- Keyboard focus and reduced-motion behaviour.
+- No exposure of private projects or user data.
+
+Preserve existing application functionality. Avoid unrelated changes.
+
+When finished, summarize what changed, what you verified, and any capabilities that remain planned. Keep the result in the development preview for review; do not publish to production.
