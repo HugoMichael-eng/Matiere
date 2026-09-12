@@ -190,9 +190,9 @@ export type NavGroup = {
 };
 
 export const DESIGN_SYSTEM = {
-  title: 'Verve Systems',
+  title: 'MATIÈRE',
   description:
-    'Radical restraint for fashion, footwear, objects, and modern commerce.',
+    'From world to scent — a spatial creative system for contemporary fragrance development.',
 } as const;
 
 export const OVERVIEW_ENTRY: PreviewEntry = {

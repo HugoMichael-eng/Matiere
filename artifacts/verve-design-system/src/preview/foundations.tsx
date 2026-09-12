@@ -67,18 +67,36 @@ export function OverviewPage() {
         </div>
         <div className="relative">
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            Verve™ / System 01
+            MATIÈRE / FROM WORLD TO SCENT
           </p>
           <h1 className="mt-8 font-serif text-[clamp(4rem,14vw,10rem)] font-black uppercase leading-[0.72] tracking-[-0.06em]">
-            Verve
-            <span className="block text-right text-transparent [-webkit-text-stroke:1.5px_currentColor]">
-              Systems
+            See
+            <span
+              className="relative block text-right text-transparent"
+              style={{ WebkitTextStroke: '1.5px hsl(var(--foreground))' }}
+            >
+              Smell
+              <span className="absolute -right-1 top-2 h-4 w-4 bg-accent [-webkit-text-stroke:0]" aria-hidden="true" />
             </span>
           </h1>
-          <p className="ml-auto mt-10 max-w-lg text-xl font-bold uppercase leading-tight tracking-[-0.02em]">
-            Organic movement meets rigid architecture.
+          <p className="ml-auto mt-10 max-w-lg text-xl font-bold leading-tight tracking-[-0.02em]">
+            Visual culture, material research, olfactive thinking, and technical formulation in one continuous creative process.
           </p>
         </div>
+      </section>
+
+      <section className="grid border bg-card text-card-foreground md:grid-cols-3">
+        {[
+          ['Gallery', 'Atmospheric, image-led, spatial, and expressive.'],
+          ['Studio', 'Warm, tactile, editorial, open, and thoughtful.'],
+          ['Laboratory', 'Pale, precise, calm, compact, and information-rich.'],
+        ].map(([name, description], index) => (
+          <div key={name} className="border-b p-6 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
+            <span className="font-mono text-[10px] text-muted-foreground">0{index + 1}</span>
+            <h2 className="mt-10 font-serif text-3xl font-bold tracking-[-0.04em]">{name}</h2>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">{description}</p>
+          </div>
+        ))}
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -118,7 +136,7 @@ export function OverviewPage() {
               </div>
             </CardContent>
             <CardFooter className="gap-2">
-              <Button>Access system</Button>
+              <Button>Enter canvas →</Button>
               <Button variant="outline">Cancel</Button>
             </CardFooter>
           </Card>
@@ -144,9 +162,9 @@ export function OverviewPage() {
           <h2 className="mb-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">Principles</h2>
           <Guidelines items={[
             { kind: 'do', text: 'Use oversized display typography as the dominant visual event.' },
-            { kind: 'do', text: 'Expose the structural grid and align content to measured columns.' },
-            { kind: 'do', text: 'Keep labels compact, uppercase, and deliberately spaced.' },
-            { kind: 'dont', text: 'Decorate surfaces when type, rules, and whitespace can provide hierarchy.' },
+            { kind: 'do', text: 'Move coherently between atmospheric Gallery, tactile Studio, and precise Laboratory environments.' },
+            { kind: 'do', text: 'Use acid citron only for active states, selections, connections, drag targets, AI markers, and focus.' },
+            { kind: 'dont', text: 'Reduce creative work to repeated cards, rigid dashboards, or generic SaaS patterns.' },
           ]} />
         </div>
       </section>
@@ -171,8 +189,9 @@ export function ColorsPage() {
         </div>
       </section>
       <Guidelines items={[
-        { kind: 'do', text: 'Let engineered black and warm concrete carry most of the interface.' },
-        { kind: 'dont', text: 'Introduce decorative brand colors; contrast and scale create emphasis.' },
+        { kind: 'do', text: 'Let warm gallery whites, bone, chalk, plaster, and mineral grey carry most surfaces.' },
+        { kind: 'do', text: 'Reserve true black for focus states, cinematic imagery, deep overlays, and atmospheric transitions.' },
+        { kind: 'dont', text: 'Let acid citron exceed a small, deliberate portion of the interface.' },
       ]} />
 
       <section className="space-y-4">
@@ -206,7 +225,8 @@ export function FontsPage() {
       </section>
       <Guidelines items={[
         { kind: 'do', text: 'Pair very large Bricolage Grotesque display lines with compact Inter labels and copy.' },
-        { kind: 'dont', text: 'Soften headlines with generous line-height or conventional centered composition.' },
+        { kind: 'do', text: 'Use IBM Plex Mono selectively for formula values, material data, versions, and dates.' },
+        { kind: 'dont', text: 'Make every label uppercase with wide tracking; creative language should breathe naturally.' },
       ]} />
 
       <section className="space-y-4 border-t pt-6">

@@ -1,4 +1,4 @@
-# Verve Design System design system
+# MATIÈRE design system
 
 This package defines the visual language for the project. Use it whenever you
 build or restyle UI so every surface looks like the same product. It is a real
@@ -7,22 +7,33 @@ on it and import its theme and components directly.
 
 ## What's here
 
-Verve Systems is extracted from the selected monochrome fashion landing-page
-mockup at
+MATIÈRE combines structural signals extracted from the selected monochrome
+fashion landing-page mockup at
 `artifacts/mockup-sandbox/src/components/mockups/templates/MonochromeFashionLandingPage-hw1_nu/Verve.tsx`.
-The source supplies a warm-concrete light surface, engineered black, exposed
-grid rules, oversized Bricolage Grotesque display type, compact Inter labels,
-zero-radius geometry, and restrained hover motion. The dark theme is a derived
-inverse rather than a source-observed mode.
+The source supplies exposed grid rules, oversized Bricolage Grotesque display
+type, compact Inter metadata, zero-radius geometry, and restrained motion. The
+uploaded MATIÈRE redesign brief expands that foundation into warm gallery
+surfaces, sparse acid-citron focus, tactile spatial interaction, and distinct
+Gallery, Studio, and Laboratory environments.
 
 ### Source-derived composition rules
 
 - Let oversized display typography be the main visual event.
 - Expose the structural grid and align content to measured columns.
-- Keep labels compact, uppercase, and deliberately tracked.
+- Use uppercase, deliberately tracked labels selectively; let creative language
+  breathe naturally.
 - Use hard corners by default; a circle is an explicit functional exception.
-- Prefer rules, scale, and whitespace over decorative color or elevation.
-- Motion is restrained to small scale or color transitions on interaction.
+- Use acid citron for only 3–5% of the interface: active states, selection,
+  connection points, drag targets, current mods, AI markers, and focus.
+- Gallery is atmospheric and image-led; Studio is warm, tactile, and editorial;
+  Laboratory is pale, precise, compact, and highly legible.
+- Prefer spatial composition, imagery, rules, scale, and whitespace over
+  repeated cards, gradients, glass effects, and ornamental elevation.
+- Motion is controlled, quiet, fluid, and physical: 120–180ms for direct
+  feedback, 220–320ms for context transitions, and 450–700ms only for rare
+  immersive changes.
+- Preserve visible focus, keyboard navigation, reduced motion, clear selection,
+  sufficient targets, and non-hover access to essential actions.
 
 - `tokens.json` — the single source of truth (DTCG format): colors (full light
   and dark sets), typography, spacing, and radius.
@@ -57,6 +68,8 @@ inverse rather than a source-observed mode.
   `docs/consuming-slides.md` — platform-specific usage.
 - `docs/migrating-web.md` and `docs/migrating-expo.md` — replacing scaffolded or
   existing local design-system implementations.
+- `docs/references/README.md` — retained provenance and extracted visual signals
+  from the selected mockup and uploaded MATIÈRE redesign brief.
 
 Every source file in this package is a `.tsx` file, including token, utility,
 and hook modules with no JSX, so every export below is a single `*.tsx` glob. Do

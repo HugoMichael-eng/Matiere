@@ -1,0 +1,1383 @@
+We are making a major experiential redesign of MATIÈRE.
+
+Do NOT rebuild the product architecture from scratch.
+
+Preserve the underlying product logic, data, projects, materials, formulas and workflow.
+
+However, visually and interactively, I want MATIÈRE to move significantly forward.
+
+The current product is too dark, too static, too box-based and too conventional.
+
+I want the redesign to create an immediate:
+
+# “WHAT IS THIS? THIS IS BEAUTIFUL.”
+
+reaction.
+
+MATIÈRE should feel:
+
+STUNNING  
+CONTEMPORARY  
+ARTISTIC  
+EXPERIMENTAL  
+INTELLIGENT  
+TACTILE  
+IMMERSIVE  
+PRECISE  
+CULTURAL  
+FORWARD-LOOKING
+
+It should not resemble generic SaaS.
+
+It should not resemble traditional chemistry software.
+
+It should not resemble a conventional fragrance database.
+
+MATIÈRE should feel like a combination of:
+
+a contemporary art gallery  
+an architecture studio  
+a fashion art-direction workspace  
+a perfumer’s laboratory  
+a visual research environment  
+and an intelligent creative tool
+
+The core concept is:
+
+# FROM WORLD → TO SCENT
+
+The user first builds a world.
+
+MATIÈRE then helps translate that world into:
+
+ATMOSPHERE  
+OLFACTIVE LANGUAGE  
+MATERIALS  
+ACCORDS  
+FORMULA  
+MODS  
+EVALUATION
+
+This connection between visual culture and fragrance creation should become the defining identity of the product.
+
+---
+
+# 1. MAJOR COLOR DIRECTION CHANGE
+
+Move away from the current near-total black interface.
+
+MATIÈRE should become significantly brighter.
+
+Use a contemporary gallery / studio palette.
+
+Primary surfaces:
+
+WARM GALLERY WHITE  
+BONE  
+CHALK  
+SOFT PLASTER  
+PALE MINERAL GREY
+
+Primary typography:
+
+CHARCOAL  
+NEAR BLACK
+
+Use TRUE BLACK selectively for:
+
+focus states  
+cinematic image moments  
+deep overlays  
+special atmospheric transitions
+
+Do not use black as the default page background.
+
+---
+
+# 2. INTRODUCE ONE SIGNATURE ACCENT COLOR
+
+Introduce one highly distinctive contemporary accent.
+
+Preferred direction:
+
+ACID CITRON  
+ELECTRIC CHARTREUSE  
+or similarly sharp yellow-green
+
+Use it very sparingly.
+
+Approximately 3–5% of the interface.
+
+Use it for:
+
+active state  
+selection  
+connection points  
+drag targets  
+current mod  
+AI interpretation markers  
+focus indicators  
+important microinteractions
+
+Do NOT turn the site green.
+
+The accent should feel surprising and deliberate.
+
+The rest of the interface stays restrained.
+
+Photography and user content provide most of the color.
+
+---
+
+# 3. CORE VISUAL PHILOSOPHY
+
+MATIÈRE should move through three environments:
+
+# GALLERY
+
+For:
+
+Moodboards  
+Visual research  
+Project introductions  
+Focus viewing  
+Presentation
+
+Emotional qualities:
+
+visual  
+spatial  
+atmospheric  
+expressive  
+minimal UI
+
+---
+
+# STUDIO
+
+For:
+
+Project development  
+Notes  
+Creative direction  
+Materials exploration  
+Evaluation
+
+Emotional qualities:
+
+warm  
+editorial  
+tactile  
+open  
+thoughtful
+
+---
+
+# LAB
+
+For:
+
+Formula  
+Formula comparison  
+IFRA  
+Technical analysis  
+Batch calculations
+
+Emotional qualities:
+
+precise  
+calm  
+highly legible  
+information-rich  
+focused
+
+The interface should clearly change character as the user moves between:
+
+GALLERY → STUDIO → LAB
+
+without ever feeling like three unrelated applications.
+
+---
+
+# 4. THE MOODBOARD / CANVAS IS NOW THE HEART OF MATIÈRE
+
+This is the most important product change.
+
+Do not treat Inspiration as a gallery of uploaded images.
+
+Transform it into a true:
+
+# CREATIVE CANVAS
+
+The Canvas should become the most visually ambitious and memorable part of MATIÈRE.
+
+Think less:
+
+Pinterest board
+
+and more:
+
+art director’s wall  
+gallery installation  
+creative research table  
+spatial collage  
+visual thinking environment
+
+The user should be able to create compositions rather than simply save images.
+
+---
+
+# 5. INFINITE / EXPANSIVE CANVAS FEEL
+
+The Canvas should feel expansive.
+
+Use a large warm-white working surface.
+
+Allow the user to:
+
+drag objects anywhere  
+resize objects  
+overlap objects  
+group objects  
+stack objects  
+connect objects  
+move clusters  
+create negative space  
+change visual hierarchy
+
+Do not force everything into a grid.
+
+Objects can intentionally break alignment.
+
+The board should feel authored by the user.
+
+---
+
+# 6. OBJECT TYPES
+
+Canvas objects should include:
+
+IMAGE  
+VIDEO  
+TEXT  
+QUOTE  
+NOTE  
+MATERIAL  
+OLFACTIVE DIRECTION  
+COLOR / TEXTURE  
+FORMULA REFERENCE  
+EVALUATION FRAGMENT
+
+All objects should share a consistent interaction system but look appropriate to their content.
+
+---
+
+# 7. IMAGES SHOULD FEEL PHYSICAL
+
+Images are not thumbnails.
+
+They are visual objects.
+
+Allow:
+
+very large images  
+tiny references  
+portrait crops  
+wide landscape imagery  
+full-bleed pieces  
+overlap  
+rotation only if extremely restrained  
+free scaling
+
+Images should sometimes occupy a large portion of the viewport.
+
+Do not surround them with heavy cards.
+
+---
+
+# 8. IMAGE INTERACTIONS
+
+When hovering an image:
+
+- image slightly lifts
+- subtle 1–2% scale
+- very soft shadow / depth
+- cursor indicates direct manipulation
+- contextual actions quietly appear
+
+Possible actions:
+
+INTERPRET  
+CONNECT  
+NOTE  
+STACK  
+FOCUS  
+•••
+
+Controls should disappear when not needed.
+
+Do not permanently place toolbars around every image.
+
+---
+
+# 9. DRAGGING SHOULD FEEL PHYSICAL
+
+Dragging an object should feel tactile.
+
+On pick-up:
+
+object lifts slightly  
+shadow increases  
+background relationships become quieter
+
+On drop:
+
+object softly settles into place
+
+If dragged onto another image:
+
+show a subtle:
+
+STACK →
+
+or:
+
+CONNECT →
+
+drop target.
+
+No playful bouncing.
+
+No cartoon physics.
+
+Motion should feel refined and architectural.
+
+---
+
+# 10. STACKING — SIGNATURE INTERACTION
+
+Create a beautiful stacking interaction.
+
+If the user overlaps multiple references, offer:
+
+CREATE STACK
+
+A stack may contain:
+
+images  
+text  
+materials  
+notes
+
+When collapsed:
+
+references overlap slightly like physical prints.
+
+When selected:
+
+the stack can subtly fan open.
+
+Allow:
+
+EXPAND STACK  
+INTERPRET STACK  
+UNSTACK
+
+This should become one of MATIÈRE’s signature interactions.
+
+---
+
+# 11. INTERPRET STACK
+
+If a user selects three references such as:
+
+wet violet leaf  
+translucent glass  
+skin in cool daylight
+
+and chooses:
+
+INTERPRET STACK
+
+MATIÈRE should analyze their relationship.
+
+Show the interpretation directly on the canvas.
+
+Example:
+
+SHARED CHARACTER
+
+COLD  
+WET  
+TRANSPARENT  
+INTIMATE
+
+TENSIONS
+
+ORGANIC ↔ SYNTHETIC
+
+SOFT ↔ METALLIC
+
+SKIN ↔ GLASS
+
+OLFACTIVE TERRITORY
+
+GREEN VEGETAL  
+TRANSPARENT FLORAL  
+MINERAL MUSK
+
+MATERIAL TERRITORY
+
+VIOLET LEAF ABSOLUTE  
+STEMONE  
+HEDIONE  
+HABANOLIDE
+
+Do not open a generic AI chatbot.
+
+The interpretation should feel spatial and designed.
+
+---
+
+# 12. CONNECT OBJECTS
+
+Allow objects to be connected visually.
+
+Example:
+
+[wet leaf photograph]
+
+↓
+
+[VIOLET LEAF ABSOLUTE]
+
+↓
+
+[MOD 03]
+
+Connections can be represented by very thin lines.
+
+Connection lines should feel elegant and minimal.
+
+Use the signature accent color selectively.
+
+This creates a visual history of:
+
+WHY a material entered the fragrance.
+
+The Canvas becomes a record of creative reasoning.
+
+---
+
+# 13. TEXT AS A VISUAL OBJECT
+
+Text should not only exist inside notes.
+
+Allow the user to create beautiful typography directly on the canvas.
+
+Example:
+
+NOT BOTANICAL.  
+ARCHITECTURAL GREEN.
+
+This can become huge.
+
+Another phrase:
+
+“The greenhouse after everyone has left.”
+
+may appear very small beside an image.
+
+Allow:
+
+scale  
+alignment  
+width  
+hierarchy
+
+Do not make these resemble sticky notes.
+
+Think editorial art direction.
+
+---
+
+# 14. MATERIALS AS CANVAS OBJECTS
+
+Materials can be pulled directly from the Material Library into the Canvas.
+
+Example:
+
+VIOLET LEAF ABSOLUTE
+
+wet foliage  
+metallic  
+crushed stem
+
+Make these objects visually restrained.
+
+When placed beside or over an image, MATIÈRE should understand that relationship.
+
+Allow:
+
+CONNECT TO REFERENCE  
+OPEN MATERIAL  
+ADD TO FORMULA
+
+This connects visual inspiration directly with formulation.
+
+---
+
+# 15. MULTI-SELECTION
+
+Allow multiple objects to be selected.
+
+When selected, show one compact floating contextual toolbar:
+
+GROUP  
+STACK  
+INTERPRET  
+CONNECT  
+MOVE TO PROJECT
+
+Do not show a large inspector panel unless requested.
+
+---
+
+# 16. AI SHOULD APPEAR INSIDE THE CANVAS
+
+This is extremely important.
+
+Do not use a persistent AI chatbot.
+
+When the user chooses:
+
+INTERPRET
+
+allow AI output to become part of the composition.
+
+Example:
+
+a small cluster of words emerges nearby:
+
+WET  
+MINERAL  
+SKIN  
+TRANSLUCENT  
+COLD
+
+Then:
+
+OLFACTIVE TERRITORIES
+
+VEGETAL  
+MUSK  
+PALE WOODS
+
+MATIÈRE intelligence should feel embedded into the creative environment.
+
+---
+
+# 17. FOCUS MODE
+
+Double-click / open an image into an immersive focus experience.
+
+The UI recedes.
+
+The image becomes very large.
+
+Use an almost gallery-like viewing experience.
+
+A minimal side region can show:
+
+VISUAL READING
+
+OLFACTIVE READING
+
+MATERIAL TERRITORY
+
+Example:
+
+WET VIOLET LEAF
+
+VISUAL
+
+saturated  
+veined  
+reflective  
+organic
+
+OLFACTIVE
+
+crushed leaf  
+aqueous green  
+metallic  
+earth moisture
+
+MATERIAL TERRITORY
+
+Violet Leaf Absolute  
+Stemone  
+Galbanum  
+Undecavertol
+
+Actions:
+
+CONNECT MATERIAL  
+SAVE DIRECTION  
+RETURN TO CANVAS
+
+When closing Focus Mode, the image should smoothly return to its exact canvas position.
+
+---
+
+# 18. EDIT MODE / VIEW MODE
+
+Create two Canvas modes.
+
+## EDIT
+
+User can:
+
+drag  
+resize  
+stack  
+connect  
+write  
+add  
+rearrange
+
+## VIEW
+
+Most UI disappears.
+
+The board becomes a clean visual composition.
+
+This should feel almost like viewing an exhibition.
+
+View Mode could eventually be used for:
+
+client presentations  
+creative pitches  
+B2B fragrance concept presentations
+
+---
+
+# 19. HOME PAGE SHOULD SHOW THE CANVAS
+
+The Home page should immediately communicate that visual creation is central to MATIÈRE.
+
+After the main current-project hero, introduce:
+
+CURRENT WORLD
+
+Show a live cropped preview of the active project Canvas.
+
+The preview should contain:
+
+overlapping images  
+one material object  
+one text statement  
+one olfactive interpretation
+
+CTA:
+
+ENTER CANVAS →
+
+This should be one of the strongest visual moments on the homepage.
+
+---
+
+# 20. HOME HERO
+
+Make the Home hero brighter and more visually sophisticated.
+
+Do not default to a giant black rectangle.
+
+Possible composition:
+
+warm gallery-white page
+
+large image taking 50–65% of the hero
+
+project content layered beside it
+
+CURRENT PROJECT
+
+LAIT VERT
+
+Green · violet leaf · milky skin · transparent
+
+MOD 02
+
+CONTINUE →
+
+The image should feel like editorial photography, not a banner background.
+
+Use project imagery at full visual strength.
+
+Do not wash it out.
+
+---
+
+# 21. PAGE TRANSITIONS
+
+Introduce meaningful page transitions.
+
+When entering a project:
+
+project image can expand subtly into the new project header.
+
+When entering Canvas:
+
+workspace chrome recedes and visual content becomes dominant.
+
+When going from Canvas → Materials:
+
+keep the selected inspiration / interpretation visible temporarily.
+
+When going from Materials → Formula:
+
+carry the selected materials into the formulation context.
+
+The user should feel continuity.
+
+Not:
+
+click  
+new screen  
+click  
+new screen
+
+but:
+
+one creative process unfolding.
+
+---
+
+# 22. SCROLL INTERACTIONS
+
+Use restrained scroll choreography.
+
+Examples:
+
+project title temporarily pins
+
+imagery reveals as content scrolls
+
+large quote stays momentarily while references pass
+
+sections overlap subtly
+
+creative direction transitions into materials
+
+Do NOT create heavy parallax.
+
+Do NOT make scrolling difficult.
+
+The experience should feel editorial, not gimmicky.
+
+---
+
+# 23. MICROINTERACTIONS
+
+Create a sophisticated microinteraction system.
+
+Use:
+
+hover reveal  
+soft scale  
+selection outline  
+animated underline  
+smooth value transition  
+contextual toolbar reveal  
+connection line drawing  
+stack settle  
+image expansion  
+subtle cursor changes
+
+Every interaction should have purpose.
+
+---
+
+# 24. MOTION CHARACTER
+
+Motion should feel:
+
+controlled  
+quiet  
+fluid  
+physical  
+expensive  
+confident
+
+Avoid:
+
+bounce  
+elastic effects  
+cartoon physics  
+excessive spring motion  
+flashy transitions  
+constant animation
+
+Use movement to reinforce spatial relationships.
+
+---
+
+# 25. MOTION TIMING
+
+FAST
+
+120–180ms
+
+For:
+
+hover  
+tap  
+selection
+
+STANDARD
+
+220–320ms
+
+For:
+
+panels  
+stacking  
+navigation  
+context transitions
+
+IMMERSIVE
+
+450–700ms
+
+Use very sparingly for:
+
+Focus Mode  
+large visual transition  
+Canvas entry  
+gallery image expansion
+
+Never make frequent workflows wait for animation.
+
+---
+
+# 26. MODERN POINTER / CURSOR BEHAVIOR
+
+On desktop, introduce contextual cursor behavior where useful.
+
+Examples:
+
+drag cursor when moving canvas objects
+
+plus indicator when connecting
+
+subtle label such as:
+
+DRAG  
+OPEN  
+CONNECT
+
+only when appropriate.
+
+Keep this extremely restrained.
+
+---
+
+# 27. PROJECT PAGE
+
+A Project should now feel like an entry into a creative universe.
+
+Use:
+
+PROJECT HERO
+
+CURRENT DIRECTION
+
+CANVAS PREVIEW
+
+CURRENT MOD
+
+MATERIALS IN PLAY
+
+LATEST EVALUATION
+
+RECENT NOTES
+
+Do not use dashboard statistics.
+
+Do not create identical cards.
+
+Compose the page editorially.
+
+Use different scales and content densities.
+
+---
+
+# 28. MATERIALS EXPERIENCE
+
+Materials Library should be bright and editorial.
+
+Warm white / pale grey.
+
+Think:
+
+material archive  
+specimen index  
+creative reference library
+
+Avoid large dark cards.
+
+Each material should show:
+
+NAME
+
+TYPE
+
+OLFACTIVE PROFILE
+
+STRENGTH
+
+CURRENT PROJECTS
+
+A material detail page can become more immersive.
+
+Example:
+
+VIOLET LEAF ABSOLUTE
+
+very large title
+
+“Wet foliage. Crushed stems. Metallic green.”
+
+Then:
+
+sensory profile  
+visual references  
+related materials  
+formulas  
+technical data
+
+The first impression should be sensory.
+
+Technical information comes second.
+
+---
+
+# 29. FORMULA LAB
+
+Formula Lab should deliberately contrast with Canvas.
+
+It should be:
+
+light  
+precise  
+compact  
+structured  
+highly legible
+
+Use LAB mode.
+
+The formula becomes the hero.
+
+Minimal imagery.
+
+Strong table structure.
+
+Editable values.
+
+Beautiful data hierarchy.
+
+This contrast is important.
+
+The user should feel:
+
+CANVAS
+
+I AM IMAGINING.
+
+FORMULA
+
+I AM BUILDING.
+
+---
+
+# 30. FORMULA VISUALIZATION
+
+Analyze should become more visually compelling.
+
+Do not use generic pie charts.
+
+Explore:
+
+olfactive terrain maps  
+layered structural bands  
+material-family fields  
+top / heart / base landscapes  
+density maps
+
+The visualization should feel like an editorial data object.
+
+Interaction:
+
+hover family → related materials highlight
+
+select material → location within structure reveals
+
+compare MOD → changes animate
+
+---
+
+# 31. EVALUATION
+
+Evaluation should feel like a sensory notebook.
+
+Use:
+
+OPENING  
+15 MIN  
+1 HR  
+4 HR  
+DRYDOWN
+
+Allow:
+
+text  
+voice later  
+images  
+blotter photo  
+quick descriptors
+
+Use large writing space.
+
+Less form-like.
+
+More reflective.
+
+---
+
+# 32. SITE-WIDE INTERACTIVITY
+
+The entire product should reward exploration.
+
+Hover a project → image shifts subtly.
+
+Hover a material → sensory words appear.
+
+Hover a formula → dominant materials reveal.
+
+Hover a Canvas stack → layers fan slightly.
+
+Drag a material into Canvas → connection suggested.
+
+Drag Canvas material into Formula → offer:
+
+ADD TO MOD →
+
+The product should feel interconnected.
+
+---
+
+# 33. DO NOT FOLLOW GENERIC UI TRENDS
+
+Do not add trends simply because they are fashionable.
+
+Avoid:
+
+glassmorphism everywhere  
+giant pill buttons everywhere  
+gratuitous gradients  
+3D blobs  
+generic Bento grids  
+animated gradient backgrounds  
+AI sparkle icon overload  
+fake futuristic holograms  
+neon cyberpunk UI
+
+MATIÈRE should feel culturally ahead because its interaction model is original and coherent.
+
+Not because it copies visual trends.
+
+---
+
+# 34. DESIGN INFLUENCE
+
+Aim for a visual sensibility closer to:
+
+contemporary gallery identity systems  
+fashion editorial platforms  
+architecture portfolios  
+experimental cultural websites  
+museum digital experiences  
+high-end creative software
+
+rather than:
+
+enterprise SaaS  
+traditional fragrance website  
+e-commerce  
+CRM  
+chemistry software
+
+Do not copy any specific brand.
+
+Use these only as conceptual references.
+
+---
+
+# 35. TYPOGRAPHY
+
+Typography should feel intentional and expressive.
+
+Use the current strong sans-serif direction for major interface and editorial moments.
+
+Use monospaced type selectively for:
+
+technical metadata  
+formula values  
+material data  
+versions  
+dates
+
+Avoid making every label:
+
+UPPERCASE + HUGE LETTER SPACING.
+
+Use that treatment selectively.
+
+Creative language should breathe naturally.
+
+---
+
+# 36. IMAGERY
+
+Imagery must be excellent.
+
+Do not use obvious generic stock photography.
+
+Use references that feel:
+
+art-directed  
+textural  
+abstract  
+fashion-adjacent  
+architectural  
+material-driven  
+cinematic  
+photographic
+
+For LAIT VERT:
+
+wet surfaces  
+green translucent material  
+violet leaf  
+glass  
+skin  
+fogged light  
+soft textile  
+brutalist structure
+
+For SEL GRIS:
+
+salt  
+stone  
+grey water  
+skin  
+mineral texture  
+driftwood  
+mist  
+horizon
+
+For ANIMAL IN THE MIRROR:
+
+mirror  
+skin  
+powder  
+dark fur texture  
+polished wood  
+white flower macro  
+fabric  
+shadow
+
+Each fragrance should have its own visual world.
+
+---
+
+# 37. RESPONSIVE DESIGN
+
+Desktop should feel expansive and spatial.
+
+Use large compositions.
+
+Allow Canvas to occupy most of the screen.
+
+Mobile should still feel immersive.
+
+On mobile:
+
+canvas becomes pan / zoom friendly
+
+objects remain manipulable
+
+Focus Mode becomes full-screen
+
+context controls become bottom sheets
+
+large imagery remains large
+
+do not reduce the experience into tiny cards
+
+The mobile experience should feel intentional, not like compressed desktop UI.
+
+---
+
+# 38. PERFORMANCE
+
+Do not sacrifice performance for visual effects.
+
+Animations must remain smooth.
+
+Lazy-load large images.
+
+Use efficient transforms for movement.
+
+Do not animate layout properties unnecessarily.
+
+Canvas manipulation should feel immediate.
+
+Target fluid 60fps interactions where possible.
+
+---
+
+# 39. ACCESSIBILITY
+
+Immersion must not destroy usability.
+
+Maintain:
+
+strong text contrast
+
+visible keyboard focus
+
+keyboard navigation for essential controls
+
+reduced motion mode
+
+clear selection states
+
+sufficient tap targets
+
+Do not make essential functionality hover-only.
+
+---
+
+# 40. THE MATIÈRE LOOP
+
+The entire experience should reinforce this loop:
+
+# SEE
+
+visual world
+
+↓
+
+# FEEL
+
+atmosphere / emotion
+
+↓
+
+# INTERPRET
+
+olfactive direction
+
+↓
+
+# MATERIALIZE
+
+materials
+
+↓
+
+# FORMULATE
+
+composition
+
+↓
+
+# SMELL
+
+evaluation
+
+↓
+
+# REFINE
+
+new mod
+
+↓
+
+# RETURN TO THE WORLD
+
+The Canvas should remain connected to the fragrance throughout this entire process.
+
+---
+
+# 41. MOST IMPORTANT PRODUCT IDEA
+
+The moodboard / Canvas is no longer a secondary feature.
+
+It is the HEART of MATIÈRE.
+
+The Formula Engine is the technical machinery underneath it.
+
+The Canvas is where:
+
+creative direction  
+visual culture  
+material research  
+AI interpretation  
+olfactive thinking
+
+meet.
+
+Build the product so that this is obvious within the first 10 seconds of using MATIÈRE.
+
+---
+
+# 42. FINAL EXPERIENCE GOAL
+
+I want MATIÈRE to create a genuine sense of discovery.
+
+When someone first uses it, I want them to think:
+
+“I have never seen fragrance software work like this.”
+
+The impact should not come from unnecessary visual spectacle.
+
+It should come from:
+
+beautiful composition  
+exceptional imagery  
+spatial interaction  
+tactile movement  
+intelligent AI integration  
+creative freedom  
+technical precision
+
+MATIÈRE should feel like software designed for the next generation of fragrance creation.
+
+Brighten the entire product.
+
+Make Canvas the visual and conceptual heart.
+
+Make imagery interactive.
+
+Make objects feel physical.
+
+Make the creative journey continuous.
+
+Make every transition between inspiration and formulation feel intentional.
+
+Do not simply make the current interface prettier.
+
+Transform the EXPERIENCE.
