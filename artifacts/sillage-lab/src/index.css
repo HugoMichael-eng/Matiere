@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Jost:wght@700;800;900&display=swap");
+
 /* MATIÈRE — warm gallery-white theme */
 @import "@workspace/verve-design-system/styles.css";
 
@@ -49,6 +51,7 @@
 /* ─── App-specific utilities ─────────────────────────────────────────────────── */
 @layer utilities {
   .font-display  { font-family: var(--app-font-serif);  }   /* Bricolage Grotesque */
+  .font-title    { font-family: "Jost", var(--app-font-sans); }
   .font-mono-ui  { font-family: var(--app-font-mono);   }   /* IBM Plex Mono */
 
   input[type='search']::-webkit-search-cancel-button {

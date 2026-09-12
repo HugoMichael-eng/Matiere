@@ -32,11 +32,11 @@ const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 
 function Logo({ _light = false }: { _light?: boolean }) {
-  const { isSignedIn } = useAuth();
-  const dest = isSignedIn ? "/studio" : "/";
+  // Always links back to landing — workspace entry is intentional via a labeled action
+  void _light;
   return (
-    <Link href={dest} data-testid="link-brand" className="group">
-      <span className="font-mono-ui tracking-[.32em] uppercase text-foreground/85 transition-opacity group-hover:opacity-60 text-[127px] font-bold">
+    <Link href="/" data-testid="link-brand" className="group">
+      <span className="font-mono-ui text-[10px] font-medium tracking-[.32em] uppercase text-foreground/85 transition-opacity group-hover:opacity-60">
         MATIÈRE
       </span>
     </Link>
@@ -165,7 +165,7 @@ function Sidebar() {
             {user?.firstName ?? "Studio"}
           </p>
           <button
-            onClick={() => signOut({ redirectUrl: basePath || "/" })}
+            onClick={() => signOut({ redirectUrl: (basePath || "") + "/" })}
             data-testid="button-sign-out"
             className="mt-3 font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-2"
             aria-label="Sign out"
@@ -4679,12 +4679,505 @@ function FieldNoteCard() {
   );
 }
 
+// ─── MoodboardDemo data ───────────────────────────────────────────────────────
+
+interface ScentDir {
+  id: string;
+  label: string;
+  tagline: string;
+  keywords: string[];
+  rationale: string;
+  materials: { name: string; reason: string }[];
+}
+
+const SCENT_DIRECTIONS: ScentDir[] = [
+  {
+    id: "soft-focus",
+    label: "Soft focus",
+    tagline: "Airy woods, gentle warmth, a close-to-skin feeling.",
+    keywords: ["Transparent", "Skin-close", "Airy", "Soft woods"],
+    rationale: "The fogged glass and warm skin in your moodboard suggest something close but blurred — familiar without being literal. This direction keeps warmth intimate and avoids anything sweet or heavy.",
+    materials: [
+      { name: "Ambroxan", reason: "Warm, mineral, and skin-like. Creates that close-to-skin transparency without sweetness." },
+      { name: "Cashmeran", reason: "Soft woody warmth. Adds the fuzzy, enveloping quality that makes this direction intimate rather than distant." },
+      { name: "Iso E Super", reason: "Transparent woody diffusion. Blurs the edges so the composition reads as presence, not perfume." },
+    ],
+  },
+  {
+    id: "after-dark",
+    label: "After dark",
+    tagline: "A floral direction with shadow, depth, and contrast.",
+    keywords: ["Dark floral", "Contrast", "Shadow", "Depth"],
+    rationale: "The dark lacquer in your moodboard pulls toward something with presence and contrast — a floral that is not cheerful, with shadow at its base. Warmth and strangeness in equal measure.",
+    materials: [
+      { name: "Rose Absolute", reason: "Not a fresh rose — this is honeyed and slightly animalic. The depth comes from its damascenone edge." },
+      { name: "Labdanum Absolute", reason: "Warm, resinous, slightly leathery. The shadow underneath the floral." },
+      { name: "Hedione", reason: "Diffusive and transparent. Lifts the darker elements so the composition breathes." },
+    ],
+  },
+  {
+    id: "warm-surface",
+    label: "Warm surface",
+    tagline: "Resinous warmth balanced with dry, textured elements.",
+    keywords: ["Resinous", "Dry", "Textured", "Mineral"],
+    rationale: "The warm skin and textured surfaces in your moodboard point toward something with physical presence — resinous but not sweet, warm but with a dry mineral edge that keeps it from becoming heavy.",
+    materials: [
+      { name: "Benzoin Resinoid", reason: "Warm, slightly vanilla-edged resin. Grounds the direction in something rich and textured." },
+      { name: "Vetiver", reason: "Dry, earthy, slightly smoky. Counterbalances the resin and adds the textured quality your references suggest." },
+      { name: "Cedarwood Atlas", reason: "Dry woody structure. Keeps the warmth from turning heavy or sweet." },
+    ],
+  },
+];
+
+interface Refinement {
+  id: string;
+  label: string;
+  directionId: string;
+  rationale: string;
+  keywords: string[];
+  materials: { name: string; reason: string }[];
+}
+
+const REFINEMENTS: Refinement[] = [
+  // Soft focus refinements
+  {
+    id: "sf-less-floral",
+    label: "Less floral",
+    directionId: "soft-focus",
+    keywords: ["Transparent", "Mineral", "Airy", "Clean skin"],
+    rationale: "Pulled back from any floral suggestion — now purely skin and mineral. The warmth stays but becomes more abstract, closer to the smell of clean skin in cool air.",
+    materials: [
+      { name: "Ambroxan", reason: "Now at the centre, undiluted by floral support. Mineral and skin-close." },
+      { name: "Iso E Super", reason: "The only woody element — transparent and spacious." },
+      { name: "Habanolide", reason: "A clean, skin-close musk that replaces any softness from the original Cashmeran." },
+    ],
+  },
+  {
+    id: "sf-more-mineral",
+    label: "More mineral",
+    directionId: "soft-focus",
+    keywords: ["Cold mineral", "Transparent", "Skin", "Geological"],
+    rationale: "A cooler, more structural version — the warmth recedes and a cold mineral character comes forward. Think the smell of stone in morning air.",
+    materials: [
+      { name: "Ambroxan", reason: "Still the skin-anchor, but now surrounded by cooler elements." },
+      { name: "Calone 1951", reason: "Used at sub-trace — not marine, but cold and open. The mineral quality without the aquatic." },
+      { name: "Stemone", reason: "Structural green-mineral. Adds precision and coldness." },
+    ],
+  },
+  {
+    id: "sf-explore",
+    label: "Explore another direction",
+    directionId: "soft-focus",
+    keywords: ["Powder", "Iris", "Intimate", "Quiet floral"],
+    rationale: "A different reading of the same moodboard — quieter, more powdery. The iris direction reads the warm skin as something more human and personal.",
+    materials: [
+      { name: "Orris Concrete", reason: "Earthy, powdery iris. Reads as skin memory rather than flower." },
+      { name: "Ethylene Brassylate", reason: "A large-ring musk with a clean, close-to-skin quality." },
+      { name: "Irone Alpha", reason: "Cold, slightly woody iris facet at low dose. Intimate rather than floral." },
+    ],
+  },
+  // After dark refinements
+  {
+    id: "ad-less-floral",
+    label: "Less floral",
+    directionId: "after-dark",
+    keywords: ["Shadow", "Resinous", "Depth", "Animalic"],
+    rationale: "The floral element recedes to a trace. The shadow and depth remain — now more resinous and animalic, the floral becomes a memory rather than a presence.",
+    materials: [
+      { name: "Labdanum Absolute", reason: "Moves to the foreground. Warm, leathery, complex." },
+      { name: "Civet Synthetic", reason: "At trace level, adds the animalic quality without the flower." },
+      { name: "Benzoin Resinoid", reason: "Sweetens the resinous base so it does not become austere." },
+    ],
+  },
+  {
+    id: "ad-more-mineral",
+    label: "More mineral",
+    directionId: "after-dark",
+    keywords: ["Dark floral", "Mineral", "Cold contrast", "Structural"],
+    rationale: "Introduces a cold mineral vein into the dark floral — like the smell of a stone floor in a room full of flowers. The contrast becomes architectural.",
+    materials: [
+      { name: "Rose Absolute", reason: "Still present but now set against colder elements." },
+      { name: "Labdanum Absolute", reason: "The shadow anchor." },
+      { name: "Ambroxan", reason: "Adds cold, mineral skin quality to offset the warmth of the floral-resin accord." },
+    ],
+  },
+  {
+    id: "ad-explore",
+    label: "Explore another direction",
+    directionId: "after-dark",
+    keywords: ["Incense", "Woody depth", "Smoky", "Atmospheric"],
+    rationale: "A further reading of the darkness in your references — less floral, more atmospheric. Incense and dry wood, something ceremonial.",
+    materials: [
+      { name: "Frankincense EO", reason: "Incense quality without becoming heavy. The smoke is clean." },
+      { name: "Cedarwood Atlas", reason: "Dry woody structure — the bones of the accord." },
+      { name: "Labdanum Absolute", reason: "Warm base that connects incense to skin." },
+    ],
+  },
+  // Warm surface refinements
+  {
+    id: "ws-less-floral",
+    label: "Less floral",
+    directionId: "warm-surface",
+    keywords: ["Resinous", "Dry wood", "Amber", "Warm mineral"],
+    rationale: "Removes any softness that could read floral. Now purely resinous and woody — amber-adjacent without the sweetness.",
+    materials: [
+      { name: "Benzoin Resinoid", reason: "Still the warm heart, but now untempered." },
+      { name: "Cedarwood Atlas", reason: "Dry and structural — counterbalances the resin." },
+      { name: "Labdanum Absolute", reason: "Adds an animalic warmth that prevents the accord from going sweet." },
+    ],
+  },
+  {
+    id: "ws-more-mineral",
+    label: "More mineral",
+    directionId: "warm-surface",
+    keywords: ["Warm mineral", "Dry", "Stone", "Textured amber"],
+    rationale: "Introduces a cold mineral quality to the warm resinous direction. The warmth is still present but now sits beneath a cooler, more structural surface.",
+    materials: [
+      { name: "Vetiver", reason: "Dry and earthy — the mineral is expressed through its smoky, geological quality." },
+      { name: "Ambroxan", reason: "Mineral skin-warmth that bridges the resinous and mineral territories." },
+      { name: "Benzoin Resinoid", reason: "Remains as the warm base but is now secondary to the mineral character." },
+    ],
+  },
+  {
+    id: "ws-explore",
+    label: "Explore another direction",
+    directionId: "warm-surface",
+    keywords: ["Warm spice", "Resinous", "Oud", "Deep texture"],
+    rationale: "A richer reading of warmth — spice added to the resinous base. Darker and more complex, with an oud facet that reads as furniture rather than perfume.",
+    materials: [
+      { name: "Oud CO₂", reason: "The direction-defining material — woody, animalic, complex." },
+      { name: "Benzoin Resinoid", reason: "The sweet resinous base that softens the oud." },
+      { name: "Cardamom EO", reason: "Spice without heat. A fresh, aromatic quality that lifts the accord." },
+    ],
+  },
+];
+
+function MoodboardDemo({ BASE }: { BASE: string }) {
+  const [selectedDir, setSelectedDir] = useState<string>("soft-focus");
+  const [selectedRefinement, setSelectedRefinement] = useState<string | null>(null);
+
+  const direction = SCENT_DIRECTIONS.find(d => d.id === selectedDir) ?? SCENT_DIRECTIONS[0];
+  const activeRefinements = REFINEMENTS.filter(r => r.directionId === selectedDir);
+  const refinement = selectedRefinement ? REFINEMENTS.find(r => r.id === selectedRefinement) : null;
+
+  const displayKeywords = refinement ? refinement.keywords : direction.keywords;
+  const displayRationale = refinement ? refinement.rationale : direction.rationale;
+  const displayMaterials = refinement ? refinement.materials : direction.materials;
+
+  const handleDirSelect = (id: string) => {
+    setSelectedDir(id);
+    setSelectedRefinement(null);
+  };
+
+  const handleRefinement = (id: string) => {
+    setSelectedRefinement(prev => prev === id ? null : id);
+  };
+
+  const handleReset = () => {
+    setSelectedRefinement(null);
+  };
+
+  return (
+    <section
+      id="moodboard-demo"
+      className="border-t border-border"
+      aria-label="One moodboard, three scent directions — interactive example"
+      data-testid="section-moodboard-demo"
+    >
+      {/* ── Section header ── */}
+      <motion.div
+        className="px-8 py-10 sm:px-12 sm:py-12 border-b border-border"
+        initial={{ opacity: 0, y: 8 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-40px" }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+          <p className="font-mono-ui uppercase tracking-[.28em] text-muted-foreground" style={{ fontSize: "12px" }}>
+            One moodboard. Three scent directions.
+          </p>
+          <span className="inline-flex items-center gap-1.5 border border-accent/35 px-2.5 py-1" style={{ fontSize: "11px" }}>
+            <span className="inline-block h-1.5 w-1.5 bg-accent shrink-0" aria-hidden />
+            <span className="font-mono-ui uppercase tracking-[.18em] text-accent-foreground/80">Interactive example — curated responses</span>
+          </span>
+        </div>
+        <h2
+          className="font-display tracking-[-0.03em] leading-[.9] text-foreground"
+          style={{ fontSize: "clamp(1.8rem, 3.8vw, 3.2rem)" }}
+          data-testid="heading-moodboard-demo"
+        >
+          See where your inspiration could lead.
+        </h2>
+        <p className="mt-4 leading-8 text-foreground/65 max-w-2xl" style={{ fontSize: "clamp(1rem, 1.6vw, 1.05rem)" }}>
+          Bring together images, video, and notes. Explore possible scent directions you can question, reshape, and develop.
+        </p>
+      </motion.div>
+
+      {/* ── Two-column body ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 border-b border-border">
+
+        {/* LEFT — Your moodboard */}
+        <motion.div
+          className="border-b border-border lg:border-b-0 lg:border-r lg:border-border"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.55 }}
+        >
+          <div className="px-7 py-5 sm:px-9 border-b border-border">
+            <p className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground" style={{ fontSize: "12px" }}>
+              Your moodboard
+            </p>
+          </div>
+
+          {/* Collage — three images: fogged glass, warm skin, dark lacquer */}
+          <div className="relative" style={{ height: "clamp(220px, 28vw, 360px)" }}>
+            {/* Fogged glass — left 48%, tall */}
+            <div className="absolute top-0 left-0 overflow-hidden" style={{ width: "48%", height: "92%", zIndex: 1 }}>
+              <img
+                src={BASE + "lait-vert-02.jpg"}
+                alt="Fogged glass — example reference"
+                loading="lazy"
+                className="h-full w-full object-cover"
+                onError={e => { (e.currentTarget as HTMLImageElement).src = BASE + "glass-vessel-01.jpg"; }}
+              />
+            </div>
+            {/* Warm skin — right 36%, top offset */}
+            <div className="absolute overflow-hidden" style={{ top: "6%", left: "42%", width: "36%", height: "68%", zIndex: 2 }}>
+              <img
+                src={BASE + "human-skin-01.jpg"}
+                alt="Warm skin — example reference"
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            {/* Dark lacquer — bottom right */}
+            <div className="absolute overflow-hidden" style={{ bottom: 0, right: 0, width: "38%", height: "48%", zIndex: 3 }}>
+              <img
+                src={BASE + "animal-mirror-01.jpg"}
+                alt="Dark lacquer — example reference"
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            {/* Acid citron connection node */}
+            <svg className="pointer-events-none absolute inset-0 h-full w-full" style={{ zIndex: 4 }} aria-hidden>
+              <circle cx="48%" cy="46%" r="3" fill="hsl(var(--accent))" />
+              <circle cx="60%" cy="46%" r="3" fill="hsl(var(--accent))" />
+              <line x1="48%" y1="46%" x2="60%" y2="46%" stroke="hsl(var(--border))" strokeWidth="0.8" strokeDasharray="2 3" />
+            </svg>
+          </div>
+
+          {/* Example note — clearly labeled user input */}
+          <div className="px-7 py-5 sm:px-9 border-t border-border">
+            <div className="flex items-center gap-2.5 mb-3">
+              <span className="font-mono-ui uppercase tracking-[.14em] border border-border text-muted-foreground/70 px-2 py-0.5" style={{ fontSize: "11px" }}>
+                Example note — user input
+              </span>
+            </div>
+            <p
+              className="leading-8 text-foreground/75"
+              style={{ fontSize: "clamp(1rem, 1.6vw, 1.05rem)", fontStyle: "italic" }}
+            >
+              &ldquo;Something intimate, warm, and a little strange. Nothing sugary.&rdquo;
+            </p>
+          </div>
+        </motion.div>
+
+        {/* RIGHT — Suggested directions */}
+        <motion.div
+          className="flex flex-col"
+          initial={{ opacity: 0, x: 8 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.5, delay: 0.08 }}
+        >
+          <div className="px-7 py-5 sm:px-9 border-b border-border">
+            <p className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground mb-1" style={{ fontSize: "12px" }}>
+              Suggested directions
+            </p>
+            <p className="text-muted-foreground/70" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
+              Three possible interpretations of the same moodboard. Choose one to explore.
+            </p>
+          </div>
+
+          {/* Direction cards — three equal, selectable */}
+          <div
+            role="radiogroup"
+            aria-label="Scent directions"
+            className="border-b border-border"
+          >
+            {SCENT_DIRECTIONS.map(dir => {
+              const isActive = selectedDir === dir.id;
+              return (
+                <button
+                  key={dir.id}
+                  role="radio"
+                  aria-checked={isActive}
+                  onClick={() => handleDirSelect(dir.id)}
+                  data-testid={`direction-card-${dir.id}`}
+                  className={[
+                    "w-full text-left px-7 py-5 sm:px-9 border-t border-border first:border-t-0",
+                    "transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
+                    isActive
+                      ? "bg-foreground/4 border-l-2 border-l-accent"
+                      : "hover:bg-secondary/30",
+                  ].join(" ")}
+                  style={{ borderLeft: isActive ? "2px solid hsl(var(--accent))" : undefined }}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`shrink-0 mt-1 h-3.5 w-3.5 border flex items-center justify-center transition-colors ${isActive ? "border-accent bg-accent" : "border-border bg-background"}`}
+                      aria-hidden
+                    >
+                      {isActive && <span className="h-1.5 w-1.5 bg-background block" />}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-mono-ui uppercase tracking-[.16em] text-foreground/85 mb-0.5" style={{ fontSize: "14px" }}>
+                        {dir.label}
+                      </p>
+                      <p className="text-muted-foreground leading-6" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
+                        {dir.tagline}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Selected direction output */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedDir + (selectedRefinement ?? "")}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              className="px-7 py-6 sm:px-9 flex-1"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              {/* Keywords */}
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {displayKeywords.map(kw => (
+                  <span
+                    key={kw}
+                    className="border border-border px-2.5 py-1 font-mono-ui uppercase tracking-[.12em] text-foreground/65"
+                    style={{ fontSize: "12px" }}
+                  >
+                    {kw}
+                  </span>
+                ))}
+              </div>
+
+              {/* Plain-language rationale */}
+              <p className="leading-8 text-foreground/70 mb-5" style={{ fontSize: "clamp(1rem, 1.5vw, 1rem)" }}>
+                {displayRationale}
+              </p>
+
+              {/* Candidate materials */}
+              <div className="space-y-3 mb-6">
+                <p className="font-mono-ui uppercase tracking-[.18em] text-muted-foreground" style={{ fontSize: "11px" }}>
+                  Candidate materials to explore
+                </p>
+                {displayMaterials.map(mat => (
+                  <div key={mat.name} className="flex gap-3">
+                    <span className="inline-block h-[3px] w-[3px] bg-accent shrink-0 mt-2.5" aria-hidden />
+                    <div>
+                      <p className="font-mono-ui uppercase tracking-[.14em] text-foreground/80" style={{ fontSize: "13px" }}>
+                        {mat.name}
+                      </p>
+                      <p className="text-muted-foreground leading-6 mt-0.5" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
+                        {mat.reason}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Refinement controls */}
+              <div className="border-t border-border pt-5">
+                <p className="font-mono-ui uppercase tracking-[.18em] text-muted-foreground mb-3" style={{ fontSize: "12px" }}>
+                  What would you change?
+                </p>
+                <div className="flex flex-wrap gap-2 mb-2" role="group" aria-label="Refinement options">
+                  {activeRefinements.map(ref => (
+                    <button
+                      key={ref.id}
+                      onClick={() => handleRefinement(ref.id)}
+                      aria-pressed={selectedRefinement === ref.id}
+                      data-testid={`refinement-${ref.id}`}
+                      className={[
+                        "px-4 py-2 font-mono-ui uppercase tracking-[.14em] border transition-colors duration-150",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1",
+                        selectedRefinement === ref.id
+                          ? "bg-foreground text-background border-foreground"
+                          : "border-border text-foreground/65 hover:border-foreground/50 hover:text-foreground",
+                      ].join(" ")}
+                      style={{ fontSize: "14px", minHeight: "40px" }}
+                    >
+                      {ref.label}
+                    </button>
+                  ))}
+                  {selectedRefinement && (
+                    <button
+                      onClick={handleReset}
+                      data-testid="refinement-reset"
+                      className="px-4 py-2 font-mono-ui uppercase tracking-[.14em] text-muted-foreground/55 hover:text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
+                      style={{ fontSize: "14px", minHeight: "40px" }}
+                      aria-label="Reset to original direction"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+                <p className="font-mono-ui text-muted-foreground/45" style={{ fontSize: "11px" }}>
+                  Curated responses — not live generation
+                </p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      </div>
+
+      {/* ── CTA ── */}
+      <div className="px-8 py-8 sm:px-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+        <p className="leading-8 text-foreground/65 max-w-md" style={{ fontSize: "clamp(1rem, 1.6vw, 1.05rem)" }}>
+          Your references start the conversation. You decide where it goes.
+        </p>
+        <div className="flex flex-wrap gap-3 shrink-0">
+          <Link
+            href="/sign-up"
+            data-testid="button-demo-create-moodboard"
+            className="inline-flex items-center gap-2.5 bg-foreground text-background px-6 py-3.5 font-mono-ui uppercase tracking-[.18em] hover:opacity-80 transition-opacity"
+            style={{ fontSize: "14px", minHeight: "48px" }}
+          >
+            Create your own moodboard
+            <ArrowRight size={11} strokeWidth={1.5} />
+          </Link>
+          <Link
+            href="/example"
+            data-testid="button-demo-explore-example"
+            className="inline-flex items-center gap-2 border border-foreground/20 px-5 py-3.5 font-mono-ui uppercase tracking-[.18em] text-foreground/55 hover:border-foreground/40 hover:text-foreground transition-colors"
+            style={{ fontSize: "14px", minHeight: "48px" }}
+          >
+            Explore an example
+          </Link>
+        </div>
+      </div>
+      <p className="px-8 pb-5 sm:px-12 font-mono-ui text-muted-foreground/45" style={{ fontSize: "11px" }}>
+        An account is required to create and save your own moodboard. Exploring this example does not require sign-in.
+      </p>
+    </section>
+  );
+}
+
 function Landing() {
   const BASE = import.meta.env.BASE_URL + "images/";
 
   return (
     <div className="min-h-[100dvh] overflow-x-hidden bg-background">
-
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 1 — HERO
           Monumental MATIÈRE masthead (800–900 weight), secondary proposition,
@@ -4779,7 +5272,7 @@ function Landing() {
 
         {/* ── Hero copy ── */}
         <div
-          className="relative z-10 flex flex-col justify-center px-8 sm:px-12"
+          className="relative z-10 flex flex-col justify-center px-8 sm:px-12 font-medium"
           style={{ minHeight: "100dvh" }}
         >
           <motion.div
@@ -4793,8 +5286,7 @@ function Landing() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.12 }}
-              className="font-mono-ui uppercase tracking-[.30em] text-muted-foreground mb-4"
-              style={{ fontSize: "13px" }}
+              className="font-mono-ui uppercase tracking-[.30em] text-muted-foreground mb-4 font-medium text-[19px]"
             >
               Fragrance beyond boundaries
             </motion.p>
@@ -4802,10 +5294,10 @@ function Landing() {
             {/* ── Monumental MATIÈRE masthead ── */}
             <h1
               data-testid="heading-landing"
-              className="font-display leading-[.86] text-foreground"
+              className="font-title leading-[.86] text-foreground"
               style={{
                 fontSize: "clamp(4.5rem, 13vw, 14rem)",
-                fontWeight: 800,
+                fontWeight: 900,
                 letterSpacing: "-0.025em",
               }}
             >
@@ -4833,8 +5325,8 @@ function Landing() {
               <Link
                 href="/sign-up"
                 data-testid="button-landing-create-moodboard"
-                className="inline-flex items-center gap-2.5 bg-foreground text-background px-6 py-3.5 font-mono-ui uppercase tracking-[.20em] hover:opacity-80 transition-opacity"
-                style={{ fontSize: "14px", minHeight: "48px" }}
+                className="inline-flex items-center gap-2.5 bg-foreground text-background px-6 py-3.5 font-mono-ui uppercase tracking-[.20em] hover:opacity-80 transition-opacity text-[20px]"
+                style={{ minHeight: "48px" }}
               >
                 Create a moodboard
                 <ArrowRight size={12} strokeWidth={1.5} />
@@ -4868,14 +5360,12 @@ function Landing() {
           </motion.div>
         </div>
       </section>
-
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 2 — ONE MOODBOARD. THREE SCENT DIRECTIONS.
           Interactive demo: left collage + note, right selectable directions.
           Fully curated — no live AI. Keyboard/touch/reduced-motion accessible.
       ══════════════════════════════════════════════════════════════════════ */}
       <MoodboardDemo BASE={BASE} />
-
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 3 — EDITORIAL FEATURE MODULES
           Four modular panels. Moodboard is primary.
@@ -5090,7 +5580,6 @@ function Landing() {
           </motion.div>
         </div>
       </section>
-
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 4 — PLATFORM FUNCTIONALITY
           Accurate descriptions of what exists. Planned features labeled.
@@ -5185,7 +5674,6 @@ function Landing() {
           ))}
         </div>
       </section>
-
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 5 — FUTURE ECOSYSTEM (compact, clearly labeled)
       ══════════════════════════════════════════════════════════════════════ */}
@@ -5240,7 +5728,6 @@ function Landing() {
           The creative workspace is the primary focus. All ecosystem offerings will be introduced here as they become available.
         </p>
       </section>
-
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 6 — FINAL CTA
           Strong "Create a moodboard" close.
@@ -5306,7 +5793,6 @@ function Landing() {
           </div>
         </motion.div>
       </section>
-
       {/* ── Footer ── */}
       <footer className="border-t border-border px-8 py-6 sm:px-12">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -5327,6 +5813,7 @@ import { Projects } from "./pages/Projects";
 import { ProjectWorkspace } from "./pages/ProjectWorkspace";
 import { Inspiration } from "./pages/Inspiration";
 import { MaterialDetail } from "./pages/MaterialDetail";
+import { PublicExample } from "./pages/PublicExample";
 
 // Thin shell wrappers (keep Shell in sillage.tsx for Sidebar/MobileNav access)
 function StudioPage() { return <Studio />; }
@@ -5334,6 +5821,7 @@ function ProjectsPage() { return <Projects />; }
 function ProjectWorkspacePage() { return <ProjectWorkspace />; }
 function InspirationPage() { return <Inspiration />; }
 function MaterialDetailPage() { return <MaterialDetail />; }
+function PublicExamplePage() { return <PublicExample />; }
 
 function Protected({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
@@ -5363,8 +5851,8 @@ function AuthPage({ kind }: { kind: "in" | "up" }) {
       <div className="relative z-10 grid min-h-[100dvh] place-items-center px-4 py-16">
         <div className="w-full max-w-[440px] border border-border bg-card p-1 shadow-sm">
           {kind === "in"
-            ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} fallbackRedirectUrl={`${basePath}/studio`} />
-            : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} fallbackRedirectUrl={`${basePath}/studio`} />
+            ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} fallbackRedirectUrl={`${basePath || ""}/`} />
+            : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} fallbackRedirectUrl={`${basePath || ""}/`} />
           }
         </div>
         {/* Bottom copy */}
@@ -5377,11 +5865,45 @@ function AuthPage({ kind }: { kind: "in" | "up" }) {
 }
 
 function NotFoundView() {
-  return <div className="grid min-h-[100dvh] place-items-center bg-background p-6 text-center"><div><p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">Page not found · 404</p><h1 className="mt-4 font-display text-6xl">A missing page.</h1><p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">This page drifted out of the notebook. The rest of the studio is still here.</p><div className="mt-7"><Button href="/" testId="button-return-home">Return to the desk</Button></div></div></div>;
+  return (
+    <div className="grid min-h-[100dvh] place-items-center bg-background p-6 text-center">
+      <div>
+        <p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">Page not found · 404</p>
+        <h1 className="mt-4 font-display text-6xl">A missing page.</h1>
+        <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
+          This page drifted out of the notebook.
+        </p>
+        <div className="mt-7 flex flex-wrap justify-center gap-3">
+          <Button href="/" testId="button-return-home">Return to MATIÈRE</Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function SillageApp() {
   return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={{ theme: experimental__simple, options: { logoPlacement: "inside", logoLinkUrl: basePath || "/", logoImageUrl: `${window.location.origin}${basePath}/logo.svg` }, variables: { colorPrimary: "hsl(var(--primary))", colorForeground: "hsl(var(--foreground))", colorMutedForeground: "hsl(var(--muted-foreground))", colorBackground: "hsl(var(--background))", colorInput: "hsl(var(--input))", colorInputForeground: "hsl(var(--foreground))", colorDanger: "hsl(var(--destructive))", colorNeutral: "hsl(var(--border))", fontFamily: "Inter", borderRadius: "0rem" }, elements: { cardBox: "bg-card border border-border w-[440px] max-w-full", card: "!shadow-none !border-0 !bg-transparent", footer: "!shadow-none !border-0 !bg-transparent", headerTitle: "text-foreground font-medium", headerSubtitle: "text-muted-foreground", formFieldLabel: "text-foreground", formFieldInput: "bg-secondary text-foreground border border-border", formButtonPrimary: "bg-primary text-primary-foreground hover:opacity-80 rounded-none uppercase tracking-widest text-[11px]", footerActionLink: "text-foreground underline", socialButtonsBlockButtonText: "text-foreground", socialButtonsBlockButton__google: "!hidden", dividerRow: "!hidden", dividerText: "text-muted-foreground", footerActionText: "text-muted-foreground" } }} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{ signIn: { start: { title: "Return to the studio", subtitle: "Your next idea is still on the page." } }, signUp: { start: { title: "Open your studio", subtitle: "A place for the work between first thought and final blotter." } } }}>
-    <QueryClientProvider client={queryClient}><WouterRouter base={basePath}><Switch><Route path="/sign-in/*?" component={() => <AuthPage kind="in" />} /><Route path="/sign-up/*?" component={() => <AuthPage kind="up" />} /><Route path="/"><Landing /></Route><Route path="/dashboard"><Redirect to="/studio" /></Route><Route path="/studio"><Protected><Shell><StudioPage /></Shell></Protected></Route><Route path="/projects/:id/inspiration"><Protected><Shell><InspirationPage /></Shell></Protected></Route><Route path="/projects/:id"><Protected><Shell><ProjectWorkspacePage /></Shell></Protected></Route><Route path="/projects"><Protected><Shell><ProjectsPage /></Shell></Protected></Route><Route path="/formulas/new"><Protected><NewFormula /></Protected></Route><Route path="/formulas/:id"><Protected><FormulaDetail /></Protected></Route><Route path="/formulas"><Protected><Formulas /></Protected></Route><Route path="/materials/:id"><Protected><Shell><MaterialDetailPage /></Shell></Protected></Route><Route path="/materials"><Protected><Materials /></Protected></Route><Route path="/files"><Protected><FileDrawer /></Protected></Route><Route path="/coach"><Protected><Coach /></Protected></Route><Route path="/shop"><Protected><Shop /></Protected></Route><Route><NotFoundView /></Route></Switch></WouterRouter></QueryClientProvider>
+    <QueryClientProvider client={queryClient}><WouterRouter base={basePath}><Switch>
+      <Route path="/sign-in/*?" component={() => <AuthPage kind="in" />} />
+      <Route path="/sign-up/*?" component={() => <AuthPage kind="up" />} />
+      {/* Public routes — no auth gate */}
+      <Route path="/"><Landing /></Route>
+      <Route path="/example"><PublicExamplePage /></Route>
+      {/* Authenticated routes */}
+      <Route path="/dashboard"><Redirect to="/studio" /></Route>
+      <Route path="/studio"><Protected><Shell><StudioPage /></Shell></Protected></Route>
+      <Route path="/projects/:id/inspiration"><Protected><Shell><InspirationPage /></Shell></Protected></Route>
+      <Route path="/projects/:id"><Protected><Shell><ProjectWorkspacePage /></Shell></Protected></Route>
+      <Route path="/projects"><Protected><Shell><ProjectsPage /></Shell></Protected></Route>
+      <Route path="/formulas/new"><Protected><NewFormula /></Protected></Route>
+      <Route path="/formulas/:id"><Protected><FormulaDetail /></Protected></Route>
+      <Route path="/formulas"><Protected><Formulas /></Protected></Route>
+      <Route path="/materials/:id"><Protected><Shell><MaterialDetailPage /></Shell></Protected></Route>
+      <Route path="/materials"><Protected><Materials /></Protected></Route>
+      <Route path="/files"><Protected><FileDrawer /></Protected></Route>
+      <Route path="/coach"><Protected><Coach /></Protected></Route>
+      <Route path="/shop"><Protected><Shop /></Protected></Route>
+      <Route><NotFoundView /></Route>
+    </Switch></WouterRouter></QueryClientProvider>
   </ClerkProvider>;
 }
