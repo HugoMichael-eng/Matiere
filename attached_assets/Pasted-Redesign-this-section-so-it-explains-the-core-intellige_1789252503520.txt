@@ -1,0 +1,450 @@
+Redesign this section so it explains the **core intelligence of MATIÈRE**, not just the output.
+
+The current layout already has a strong visual foundation:
+
+- moodboard on the left
+- three possible interpretations on the right
+- selected direction shown more prominently
+
+Keep that overall idea.
+
+But the section currently jumps too quickly from:
+
+MOODBOARD
+
+to
+
+SOFT FOCUS / AFTER DARK / WARM SURFACE
+
+without explaining what MATIÈRE is actually doing.
+
+This section should demonstrate the intelligence behind the interpretation.
+
+The core message is:
+
+# MATIÈRE DOES NOT SIMPLY “READ IMAGES.”
+
+It reads the relationships between:
+
+- images
+- textures
+- color
+- light
+- atmosphere
+- text
+- notes
+- materials
+- contrasts
+- repeated visual themes
+
+Then it translates those relationships into:
+
+- emotional qualities
+- creative tensions
+- olfactive territories
+- material possibilities
+- fragrance directions
+
+The user then decides which interpretation to pursue.
+
+The human remains the author.
+
+MATIÈRE helps make the hidden relationships visible.
+
+---
+
+# 1. INTRODUCE THE MOODBOARD PROMPT
+
+Above or beside the board, show the actual creative prompt / user intention.
+
+Example:
+
+## YOUR PROMPT
+
+“Something intimate, warm, and a little strange. Nothing sugary.”
+
+This should feel like the starting point of the interpretation.
+
+Do not style it like a form field.
+
+Treat it as a creative statement.
+
+Use beautiful typography.
+
+---
+
+# 2. EXPLAIN WHAT MATIÈRE IS READING
+
+Between the moodboard and the three interpretations, introduce a subtle intelligence layer.
+
+Suggested label:
+
+MATIÈRE READING
+
+Then show a small set of extracted observations.
+
+Example:
+
+VISUAL QUALITIES
+
+FOGGED  
+TRANSLUCENT  
+SKIN-CLOSE  
+REFLECTIVE  
+WARM
+
+CREATIVE TENSIONS
+
+SOFT ↔ HARD  
+INTIMATE ↔ DISTANT  
+ORGANIC ↔ SYNTHETIC  
+CLEAR ↔ OBSCURED
+
+ATMOSPHERE
+
+QUIET  
+SENSUAL  
+AMBIGUOUS  
+CONTROLLED
+
+This should not become a dashboard.
+
+Use very little chrome.
+
+Think editorial annotation.
+
+---
+
+# 3. SHOW RELATIONSHIPS, NOT JUST TAGS
+
+The intelligence should feel relational.
+
+Example:
+
+FOGGED GLASS
+
+suggests
+
+BLUR  
+TRANSPARENCY  
+DISTANCE
+
+WARM SKIN
+
+suggests
+
+INTIMACY  
+SOFTNESS  
+HUMAN WARMTH
+
+DARK LACQUER
+
+suggests
+
+DEPTH  
+POLISH  
+CONTROL  
+SHADOW
+
+Then MATIÈRE combines these into possible olfactive interpretations.
+
+This can be shown with:
+
+- thin connection lines
+- subtle hover relationships
+- small annotations
+- highlighted reference pairings
+
+Do not make it look like a flowchart.
+
+Keep it elegant.
+
+---
+
+# 4. EXPLAIN WHY THERE ARE THREE DIRECTIONS
+
+Add a small statement above the direction list:
+
+## THREE POSSIBLE INTERPRETATIONS
+
+MATIÈRE can read the same visual world in more than one way.
+
+The moodboard does not produce a single “correct” fragrance.
+
+Instead, it reveals several credible olfactive paths.
+
+This is important.
+
+The product should communicate:
+
+**one visual world can produce multiple scent worlds.**
+
+---
+
+# 5. MAKE EACH DIRECTION FEEL DERIVED FROM THE BOARD
+
+For each interpretation, show a short “why.”
+
+Example:
+
+# SOFT FOCUS
+
+Airy woods, gentle warmth, a close-to-skin feeling.
+
+DERIVED FROM
+
+fogged glass  
+warm skin  
+soft reflection
+
+OLFACTIVE TERRITORY
+
+transparent woods  
+soft musk  
+diffusive floral
+
+---
+
+# AFTER DARK
+
+Floral shadow, lacquered depth, controlled darkness.
+
+DERIVED FROM
+
+dark lacquer  
+warm reflection  
+obscured surface
+
+OLFACTIVE TERRITORY
+
+dark floral  
+resin  
+polished woods
+
+---
+
+# WARM SURFACE
+
+Resinous warmth balanced with dry, textured elements.
+
+DERIVED FROM
+
+skin  
+lacquer  
+powdered texture
+
+OLFACTIVE TERRITORY
+
+amber  
+dry woods  
+skin musk
+
+This makes the AI output feel grounded rather than arbitrary.
+
+---
+
+# 6. ADD “WHY THIS DIRECTION?”
+
+When the user selects a direction, include a subtle action:
+
+WHY THIS DIRECTION? →
+
+This should reveal the reasoning.
+
+Example:
+
+SOFT FOCUS was suggested because the board repeatedly combines:
+
+TRANSPARENCY  
+SKIN  
+BLUR  
+SOFT REFLECTION
+
+MATIÈRE interprets that relationship as a direction that is:
+
+INTIMATE  
+DIFFUSIVE  
+AIRY  
+NON-SWEET
+
+Then:
+
+MATERIAL TERRITORY
+
+Ambroxan  
+Cashmeran  
+Iso E Super  
+Habanolide
+
+Do not make this a long AI explanation.
+
+Keep it concise and visual.
+
+---
+
+# 7. MAKE THE INTELLIGENCE FEEL ITERATIVE
+
+The section should explain that the result is not final.
+
+After a direction is selected, show:
+
+## REFINE THE READING
+
+MORE MINERAL  
+LESS FLORAL  
+COLDER  
+MORE ABSTRACT  
+MORE TACTILE  
+LESS COMFORTABLE
+
+When selected, the direction should visibly evolve.
+
+Example:
+
+SOFT FOCUS
+
+→
+
+SOFT FOCUS / MINERAL
+
+Then:
+
+new descriptors  
+new material territory  
+new emphasis on specific references
+
+The user should feel like they are shaping the interpretation with MATIÈRE.
+
+---
+
+# 8. ADD A SMALL INTELLIGENCE LOOP
+
+Somewhere in this section, show the logic very simply:
+
+PROMPT
+
+↓
+
+REFERENCES
+
+↓
+
+RELATIONSHIPS
+
+↓
+
+OLFACTIVE INTERPRETATION
+
+↓
+
+MATERIAL TERRITORY
+
+↓
+
+YOU REFINE
+
+Do not present this as a corporate diagram.
+
+Use typography and spacing.
+
+This is the core intelligence of MATIÈRE.
+
+---
+
+# 9. IMPORTANT LANGUAGE
+
+Avoid:
+
+AI GENERATED
+
+AI RECOMMENDS
+
+BEST MATCH
+
+CORRECT DIRECTION
+
+Use:
+
+INTERPRETATION
+
+READING
+
+POSSIBLE DIRECTION
+
+MATERIAL TERRITORY
+
+EXPLORE
+
+REFINE
+
+ONE POSSIBLE READING
+
+This keeps the perfumer as the author.
+
+---
+
+# 10. VISUAL BEHAVIOR
+
+When the user hovers over:
+
+SOFT FOCUS
+
+the relevant references should subtly come forward.
+
+When they hover:
+
+AFTER DARK
+
+the darker / lacquered reference should gain emphasis.
+
+When they hover:
+
+WARM SURFACE
+
+the warmer skin / resin references should gain emphasis.
+
+This visually demonstrates that each interpretation comes from a different reading of the same board.
+
+This is very important.
+
+The intelligence should be visible, not just explained in copy.
+
+---
+
+# 11. THE SECTION SHOULD COMMUNICATE THIS IDEA
+
+The real functionality is:
+
+MATIÈRE looks at what you selected.
+
+It notices what repeats.
+
+It notices what contrasts.
+
+It notices what feels connected.
+
+It translates those relationships into olfactive possibilities.
+
+Then you challenge, reshape, and develop them.
+
+This is not image recognition.
+
+This is creative interpretation.
+
+---
+
+# 12. FINAL EXPERIENCE GOAL
+
+The user should leave this section understanding:
+
+1. I give MATIÈRE a prompt.
+2. I build a visual world.
+3. MATIÈRE interprets the relationships inside that world.
+4. It gives me several possible scent directions.
+5. It explains why those directions emerged.
+6. I can refine them.
+7. Those directions lead into materials and eventually formula.
+
+This is the heart of MATIÈRE’s intelligence.
+
+Make that clear visually, interactively, and conceptually.

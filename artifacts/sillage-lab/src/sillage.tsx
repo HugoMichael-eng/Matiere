@@ -4685,6 +4685,8 @@ interface ScentDir {
   id: string;
   label: string;
   tagline: string;
+  derivedFrom: string[];
+  territory: string[];
   keywords: string[];
   rationale: string;
   materials: { name: string; reason: string }[];
@@ -4695,6 +4697,8 @@ const SCENT_DIRECTIONS: ScentDir[] = [
     id: "soft-focus",
     label: "Soft focus",
     tagline: "Airy woods, gentle warmth, a close-to-skin feeling.",
+    derivedFrom: ["Fogged glass", "Warm skin", "Soft reflection"],
+    territory: ["Transparent woods", "Soft musk", "Diffusive floral"],
     keywords: ["Transparent", "Skin-close", "Airy", "Soft woods"],
     rationale: "The fogged glass and warm skin in your moodboard suggest something close but blurred — familiar without being literal. This direction keeps warmth intimate and avoids anything sweet or heavy.",
     materials: [
@@ -4707,6 +4711,8 @@ const SCENT_DIRECTIONS: ScentDir[] = [
     id: "after-dark",
     label: "After dark",
     tagline: "A floral direction with shadow, depth, and contrast.",
+    derivedFrom: ["Dark lacquer", "Warm reflection", "Obscured surface"],
+    territory: ["Dark floral", "Resin", "Polished woods"],
     keywords: ["Dark floral", "Contrast", "Shadow", "Depth"],
     rationale: "The dark lacquer in your moodboard pulls toward something with presence and contrast — a floral that is not cheerful, with shadow at its base. Warmth and strangeness in equal measure.",
     materials: [
@@ -4719,6 +4725,8 @@ const SCENT_DIRECTIONS: ScentDir[] = [
     id: "warm-surface",
     label: "Warm surface",
     tagline: "Resinous warmth balanced with dry, textured elements.",
+    derivedFrom: ["Warm skin", "Dark lacquer", "Powdered texture"],
+    territory: ["Amber", "Dry woods", "Skin musk"],
     keywords: ["Resinous", "Dry", "Textured", "Mineral"],
     rationale: "The warm skin and textured surfaces in your moodboard point toward something with physical presence — resinous but not sweet, warm but with a dry mineral edge that keeps it from becoming heavy.",
     materials: [
@@ -4858,6 +4866,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
   const [hoveredDir, setHoveredDir] = useState<string | null>(null);
   const [focusedImage, setFocusedImage] = useState<string | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+  const [showReasoning, setShowReasoning] = useState(false);
 
   const direction = SCENT_DIRECTIONS.find(d => d.id === selectedDir) ?? SCENT_DIRECTIONS[0];
   const activeRefinements = REFINEMENTS.filter(r => r.directionId === selectedDir);
@@ -4871,6 +4880,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
     setSelectedDir(id);
     setSelectedRefinement(null);
     setSelectedMaterial(null);
+    setShowReasoning(false);
   };
 
   const handleRefinement = (id: string) => {
@@ -4880,6 +4890,15 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
   const handleReset = () => {
     setSelectedRefinement(null);
   };
+
+  useEffect(() => {
+    if (!focusedImage) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFocusedImage(null);
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [focusedImage]);
 
   return (
     <section
@@ -4912,15 +4931,15 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
           style={{ fontSize: "clamp(1.8rem, 3.8vw, 3.2rem)" }}
           data-testid="heading-moodboard-demo"
         >
-          Three possible worlds.
+          MATIÈRE makes hidden relationships visible.
         </h2>
         <p className="mt-4 leading-8 text-foreground/65 max-w-2xl" style={{ fontSize: "clamp(1rem, 1.6vw, 1.05rem)" }}>
-          Bring together images, video, and notes. Explore possible scent directions you can question, reshape, and develop.
+          It does not simply read images. It notices what repeats, what contrasts, and what feels connected—then translates those relationships into several possible scent worlds. You remain the author.
         </p>
       </motion.div>
 
       {/* ── Asymmetric spatial composition ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(360px,2fr)] gap-8 lg:gap-4 px-8 pb-12 sm:px-12">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(360px,2fr)] gap-8 lg:gap-8 px-8 pb-12 sm:px-12">
 
         {/* LEFT — Your moodboard */}
         <motion.div
@@ -4930,9 +4949,12 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.55 }}
         >
-          <div className="py-5">
-            <p className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground" style={{ fontSize: "12px" }}>
-              Your moodboard
+          <div className="py-5 grid gap-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start">
+            <p className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground pt-1" style={{ fontSize: "12px" }}>
+              Your prompt
+            </p>
+            <p className="font-display max-w-xl leading-[1.15] tracking-[-0.02em] text-foreground/80" style={{ fontSize: "clamp(1.35rem, 2.2vw, 2rem)" }}>
+              &ldquo;Something intimate, warm, and a little strange. Nothing sugary.&rdquo;
             </p>
           </div>
 
@@ -4999,19 +5021,33 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
             </svg>
           </div>
 
-          {/* Example note — clearly labeled user input */}
-          <div className="absolute bottom-0 left-[8%] z-10 max-w-sm bg-background/95 px-6 py-5">
-            <div className="flex items-center gap-2.5 mb-3">
-              <span className="font-mono-ui uppercase tracking-[.14em] border border-border text-muted-foreground/70 px-2 py-0.5" style={{ fontSize: "11px" }}>
-                Example note — user input
-              </span>
-            </div>
-            <p
-              className="leading-8 text-foreground/75"
-              style={{ fontSize: "clamp(1rem, 1.6vw, 1.05rem)", fontStyle: "italic" }}
-            >
-              &ldquo;Something intimate, warm, and a little strange. Nothing sugary.&rdquo;
+          {/* Editorial intelligence annotation */}
+          <div className="relative z-10 -mt-8 ml-[5%] max-w-2xl bg-background/95 px-5 py-5 sm:px-7">
+            <p className="font-mono-ui uppercase tracking-[.24em] text-accent-foreground/80" style={{ fontSize: "11px" }}>
+              MATIÈRE reading
             </p>
+            <div className="mt-5 grid gap-6 sm:grid-cols-3">
+              <div>
+                <p className="font-mono-ui uppercase tracking-[.16em] text-muted-foreground" style={{ fontSize: "10px" }}>Visual qualities</p>
+                <p className="mt-2 font-display uppercase leading-6 text-foreground/75" style={{ fontSize: "15px" }}>Fogged · Translucent<br />Skin-close · Reflective · Warm</p>
+              </div>
+              <div>
+                <p className="font-mono-ui uppercase tracking-[.16em] text-muted-foreground" style={{ fontSize: "10px" }}>Creative tensions</p>
+                <p className="mt-2 font-display uppercase leading-6 text-foreground/75" style={{ fontSize: "15px" }}>Soft ↔ Hard<br />Intimate ↔ Distant<br />Organic ↔ Synthetic</p>
+              </div>
+              <div>
+                <p className="font-mono-ui uppercase tracking-[.16em] text-muted-foreground" style={{ fontSize: "10px" }}>Atmosphere</p>
+                <p className="mt-2 font-display uppercase leading-6 text-foreground/75" style={{ fontSize: "15px" }}>Quiet · Sensual<br />Ambiguous · Controlled</p>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono-ui uppercase tracking-[.13em] text-muted-foreground" style={{ fontSize: "10px" }} aria-label="Interpretation loop">
+              {["Prompt", "References", "Relationships", "Olfactive interpretation", "Material territory", "You refine"].map((step, index) => (
+                <span key={step} className="inline-flex items-center gap-3">
+                  {index > 0 && <ArrowRight size={10} className="text-accent" aria-hidden />}
+                  <span>{step}</span>
+                </span>
+              ))}
+            </div>
           </div>
         </motion.div>
 
@@ -5027,8 +5063,8 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
             <p className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground mb-1" style={{ fontSize: "12px" }}>
               Three possible interpretations
             </p>
-            <p className="text-muted-foreground/70" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
-              Three possible interpretations of the same moodboard. Choose one to explore.
+            <p className="max-w-md text-muted-foreground/70 leading-6" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
+              The same visual world can be read in more than one credible way. There is no single correct fragrance—choose a possible path to challenge and develop.
             </p>
           </div>
 
@@ -5064,6 +5100,16 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                         {dir.label}{isActive && refinement ? ` / ${refinement.label.replace("More ", "")}` : ""}
                       </p>
                       <p className="mt-3 max-w-md text-foreground/65 leading-7" style={{ fontSize: "17px" }}>{dir.tagline}</p>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <span className="font-mono-ui uppercase tracking-[.15em] text-muted-foreground" style={{ fontSize: "9px" }}>Derived from</span>
+                          <p className="mt-1 text-foreground/55 leading-5" style={{ fontSize: "13px" }}>{dir.derivedFrom.join(" · ")}</p>
+                        </div>
+                        <div>
+                          <span className="font-mono-ui uppercase tracking-[.15em] text-muted-foreground" style={{ fontSize: "9px" }}>Olfactive territory</span>
+                          <p className="mt-1 text-foreground/55 leading-5" style={{ fontSize: "13px" }}>{dir.territory.join(" · ")}</p>
+                        </div>
+                      </div>
                     </div>
                     <ArrowRight size={18} className={`mb-2 shrink-0 transition-transform ${isActive ? "translate-x-1 text-accent" : "text-muted-foreground"}`} />
                   </div>
@@ -5097,10 +5143,32 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                 ))}
               </div>
 
-              {/* Plain-language rationale */}
-              <p className="leading-8 text-foreground/70 mb-5" style={{ fontSize: "clamp(1rem, 1.5vw, 1rem)" }}>
-                {displayRationale}
-              </p>
+              <button
+                type="button"
+                onClick={() => setShowReasoning(value => !value)}
+                aria-expanded={showReasoning}
+                className="mb-5 inline-flex min-h-10 items-center gap-2 font-mono-ui uppercase tracking-[.16em] text-foreground/65 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                style={{ fontSize: "12px" }}
+              >
+                Why this direction? <ArrowRight size={11} className={`transition-transform ${showReasoning ? "rotate-90 text-accent" : ""}`} />
+              </button>
+              <AnimatePresence initial={false}>
+                {showReasoning && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-7 overflow-hidden"
+                  >
+                    <p className="leading-8 text-foreground/70" style={{ fontSize: "clamp(1rem, 1.5vw, 1rem)" }}>
+                      {displayRationale}
+                    </p>
+                    <p className="mt-4 font-mono-ui uppercase tracking-[.14em] text-muted-foreground" style={{ fontSize: "10px" }}>
+                      Repeated relationship → {displayKeywords.join(" · ")}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Material discoveries */}
               <div className="mb-8">
@@ -5135,10 +5203,8 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                               className="mt-3 block overflow-hidden"
                             >
                               <span className="block text-foreground/65 leading-6" style={{ fontSize: "14px" }}>{mat.reason}</span>
-                              <span className="mt-3 flex flex-col gap-1 font-mono-ui uppercase tracking-[.12em] text-foreground/55" style={{ fontSize: "11px" }}>
-                                <span>Open material →</span>
-                                <span>Connect to canvas →</span>
-                                <span>Add to direction →</span>
+                              <span className="mt-3 block font-mono-ui uppercase tracking-[.12em] text-foreground/55" style={{ fontSize: "11px" }}>
+                                One material possibility—not a prescription.
                               </span>
                             </motion.span>
                           )}
@@ -5152,7 +5218,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
               {/* Refinement controls */}
               <div className="pt-4">
                 <p className="font-mono-ui uppercase tracking-[.18em] text-muted-foreground mb-3" style={{ fontSize: "12px" }}>
-                  Refine this direction
+                  Refine the reading
                 </p>
                 <div className="flex flex-wrap gap-2 mb-2" role="group" aria-label="Refinement options">
                   {activeRefinements.map(ref => (
@@ -5239,6 +5305,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
               src={focusedImage}
               alt="Focused moodboard reference"
               className="max-h-[82vh] max-w-[88vw] object-contain"
+              onClick={event => event.stopPropagation()}
               initial={{ scale: 0.98 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.4 }}
@@ -5397,7 +5464,7 @@ function Landing() {
               className="leading-8 text-foreground/65 max-w-sm mt-[-12px]"
               style={{ fontSize: "clamp(1rem, 1.6vw, 1.1rem)" }}
             >
-              Build a moodboard from images, video, and notes. Explore AI-suggested scent directions and materials, then develop your fragrance in one creative workspace.
+              Build a moodboard from images, video, and notes. Explore possible scent interpretations and material territories, then shape them into a fragrance in one creative workspace.
             </motion.p>
 
             {/* ── CTAs ── */}
