@@ -22,8 +22,7 @@ import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useListMaterials } from "@workspace/api-client-react";
 import type { Material } from "@workspace/api-client-react";
 import { normalizeMaterialFamilies } from "@workspace/material-families";
-import { AtmosphereStrip } from "@workspace/s1/components/ui/atmosphere-strip";
-import { SectionRule } from "@workspace/s1/components/ui/section-rule";
+// S1 primitives replaced with local equivalents below
 
 // ─── Sensory portrait data ────────────────────────────────────────────────────
 // Per-family olfactive descriptions that lead the page with sensory language.
@@ -187,16 +186,22 @@ function MaterialDetailContent({
         </span>
       </div>
 
-      {/* ── 1. Atmosphere hero — S1 AtmosphereStrip primitive ─────────────── */}
-      <AtmosphereStrip
-        src={base + img}
-        height="300px"
-        opacity={0.25}
-        label={`${material.family} · ${material.origin || "Origin not listed"}`}
-        className="-mx-5 sm:-mx-8 lg:-mx-12 border-b border-border"
+      {/* ── 1. Atmosphere hero — local implementation ─────────────── */}
+      <div
+        className="-mx-5 sm:-mx-8 lg:-mx-12 relative overflow-hidden border-b border-border flex flex-col justify-end"
+        style={{ height: "300px" }}
       >
-        {/* Name overlay — positioned in children slot over the strip */}
-        <div className="px-5 pb-8 sm:px-8 lg:px-12">
+        <img
+          src={base + img}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover opacity-25"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+        <div className="relative px-5 pb-8 sm:px-8 lg:px-12">
+          <p className="font-mono-ui text-[8px] uppercase tracking-[.18em] text-muted-foreground mb-3">
+            {material.family} · {material.origin || "Origin not listed"}
+          </p>
           <h1
             className="font-display leading-[.85] tracking-[-0.03em] text-foreground"
             style={{ fontSize: "clamp(3rem, 8vw, 6.5rem)" }}
@@ -205,7 +210,7 @@ function MaterialDetailContent({
             {material.name}
           </h1>
         </div>
-      </AtmosphereStrip>
+      </div>
 
       {/* ── 2. Sensory portrait — leads before technical data ───────────────── */}
       <div className="mt-8 max-w-2xl">
@@ -258,7 +263,12 @@ function MaterialDetailContent({
 
       {/* ── 4. Technical sections — progressive disclosure ───────────────────── */}
       <div className="mt-2 max-w-3xl">
-        <SectionRule label="Technical and regulatory" />
+        {/* Section divider */}
+        <div className="flex items-center gap-3 my-4">
+          <div className="h-[1px] flex-1 bg-border" />
+          <p className="font-mono-ui text-[7px] uppercase tracking-[.20em] text-muted-foreground/60 shrink-0">Technical and regulatory</p>
+          <div className="h-[1px] flex-1 bg-border" />
+        </div>
         {/* Technical & regulatory */}
         <CollapsibleSection label="Technical and regulatory" defaultOpen={false}>
           <div className="space-y-4">

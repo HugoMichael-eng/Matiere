@@ -52,7 +52,7 @@
     "@vitejs/plugin-react": "catalog:",
     "@workspace/api-client-react": "workspace:*",
     "@workspace/material-families": "workspace:*",
-    "@workspace/s1": "workspace:*",
+    "@workspace/verve-design-system": "workspace:*",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "cmdk": "^1.1.1",

@@ -1,19 +1,13 @@
 /**
- * /projects/:id — Project overview workspace
- *
- * Tab state is encoded in the URL as ?tab=<id> so that links from other
- * pages can deep-link directly to a tab.  Default is "overview" (no param).
- *
- * All data is representative — read-only, no backend Project entity yet.
+ * /projects/:id — Project workspace
+ * MATIÈRE redesign: editorial, image-led, minimal UI chrome.
+ * Tab state encoded in URL as ?tab=<id>.
  */
 
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useParams, useSearch, useLocation } from "wouter";
-import { ArrowRight, Sparkles } from "lucide-react";
-import { AtmosphereStrip } from "@workspace/s1/components/ui/atmosphere-strip";
-import { NotebookEntry } from "@workspace/s1/components/ui/notebook-entry";
-import { SectionRule } from "@workspace/s1/components/ui/section-rule";
+import { ArrowRight, Sparkles, ChevronDown } from "lucide-react";
 import { DEMO_PROJECTS } from "../data/projects";
 import type { DemoProject, ProjectEvaluation } from "../data/projects";
 
@@ -21,25 +15,17 @@ import type { DemoProject, ProjectEvaluation } from "../data/projects";
 
 type WorkspaceTab = "overview" | "inspiration" | "evaluation" | "notes" | "materials" | "formulas";
 
-const VALID_TABS = new Set<WorkspaceTab>([
-  "overview", "inspiration", "evaluation", "notes", "materials", "formulas",
-]);
-
+const VALID_TABS = new Set<WorkspaceTab>(["overview", "inspiration", "evaluation", "notes", "materials", "formulas"]);
 const TABS: { id: WorkspaceTab; label: string }[] = [
   { id: "overview",    label: "Overview"    },
-  { id: "inspiration", label: "Inspiration" },
+  { id: "inspiration", label: "Canvas"      },
   { id: "evaluation",  label: "Evaluation"  },
   { id: "notes",       label: "Notes"       },
   { id: "materials",   label: "Materials"   },
   { id: "formulas",    label: "Mods"        },
 ];
 
-// Temporal evaluation phases — classified by key, never by array index.
-const TEMPORAL_PHASE_KEYS = new Set<keyof ProjectEvaluation>([
-  "opening", "fifteenMin", "oneHour", "fourHour", "drydown",
-]);
-
-// All phases in display order
+const TEMPORAL_PHASE_KEYS = new Set<keyof ProjectEvaluation>(["opening", "fifteenMin", "oneHour", "fourHour", "drydown"]);
 const EVAL_PHASES: Array<{ key: keyof ProjectEvaluation; label: string }> = [
   { key: "opening",     label: "Opening"     },
   { key: "fifteenMin",  label: "15 min"      },
@@ -51,22 +37,16 @@ const EVAL_PHASES: Array<{ key: keyof ProjectEvaluation; label: string }> = [
   { key: "adjustments", label: "Adjustments" },
 ];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function statusLabel(s: DemoProject["status"]): string {
-  return s === "active" ? "Active"
-       : s === "resting" ? "Resting"
-       : s === "archived" ? "Archived"
-       : "Complete";
+  return s === "active" ? "Active" : s === "resting" ? "Resting" : s === "archived" ? "Archived" : "Complete";
 }
 
-// ─── Contextual AI panel ──────────────────────────────────────────────────────
+// ─── AI observation ───────────────────────────────────────────────────────────
 
 function deriveAiObservation(project: DemoProject): { label: string; body: string } {
-  const latestEval  = project.evaluations[0];
-  const latestNote  = project.notes[0];
+  const latestEval = project.evaluations[0];
+  const latestNote = project.notes[0];
   const materialList = project.linkedMaterialNames.slice(0, 3).join(", ");
-
   if (latestEval) {
     return {
       label: "Possible direction — reading the latest evaluation",
@@ -76,38 +56,36 @@ function deriveAiObservation(project: DemoProject): { label: string; body: strin
   if (latestNote) {
     return {
       label: "Consider — reading the notes",
-      body: `A possible reading of the studio notes: "${latestNote.body.slice(0, 120)}${latestNote.body.length > 120 ? "…" : ""}" — the framing suggests the project is still finding its structural language. The materials on hand (${materialList}) provide a workable palette, but the direction seems to be asking for restraint.`,
+      body: `A possible reading of the studio notes: "${latestNote.body.slice(0, 120)}${latestNote.body.length > 120 ? "…" : ""}" — the framing suggests the project is still finding its structural language. The materials on hand (${materialList}) provide a workable palette.`,
     };
   }
   return {
     label: "Structural observation — early stage",
-    body: `This project is at an early stage with ${project.modCount} mods recorded. The olfactive direction ("${project.olfactiveDirection}") suggests a clear intention. Consider what single material most fully expresses that direction, and let it anchor the structure.`,
+    body: `This project is at an early stage with ${project.modCount} mods recorded. The olfactive direction ("${project.olfactiveDirection}") suggests a clear intention.`,
   };
 }
 
 function ContextualAI({ project }: { project: DemoProject }) {
   const [open, setOpen] = useState(false);
   const obs = deriveAiObservation(project);
-
   return (
-    <div className="border border-border">
+    <div className="border-t border-border">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/20"
+        className="flex w-full items-center justify-between gap-3 py-4 text-left transition-colors hover:opacity-70"
         data-testid="button-ai-action"
       >
-        <div className="flex items-center gap-2">
-          <Sparkles size={11} className="text-muted-foreground/60" />
-          <span className="font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-block h-1 w-1 bg-accent shrink-0" aria-hidden />
+          <span className="font-mono-ui text-[8px] uppercase tracking-[.18em] text-muted-foreground">
             {obs.label}
           </span>
         </div>
-        <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/50 shrink-0" aria-hidden>
+        <span className="font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/40 shrink-0" aria-hidden>
           {open ? "Close" : "Explore"}
         </span>
       </button>
-
       <AnimatePresence>
         {open && (
           <motion.div
@@ -117,9 +95,9 @@ function ContextualAI({ project }: { project: DemoProject }) {
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="border-t border-border px-4 py-4">
-              <p className="text-xs leading-6 text-muted-foreground">{obs.body}</p>
-              <p className="mt-3 font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground/40">
+            <div className="pb-5">
+              <p className="text-xs leading-7 text-muted-foreground">{obs.body}</p>
+              <p className="mt-3 font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground/35">
                 Interpretive only · derived from local project data
               </p>
             </div>
@@ -130,25 +108,24 @@ function ContextualAI({ project }: { project: DemoProject }) {
   );
 }
 
-// ─── Phased Evaluation notebook ───────────────────────────────────────────────
+// ─── Evaluation notebook ──────────────────────────────────────────────────────
 
-function EvaluationNotebook({ ev }: { ev: ProjectEvaluation }) {
-  const phases = EVAL_PHASES.filter((ph) => {
-    const val = ev[ph.key];
-    return typeof val === "string" && val.length > 0;
-  });
+function EvaluationPhase({ label, body, isTimeline }: { label: string; body: string; isTimeline: boolean }) {
   return (
-    <div>
-      {phases.map((ph) => (
-        <NotebookEntry
-          key={ph.key}
-          label={ph.label}
-          body={ev[ph.key] as string}
-          /* timeline determined by phase KEY, not array position */
-          timeline={TEMPORAL_PHASE_KEYS.has(ph.key)}
-          className="border-t border-border first:border-t-0"
-        />
-      ))}
+    <div className="py-5 border-t border-border first:border-t-0">
+      <div className="flex items-start gap-4">
+        {isTimeline && (
+          <div className="shrink-0 mt-0.5">
+            <p className="font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground/50 w-12">{label}</p>
+          </div>
+        )}
+        <div className={isTimeline ? "flex-1 min-w-0" : "min-w-0"}>
+          {!isTimeline && (
+            <p className="font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground/60 mb-2">{label}</p>
+          )}
+          <p className="text-sm leading-7 text-foreground/80">{body}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -165,34 +142,39 @@ function OverviewTab({ project }: { project: DemoProject }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-8"
+      className="space-y-10"
     >
-      {/* Cover atmosphere strip — S1 primitive */}
-      <AtmosphereStrip
-        src={project.coverImage}
-        height="220px"
-        opacity={0.30}
-        label={project.olfactiveDirection}
-        className="-mx-5 sm:-mx-8 lg:-mx-12 border-b border-border"
-      />
+      {/* Hero image — physical, full-bleed */}
+      <div className="-mx-5 sm:-mx-8 lg:-mx-12 relative overflow-hidden" style={{ height: "clamp(200px, 30vw, 340px)" }}>
+        <img
+          src={project.coverImage}
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+        <div className="absolute bottom-0 inset-x-0 px-5 pb-6 sm:px-8 lg:px-12">
+          <p className="font-mono-ui text-[8px] uppercase tracking-[.20em] text-white/60">{project.olfactiveDirection}</p>
+        </div>
+      </div>
 
       {/* Brief */}
       <section>
-        <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-muted-foreground mb-3">Brief</p>
-        <p className="text-sm leading-7 text-foreground/80 max-w-2xl">{project.description}</p>
+        <p className="font-mono-ui text-[8px] uppercase tracking-[.24em] text-muted-foreground mb-3">Brief</p>
+        <p className="text-base leading-8 text-foreground/80 max-w-2xl">{project.description}</p>
       </section>
 
-      {/* Status grid */}
-      <section className="grid gap-px sm:grid-cols-4">
+      {/* Status strip — horizontal, no boxes */}
+      <section className="flex overflow-x-auto border-t border-b border-border">
         {[
           { label: "Status",    value: statusLabel(project.status) },
           { label: "Mods",      value: String(project.modCount).padStart(2, "0") },
           { label: "Materials", value: String(project.linkedMaterialNames.length) },
           { label: "Notes",     value: String(project.notes.length) },
-        ].map(({ label, value }) => (
-          <div key={label} className="border border-border px-4 py-4">
-            <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">{label}</p>
-            <p className="mt-2 font-mono-ui text-[13px] uppercase tracking-[.08em] text-foreground">{value}</p>
+        ].map(({ label, value }, i) => (
+          <div key={label} className={`shrink-0 px-5 py-4 ${i > 0 ? "border-l border-border" : ""}`}>
+            <p className="font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground">{label}</p>
+            <p className="mt-1 font-display text-2xl tracking-[-0.02em]">{value}</p>
           </div>
         ))}
       </section>
@@ -200,92 +182,70 @@ function OverviewTab({ project }: { project: DemoProject }) {
       {/* Current mod snapshot */}
       {latestEval && (
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <p className="font-mono-ui text-[8px] uppercase tracking-[.24em] text-muted-foreground">
               Current mod · {latestEval.modLabel}
             </p>
-            <p className="font-mono-ui text-[8px] text-muted-foreground/50">{latestEval.date}</p>
+            <p className="font-mono-ui text-[7px] text-muted-foreground/50">{latestEval.date}</p>
           </div>
-          <div className="border border-border px-5 py-5 space-y-4">
-            <div>
-              <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-1">Opening</p>
-              <p className="text-sm leading-6 text-foreground/80">{latestEval.opening}</p>
-            </div>
-            <div className="border-t border-border/40 pt-4">
-              <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-1">Overall</p>
-              <p className="text-sm leading-6 text-foreground/80">{latestEval.overall}</p>
-            </div>
-            <div className="border-t border-border/40 pt-4">
-              <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-1">Next adjustments</p>
-              <p className="text-sm leading-6 text-foreground/70">{latestEval.adjustments}</p>
-            </div>
+          <div className="space-y-0">
+            <EvaluationPhase label="Opening" body={latestEval.opening} isTimeline />
+            <EvaluationPhase label="Overall" body={latestEval.overall} isTimeline={false} />
+            <EvaluationPhase label="Adjustments" body={latestEval.adjustments} isTimeline={false} />
           </div>
         </section>
       )}
 
-      {/* Materials */}
+      {/* Materials in play */}
       {project.linkedMaterialNames.length > 0 && (
         <section>
-          <div className="flex items-center justify-between mb-4">
-            <p className="font-mono-ui text-[8px] uppercase tracking-[.24em] text-muted-foreground">
-              Materials · representative
-            </p>
-            <Link
-              href="/materials"
-              data-testid="link-overview-materials"
-              className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Library →
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.24em] text-muted-foreground">Materials in play</p>
+            <Link href="/materials" data-testid="link-overview-materials" className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground hover:text-foreground transition-colors">
+              Library
             </Link>
           </div>
-          <div className="space-y-px">
+          <div className="flex flex-wrap gap-2">
             {project.linkedMaterialNames.map((name, i) => (
-              <div
+              <Link
                 key={name}
-                className={`flex items-center justify-between py-3 border-t border-border ${i === 0 ? "" : ""}`}
+                href={`/materials?search=${encodeURIComponent(name)}`}
+                data-testid={`link-overview-material-${i}`}
+                className="border border-border px-3 py-1.5 font-mono-ui text-[8px] uppercase tracking-[.1em] text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
               >
-                <p className="text-sm">{name}</p>
-                <Link
-                  href={`/materials?search=${encodeURIComponent(name)}`}
-                  data-testid={`link-overview-material-${i}`}
-                  className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/50 hover:text-foreground transition-colors"
-                >
-                  Search →
-                </Link>
-              </div>
+                {name}
+              </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* Latest note — S1 SectionRule + NotebookEntry */}
+      {/* Latest note */}
       {latestNote && (
-        <section>
-          <SectionRule label="Latest note" />
-          <NotebookEntry
-            label={new Date(latestNote.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-            body={latestNote.body}
-            tag={latestNote.tag}
-          />
+        <section className="border-t border-border pt-6">
+          <p className="font-mono-ui text-[8px] uppercase tracking-[.24em] text-muted-foreground mb-4">Latest note</p>
+          {latestNote.tag && (
+            <p className="font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/50 mb-2">{latestNote.tag}</p>
+          )}
+          <p className="text-sm leading-7 text-foreground/75">{latestNote.body}</p>
+          <p className="mt-2 font-mono-ui text-[7px] text-muted-foreground/40">
+            {new Date(latestNote.createdAt).toLocaleDateString(undefined, { month: "long", day: "numeric" })}
+          </p>
         </section>
       )}
 
-      {/* Contextual AI */}
+      {/* AI interpretation */}
       <ContextualAI project={project} />
 
       {/* Dates */}
-      <section className="grid gap-4 sm:grid-cols-2 border-t border-border pt-6">
+      <section className="grid gap-6 sm:grid-cols-2 border-t border-border pt-6">
         <div>
-          <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground mb-1">Created</p>
-          <p className="text-sm">
-            {new Date(project.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
-          </p>
+          <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground mb-1">Created</p>
+          <p className="text-sm text-foreground/70">{new Date(project.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</p>
         </div>
         <div>
-          <p className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground mb-1">Last edited</p>
-          <p className="text-sm">
-            {new Date(project.updatedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
-          </p>
+          <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground mb-1">Last edited</p>
+          <p className="text-sm text-foreground/70">{new Date(project.updatedAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}</p>
         </div>
       </section>
     </motion.div>
@@ -293,7 +253,7 @@ function OverviewTab({ project }: { project: DemoProject }) {
 }
 
 function InspirationTab({ project }: { project: DemoProject }) {
-  const board  = project.inspiration;
+  const board = project.inspiration;
   const images = board.filter((i) => i.type === "image").slice(0, 6);
 
   return (
@@ -302,51 +262,64 @@ function InspirationTab({ project }: { project: DemoProject }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-5"
+      className="space-y-6"
     >
       <div className="flex items-center justify-between">
-        <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">
+        <p className="font-mono-ui text-[8px] uppercase tracking-[.20em] text-muted-foreground">
           {board.length} references · representative
         </p>
         <Link
           href={`/projects/${project.id}/inspiration`}
           data-testid="link-open-moodboard"
-          className="font-mono-ui text-[8px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline transition-colors"
+          className="inline-flex items-center gap-1.5 font-mono-ui text-[8px] uppercase tracking-[.16em] text-foreground hover:opacity-70 transition-opacity"
         >
-          Open moodboard →
+          Open canvas <ArrowRight size={9} strokeWidth={1.5} />
         </Link>
       </div>
 
+      {/* Spatial image composition — not a grid */}
       {images.length > 0 && (
-        <>
-          <style>{`@media (min-width: 768px) { .insp-tab-grid { column-count: 3; } }`}</style>
-          <div className="insp-tab-grid" style={{ columnCount: 2, columnGap: "3px" }}>
-            {images.map((item) => (
-              <div key={item.id} style={{ breakInside: "avoid", marginBottom: "3px" }}>
-                <Link
-                  href={`/projects/${project.id}/inspiration`}
-                  data-testid={`link-insp-tab-${item.id}`}
-                  className="group relative block overflow-hidden"
-                >
-                  <div className="aspect-square">
-                    <img
-                      src={item.src}
-                      alt={item.caption ?? ""}
-                      loading="lazy"
-                      className="h-full w-full object-cover grayscale opacity-50 transition-opacity duration-300 group-hover:opacity-70"
-                    />
-                  </div>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </>
+        <div className="relative w-full overflow-hidden bg-card" style={{ height: "clamp(260px, 40vw, 420px)" }}>
+          {images.slice(0, 3).map((item, i) => {
+            const positions = [
+              { top: "0%", left: "0%", width: "52%", height: "90%", zIndex: 1 },
+              { top: "5%", left: "35%", width: "34%", height: "70%", zIndex: 2 },
+              { bottom: "0%", left: "55%", width: "30%", height: "42%", zIndex: 3 },
+            ];
+            const pos = positions[i] ?? positions[0];
+            return (
+              <Link
+                key={item.id}
+                href={`/projects/${project.id}/inspiration`}
+                data-testid={`link-insp-tab-${item.id}`}
+                className="absolute group overflow-hidden"
+                style={{ ...pos, display: "block" }}
+              >
+                <img
+                  src={item.src}
+                  alt={item.caption ?? ""}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+              </Link>
+            );
+          })}
+          <Link
+            href={`/projects/${project.id}/inspiration`}
+            data-testid="link-canvas-enter"
+            className="absolute bottom-4 right-4 bg-foreground/90 text-background px-4 py-2 font-mono-ui text-[8px] uppercase tracking-[.18em] inline-flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+            style={{ zIndex: 10 }}
+          >
+            Enter Canvas <ArrowRight size={9} strokeWidth={1.5} />
+          </Link>
+        </div>
       )}
 
+      {/* Text / material objects */}
       {board.filter((i) => i.type !== "image").slice(0, 3).map((item) => (
-        <div key={item.id} className="border border-border px-4 py-4">
+        <div key={item.id} className="border-l-2 border-border pl-4 py-1">
           {item.type === "quote" && (
-            <p className="italic text-sm leading-6 text-foreground/70">&ldquo;{item.body}&rdquo;</p>
+            <p className="italic text-sm leading-7 text-foreground/70">&ldquo;{item.body}&rdquo;</p>
           )}
           {item.type === "material" && (
             <>
@@ -357,22 +330,12 @@ function InspirationTab({ project }: { project: DemoProject }) {
           )}
           {(item.type === "text" || item.type === "note") && (
             <>
-              {item.tag && (
-                <p className="font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/50 mb-1">{item.tag}</p>
-              )}
+              {item.tag && <p className="font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/50 mb-1">{item.tag}</p>}
               <p className="text-sm leading-6 text-foreground/70">{item.body}</p>
             </>
           )}
         </div>
       ))}
-
-      <Link
-        href={`/projects/${project.id}/inspiration`}
-        data-testid="link-view-full-moodboard"
-        className="inline-flex items-center gap-2 border border-border px-4 py-2 font-mono-ui text-[8px] uppercase tracking-widest transition-colors hover:bg-secondary"
-      >
-        Full moodboard <ArrowRight size={11} />
-      </Link>
     </motion.div>
   );
 }
@@ -381,16 +344,10 @@ function EvaluationTab({ project }: { project: DemoProject }) {
   const [open, setOpen] = useState<string | null>(project.evaluations[0]?.id ?? null);
 
   return (
-    <motion.div
-      key="evaluation"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-2"
-    >
-      <SectionRule
-        label={`${project.evaluations.length} evaluation${project.evaluations.length !== 1 ? "s" : ""} · read-only`}
-      />
+    <motion.div key="evaluation" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="space-y-0">
+      <p className="font-mono-ui text-[8px] uppercase tracking-[.20em] text-muted-foreground mb-6">
+        {project.evaluations.length} evaluation{project.evaluations.length !== 1 ? "s" : ""} · read-only
+      </p>
 
       {project.evaluations.length === 0 && (
         <div className="border border-dashed border-border py-12 text-center">
@@ -399,22 +356,25 @@ function EvaluationTab({ project }: { project: DemoProject }) {
       )}
 
       {project.evaluations.map((ev) => (
-        <div key={ev.id} className="border border-border">
+        <div key={ev.id} className="border-t border-border">
           <button
             type="button"
             onClick={() => setOpen(open === ev.id ? null : ev.id)}
             aria-expanded={open === ev.id}
             aria-controls={`eval-body-${ev.id}`}
-            className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-secondary/20"
+            className="flex w-full items-center justify-between gap-4 py-5 text-left transition-colors hover:opacity-70"
             data-testid={`button-evaluation-${ev.id}`}
           >
             <div>
-              <p className="font-mono-ui text-[11px] uppercase tracking-[.1em]">{ev.modLabel}</p>
-              <p className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground/60">{ev.date}</p>
+              <p className="font-mono-ui text-[11px] uppercase tracking-[.10em]">{ev.modLabel}</p>
+              <p className="mt-0.5 font-mono-ui text-[7px] text-muted-foreground/60">{ev.date}</p>
             </div>
-            <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground shrink-0" aria-hidden>
-              {open === ev.id ? "Close" : "Read"}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground shrink-0" aria-hidden>
+                {open === ev.id ? "Close" : "Read"}
+              </span>
+              <ChevronDown size={12} className={`text-muted-foreground transition-transform duration-150 ${open === ev.id ? "rotate-180" : ""}`} />
+            </div>
           </button>
 
           <AnimatePresence>
@@ -427,8 +387,18 @@ function EvaluationTab({ project }: { project: DemoProject }) {
                 transition={{ duration: 0.22 }}
                 className="overflow-hidden"
               >
-                <div className="border-t border-border px-5 py-5">
-                  <EvaluationNotebook ev={ev} />
+                <div className="pb-6 space-y-0">
+                  {EVAL_PHASES.filter((ph) => {
+                    const val = ev[ph.key];
+                    return typeof val === "string" && val.length > 0;
+                  }).map((ph) => (
+                    <EvaluationPhase
+                      key={ph.key}
+                      label={ph.label}
+                      body={ev[ph.key] as string}
+                      isTimeline={TEMPORAL_PHASE_KEYS.has(ph.key)}
+                    />
+                  ))}
                 </div>
               </motion.div>
             )}
@@ -437,7 +407,7 @@ function EvaluationTab({ project }: { project: DemoProject }) {
       ))}
 
       {project.evaluations.length > 0 && (
-        <div className="pt-4">
+        <div className="pt-6">
           <ContextualAI project={project} />
         </div>
       )}
@@ -447,34 +417,33 @@ function EvaluationTab({ project }: { project: DemoProject }) {
 
 function NotesTab({ project }: { project: DemoProject }) {
   return (
-    <motion.div
-      key="notes"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-0"
-    >
-      <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground mb-4">
+    <motion.div key="notes" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      <p className="font-mono-ui text-[8px] uppercase tracking-[.20em] text-muted-foreground mb-6">
         {project.notes.length} notes · read-only
       </p>
-
       {project.notes.length === 0 && (
         <div className="border border-dashed border-border py-12 text-center">
           <p className="text-sm text-muted-foreground">No notes in this project.</p>
         </div>
       )}
-
-      {project.notes.map((note, i) => (
-        <NotebookEntry
-          key={note.id}
-          label={new Date(note.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
-          body={note.body}
-          tag={note.tag}
-          className={i > 0 ? "border-t border-border" : ""}
-        />
-      ))}
-
-      <div className="pt-4">
+      <div className="space-y-0">
+        {project.notes.map((note, i) => (
+          <div key={note.id} className={`py-5 ${i > 0 ? "border-t border-border" : ""}`}>
+            <div className="flex items-center gap-3 mb-2">
+              <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground/50">
+                {new Date(note.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+              </p>
+              {note.tag && (
+                <span className="font-mono-ui text-[7px] uppercase tracking-[.10em] text-accent/70 border border-accent/30 px-1.5 py-0.5">
+                  {note.tag}
+                </span>
+              )}
+            </div>
+            <p className="text-sm leading-7 text-foreground/80">{note.body}</p>
+          </div>
+        ))}
+      </div>
+      <div className="pt-6 border-t border-border">
         <ContextualAI project={project} />
       </div>
     </motion.div>
@@ -483,45 +452,30 @@ function NotesTab({ project }: { project: DemoProject }) {
 
 function MaterialsTab({ project }: { project: DemoProject }) {
   return (
-    <motion.div
-      key="materials"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-4"
-    >
-      <div className="flex items-center justify-between">
-        <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">
+    <motion.div key="materials" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      <div className="flex items-center justify-between mb-6">
+        <p className="font-mono-ui text-[8px] uppercase tracking-[.20em] text-muted-foreground">
           {project.linkedMaterialNames.length} materials · representative
         </p>
-        <Link
-          href="/materials"
-          data-testid="link-project-browse-materials"
-          className="font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Browse library →
+        <Link href="/materials" data-testid="link-project-browse-materials" className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground hover:text-foreground transition-colors">
+          Browse library
         </Link>
       </div>
-
       {project.linkedMaterialNames.length === 0 && (
         <div className="border border-dashed border-border py-12 text-center">
           <p className="text-sm text-muted-foreground">No materials listed for this project.</p>
         </div>
       )}
-
-      <div className="space-y-px">
+      <div>
         {project.linkedMaterialNames.map((name, i) => (
-          <div
-            key={name}
-            className={`flex items-center justify-between py-4 border-t border-border ${i === 0 ? "" : ""}`}
-          >
+          <div key={name} className={`flex items-center justify-between py-4 ${i > 0 ? "border-t border-border" : ""}`}>
             <p className="text-sm">{name}</p>
             <Link
               href={`/materials?search=${encodeURIComponent(name)}`}
               data-testid={`link-material-search-${i}`}
-              className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+              className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/50 hover:text-foreground transition-colors inline-flex items-center gap-1"
             >
-              Search →
+              Search <ArrowRight size={8} strokeWidth={1.5} />
             </Link>
           </div>
         ))}
@@ -532,54 +486,46 @@ function MaterialsTab({ project }: { project: DemoProject }) {
 
 function FormulasTab({ project }: { project: DemoProject }) {
   return (
-    <motion.div
-      key="formulas"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-4"
-    >
-      <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">
+    <motion.div key="formulas" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      <p className="font-mono-ui text-[8px] uppercase tracking-[.20em] text-muted-foreground mb-6">
         {project.modCount} mods recorded · representative
       </p>
-
-      <div className="space-y-px">
+      <div>
         {Array.from({ length: project.modCount }, (_, i) => {
-          const modNum   = String(project.modCount - i).padStart(2, "0");
+          const modNum = String(project.modCount - i).padStart(2, "0");
           const isLatest = i === 0;
           return (
-            <div key={modNum} className="flex items-center justify-between py-4 border-t border-border">
+            <div key={modNum} className={`flex items-center justify-between py-4 ${i > 0 ? "border-t border-border" : ""}`}>
               <div>
                 <div className="flex items-center gap-3">
                   <p className="font-mono-ui text-[11px] uppercase tracking-[.12em]">MOD {modNum}</p>
                   {isLatest && (
-                    <span className="border border-foreground/20 px-1.5 py-0.5 font-mono-ui text-[7px] uppercase tracking-widest text-foreground">
+                    <span className="border-l-2 border-accent pl-2 font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground">
                       Latest
                     </span>
                   )}
                 </div>
-                <p className="mt-0.5 font-mono-ui text-[8px] text-muted-foreground/60">
+                <p className="mt-0.5 font-mono-ui text-[7px] text-muted-foreground/60">
                   {new Date(project.updatedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                 </p>
               </div>
-              <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/40">
+              <span className="font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/35">
                 Representative
               </span>
             </div>
           );
         })}
       </div>
-
-      <div className="border border-dashed border-border p-4">
-        <p className="text-xs text-muted-foreground">
+      <div className="border-t border-border pt-5 mt-2">
+        <p className="text-xs text-muted-foreground mb-3">
           Link this project to real formulas once a backend Project entity exists.
         </p>
         <Link
           href="/formulas"
-          className="mt-3 inline-block font-mono-ui text-[9px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline"
+          className="font-mono-ui text-[8px] uppercase tracking-widest text-foreground inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity"
           data-testid="link-project-browse-formulas"
         >
-          Browse formulas →
+          Browse formulas <ArrowRight size={9} strokeWidth={1.5} />
         </Link>
       </div>
     </motion.div>
@@ -589,18 +535,14 @@ function FormulasTab({ project }: { project: DemoProject }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function ProjectWorkspace() {
-  const params  = useParams<{ id: string }>();
-  const search  = useSearch();
+  const params = useParams<{ id: string }>();
+  const search = useSearch();
   const [, setLocation] = useLocation();
   const project = DEMO_PROJECTS.find((p) => p.id === params.id);
 
-  // Derive active tab from ?tab= query param; default "overview"
-  const rawTab  = new URLSearchParams(search).get("tab") ?? "";
-  const activeTab: WorkspaceTab = VALID_TABS.has(rawTab as WorkspaceTab)
-    ? (rawTab as WorkspaceTab)
-    : "overview";
+  const rawTab = new URLSearchParams(search).get("tab") ?? "";
+  const activeTab: WorkspaceTab = VALID_TABS.has(rawTab as WorkspaceTab) ? (rawTab as WorkspaceTab) : "overview";
 
-  // Write the chosen tab back into the URL (replace so Back button works naturally)
   const handleTabChange = useCallback(
     (tab: WorkspaceTab) => {
       const qs = tab === "overview" ? "" : `?tab=${tab}`;
@@ -612,16 +554,10 @@ export function ProjectWorkspace() {
   if (!project) {
     return (
       <div className="py-20 text-center animate-fade-in">
-        <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground mb-4">
-          Not found
-        </p>
+        <p className="font-mono-ui text-[8px] uppercase tracking-[.20em] text-muted-foreground mb-4">Not found</p>
         <h1 className="font-display text-4xl">This project doesn&apos;t exist.</h1>
         <div className="mt-6">
-          <Link
-            href="/projects"
-            className="font-mono-ui text-[9px] uppercase tracking-widest underline-offset-4 hover:underline"
-            data-testid="link-back-projects"
-          >
+          <Link href="/projects" className="font-mono-ui text-[9px] uppercase tracking-widest underline-offset-4 hover:underline" data-testid="link-back-projects">
             Back to projects
           </Link>
         </div>
@@ -632,53 +568,52 @@ export function ProjectWorkspace() {
   return (
     <div className="animate-fade-in">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 pt-6 pb-4">
+      <div className="flex items-center gap-2 pt-7 pb-5">
         <Link
           href="/projects"
           data-testid="link-breadcrumb-projects"
-          className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground hover:text-foreground transition-colors"
+          className="font-mono-ui text-[7px] uppercase tracking-[.20em] text-muted-foreground hover:text-foreground transition-colors"
         >
           Projects
         </Link>
-        <span className="text-muted-foreground/40">/</span>
-        <span className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-foreground">
-          {project.name}
-        </span>
+        <span className="text-muted-foreground/30 text-xs">/</span>
+        <span className="font-mono-ui text-[7px] uppercase tracking-[.20em] text-foreground">{project.name}</span>
       </div>
 
-      {/* Header */}
-      <header className="border-b border-border pb-6">
+      {/* Header — name, olfactive direction, status */}
+      <header className="border-b border-border pb-7">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.20em] text-muted-foreground">
               {project.olfactiveDirection}
             </p>
             <h1
-              className="mt-2 font-display text-5xl tracking-[-0.03em] leading-[.88] sm:text-6xl"
+              className="mt-2 font-display tracking-[-0.04em] leading-[.88] text-foreground"
+              style={{ fontSize: "clamp(2.2rem, 4.5vw, 4rem)" }}
               data-testid="heading-project-name"
             >
               {project.name}
             </h1>
           </div>
-          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-            <span className="border border-border px-3 py-1.5 font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
+            <span className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground border border-border px-2.5 py-1.5">
               {statusLabel(project.status)} · MOD {String(project.modCount).padStart(2, "0")}
             </span>
             <Link
               href={`/projects/${project.id}/inspiration`}
               data-testid="link-project-inspiration"
-              className="border border-foreground/20 px-3 py-1.5 font-mono-ui text-[8px] uppercase tracking-[.14em] transition-colors hover:border-foreground flex items-center gap-1"
+              className="border border-foreground/20 px-3 py-1.5 font-mono-ui text-[7px] uppercase tracking-[.14em] transition-colors hover:border-foreground inline-flex items-center gap-1.5"
             >
-              Moodboard <ArrowRight size={10} className="inline" />
+              <span className="inline-block h-1 w-1 bg-accent" aria-hidden /> Canvas
             </Link>
           </div>
         </div>
-        <p className="mt-2 font-mono-ui text-[7px] uppercase tracking-[.12em] text-muted-foreground/40">
+        <p className="mt-2 font-mono-ui text-[6px] uppercase tracking-[.12em] text-muted-foreground/35">
           Representative project · read-only · no backend entity yet
         </p>
       </header>
 
-      {/* Tab bar — native keyboard-accessible <button> elements, role="tablist" */}
+      {/* Tab bar */}
       <div
         role="tablist"
         aria-label="Project workspace tabs"
@@ -696,8 +631,8 @@ export function ProjectWorkspace() {
             onClick={() => handleTabChange(tab.id)}
             data-testid={`tab-${tab.id}`}
             className={[
-              "relative shrink-0 px-5 py-4 font-mono-ui text-[9px] uppercase tracking-[.14em] transition-colors",
-              "focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4",
+              "relative shrink-0 px-4 py-4 font-mono-ui text-[9px] uppercase tracking-[.14em] transition-colors",
+              "focus-visible:outline-none",
               activeTab === tab.id ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             ].join(" ")}
           >
@@ -705,8 +640,8 @@ export function ProjectWorkspace() {
             {activeTab === tab.id && (
               <motion.div
                 layoutId="project-tab-bar"
-                className="absolute inset-x-0 bottom-0 h-[2px] bg-foreground"
-                transition={{ type: "tween", duration: 0.18 }}
+                className="absolute inset-x-0 bottom-0 h-[2px] bg-accent"
+                transition={{ type: "tween", duration: 0.16 }}
               />
             )}
           </button>
@@ -718,7 +653,7 @@ export function ProjectWorkspace() {
         role="tabpanel"
         id={`tabpanel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
-        className="py-8"
+        className="pt-8"
       >
         <AnimatePresence mode="wait">
           {activeTab === "overview"    && <OverviewTab    key="overview"    project={project} />}

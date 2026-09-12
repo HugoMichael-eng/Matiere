@@ -929,9 +929,9 @@ importers:
       '@workspace/material-families':
         specifier: workspace:*
         version: link:../../lib/material-families
-      '@workspace/s1':
+      '@workspace/verve-design-system':
         specifier: workspace:*
-        version: link:../s1
+        version: link:../verve-design-system
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -15308,7 +15308,7 @@ snapshots:
 
   vite@7.3.6(@types/node@25.9.5)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.50.0)(tsx@4.23.1)(yaml@2.9.0):
     dependencies:
-      esbuild: 0.27.3
+      esbuild: 0.28.2
       fdir: 6.5.0(picomatch@4.0.5)
       picomatch: 4.0.5
       postcss: 8.5.23

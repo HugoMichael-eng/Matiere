@@ -1,1289 +1,833 @@
 /**
- * /projects/:id/inspiration — Variable-scale moodboard with Focus Mode
- *
- * Focus Mode:
- *   - Full-viewport low-chrome overlay (no spring animations)
- *   - Keyboard: Escape to dismiss, Tab trapped inside
- *   - Focus restoration to triggering tile on close
- *   - Mobile: contextual actions rendered as bottom sheet strip
- *   - Accessible: role="dialog" aria-modal aria-label
- *
- * Board interactions:
- *   - Tile click → Focus Mode viewer
- *   - Viewer → Interpret (single tile interpretation panel)
- *   - Multi-select → Interpret Selection
- *   - Interpret Board (board-level reading)
- *   - + Add sheet (read-only preview)
- *   - Current Olfactive Direction continuity section
- *
- * All data is representative. No persistence.
+ * /projects/:id/inspiration — The Canvas
+ * MATIÈRE redesign: spatial, art-director's wall.
+ * Drag-and-drop moodboard feel.
+ * Objects: images, text, material references, olfactive direction labels.
+ * Focus mode: full-screen object viewer.
+ * Board reading: AI olfactive interpretation.
  */
 
 import {
   useState,
-  useCallback,
   useRef,
+  useCallback,
   useEffect,
-  type KeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+  type CSSProperties,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useParams } from "wouter";
-import { X, Plus, Sparkles, Check, ArrowRight, ChevronRight } from "lucide-react";
-import { FocusViewer } from "@workspace/s1/components/ui/focus-viewer";
-import { SectionRule } from "@workspace/s1/components/ui/section-rule";
+import {
+  X,
+  ArrowLeft,
+  Sparkles,
+  ZoomIn,
+  Move,
+  Plus,
+  Minus,
+  RotateCcw,
+  Image as ImageIcon,
+  Type,
+  Layers,
+} from "lucide-react";
 import { DEMO_PROJECTS } from "../data/projects";
 import type { InspirationItem } from "../data/projects";
 
-// ─── Lait Vert interpretation data ───────────────────────────────────────────
+// ─── Canvas object types ──────────────────────────────────────────────────────
 
-const LAIT_VERT_BOARD_READING = {
-  atmosphere: ["Cold", "Quiet", "Tactile", "Diffused", "Intimate"],
-  visualTensions: [
-    "Organic vs. Architectural",
-    "Wet vs. Dry",
-    "Transparent vs. Creamy",
-    "Botanical vs. Mineral",
-  ],
-  olfactiveTerritories: [
-    "Green vegetal",
-    "Cold floral",
-    "Mineral skin",
-    "Milky transparency",
-    "Pale woods",
-  ],
-  materialDirections: [
-    "Violet Leaf Absolute",
-    "Stemone",
-    "Hedione HC",
-    "Galbanum EO",
-    "Ambrettolide",
-    "Cashmeran",
-    "Ambroxan",
-  ],
-  avoid: ["Bright citrus", "Sugared florals", "Heavy amber warmth", "Sweet iris"],
-};
+interface CanvasObject {
+  id: string;
+  type: "image" | "text" | "material" | "note" | "direction" | "quote";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  zIndex: number;
+  data: InspirationItem;
+}
 
-const LAIT_VERT_DIRECTION = {
-  lines: [
-    "Cold vegetal opening",
-    "Translucent floral diffusion",
-    "Mineral skin",
-    "Pale dry woods",
-  ],
-};
+// ─── Utilities ────────────────────────────────────────────────────────────────
 
-const ITEM_INTERPRETATIONS: Record<
-  string,
-  {
-    visualReading: string[];
-    olfactiveTranslation: string[];
-    materialPossibilities: string[];
-    exploreAsScent: {
-      character: string[];
-      structure: string[];
-      explore: string[];
-    } | null;
+function clamp(v: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function deriveOlfactiveInterpretation(
+  items: InspirationItem[],
+  projectName: string,
+  direction: string,
+): string {
+  const materials = items.filter((i) => i.type === "material").map((i) => i.materialName);
+  const quotes = items.filter((i) => i.type === "quote").map((i) => i.body);
+  const imageCount = items.filter((i) => i.type === "image").length;
+
+  let body = `Reading the canvas for ${projectName}: the composition assembles ${imageCount} visual reference${imageCount !== 1 ? "s" : ""} with a olfactive target of "${direction}".`;
+
+  if (materials.length > 0) {
+    body += ` The material selections — ${materials.join(", ")} — anchor the palette and suggest an olfactive architecture that leans toward the structural.`;
   }
-> = {
-  "i-11": {
-    visualReading: ["Saturated", "Wet", "Cold", "Metallic", "Vegetal"],
-    olfactiveTranslation: ["Wet leaf", "Metallic green", "Cold ozonic", "Transparent"],
-    materialPossibilities: ["Violet Leaf Absolute", "Stemone", "Galbanum EO", "Floralozone"],
-    exploreAsScent: {
-      character: ["Cold", "Vegetal", "Metallic", "Transparent"],
-      structure: ["Wet green opening", "Ozonic floral diffusion", "Dry mineral finish"],
-      explore: ["Violet Leaf Absolute", "Stemone", "Hedione", "Floralozone"],
-    },
-  },
-  "i-11b": {
-    visualReading: ["Architectural", "Restrained", "Non-literal", "Structural"],
-    olfactiveTranslation: ["Mineral green", "Cold geometry", "Diffusive transparency"],
-    materialPossibilities: ["Stemone", "Iso E Super", "Cashmeran", "Ambroxan"],
-    exploreAsScent: null,
-  },
-  "i-11c": {
-    visualReading: ["Translucent", "Diffused", "Pale", "Warm", "Quiet"],
-    olfactiveTranslation: ["Skin warmth", "Airy floral", "Transparent musk", "Soft powder"],
-    materialPossibilities: ["Hedione HC", "Habanolide", "Ambrettolide", "Cashmeran"],
-    exploreAsScent: {
-      character: ["Translucent", "Warm", "Quiet", "Tactile"],
-      structure: ["Diffusive floral opening", "Warm skin core", "Lingering musk"],
-      explore: ["Hedione HC", "Habanolide", "Ambrettolide", "Musks Blend"],
-    },
-  },
-  "i-11d": {
-    visualReading: ["Enclosed", "Humid", "Green", "Still", "After-presence"],
-    olfactiveTranslation: ["Humid vegetal", "Soil under glass", "Fading flower", "Green mineral"],
-    materialPossibilities: ["Violet Leaf Absolute", "Galbanum EO", "Hedione HC", "Stemone"],
-    exploreAsScent: null,
-  },
-  "i-11e": {
-    visualReading: ["Semi-opaque", "Organic", "Milky", "Dense", "Textured"],
-    olfactiveTranslation: ["Milky musk", "Warm resin", "Skin-like opacity", "Soft woods"],
-    materialPossibilities: ["Cashmeran", "Ambrettolide", "Habanolide", "Cedarwood Atlas"],
-    exploreAsScent: {
-      character: ["Milky", "Warm", "Organic", "Soft"],
-      structure: ["Resinous opening", "Milky skin accord", "Pale wood drydown"],
-      explore: ["Cashmeran", "Ambrettolide", "Habanolide", "Lily of the Valley Base"],
-    },
-  },
-  "i-11f": {
-    visualReading: ["Pale", "Tactile", "Close-woven", "Muted", "Restrained"],
-    olfactiveTranslation: ["Clean linen", "Quiet musk", "Mineral skin", "Transparent warmth"],
-    materialPossibilities: ["Ambrettolide", "Ambroxan", "Habanolide", "Floralozone"],
-    exploreAsScent: null,
-  },
-  "i-11g": {
-    visualReading: ["Mineral", "Cold", "Structural", "Grey", "Hard"],
-    olfactiveTranslation: ["Mineral dryness", "Cold stone", "Abstract woods", "Ozonic undertone"],
-    materialPossibilities: ["Stemone", "Iso E Super", "Cashmeran", "Ambroxan"],
-    exploreAsScent: {
-      character: ["Mineral", "Cold", "Structural", "Abstract"],
-      structure: ["Ozonic mineral opening", "Dry wood accord", "Cool ambergris skin"],
-      explore: ["Stemone", "Iso E Super", "Cashmeran", "Ambroxan"],
-    },
-  },
-  "i-11h": {
-    visualReading: ["Cold", "Luminous", "Transparent", "Botanical", "Fragile"],
-    olfactiveTranslation: ["Cold light", "Transparent green", "Airy floral", "Morning dew"],
-    materialPossibilities: ["Violet Leaf Absolute", "Floralozone", "Hedione HC", "Stemone"],
-    exploreAsScent: null,
-  },
-  "i-11i": {
-    visualReading: ["Refined", "Pale", "Structural", "Quiet", "Linear"],
-    olfactiveTranslation: ["Clean restraint", "Aldehydic warmth", "Quiet florals", "Tailored skin"],
-    materialPossibilities: ["Hedione HC", "Ambrettolide", "Cashmeran", "Habanolide"],
-    exploreAsScent: null,
-  },
-  "i-11j": {
-    visualReading: ["Fragile", "Powdery", "Close", "Organic", "Pale"],
-    olfactiveTranslation: ["Soft powder", "Cool iris facet", "Orris accord", "Skin musk"],
-    materialPossibilities: ["Orris Concrete", "Irone Alpha", "Ambrettolide", "Hedione HC"],
-    exploreAsScent: null,
-  },
-  "i-11k": {
-    visualReading: ["Translucent", "Cold", "Mineral", "Diffused", "Pale green", "Fragile"],
-    olfactiveTranslation: ["Wet vegetal", "Airy floral", "Mineral", "Transparent musk", "Cold woods"],
-    materialPossibilities: ["Violet Leaf Absolute", "Stemone", "Hedione", "Floralozone", "Ambroxan", "Habanolide"],
-    exploreAsScent: {
-      character: ["Cold", "Vegetal", "Mineral", "Transparent"],
-      structure: ["Green opening", "Diffusive floral core", "Dry mineral skin"],
-      explore: ["Violet Leaf Absolute", "Stemone", "Hedione", "Ambroxan", "Habanolide"],
-    },
-  },
-  "i-12": {
-    visualReading: ["Precise", "Plant-forward", "Cold", "Structural"],
-    olfactiveTranslation: ["Metallic green", "Wet foliage", "Ozonic edge", "Non-sweet"],
-    materialPossibilities: ["Violet Leaf Absolute", "Galbanum EO", "Stemone", "Floralozone"],
-    exploreAsScent: null,
-  },
-};
 
-const MULTI_SELECT_READING = {
-  atmosphere: ["Cold", "Restrained", "Tactile", "Diffused"],
-  tensions: ["Organic vs. Architectural", "Wet vs. Dry", "Soft vs. Mineral", "Transparent vs. Creamy"],
-  olfactiveTranslation: ["Green vegetal", "Cold floral", "Skin musk", "Mineral woods"],
-  materialTerritories: ["Violet Leaf Absolute", "Stemone", "Hedione", "Ambrettolide", "Cashmeran", "Ambroxan"],
-};
+  if (quotes.length > 0) {
+    const q = quotes[0];
+    if (q && q.length > 0) {
+      body += ` The textual reference "${q.slice(0, 80)}${q.length > 80 ? "…" : ""}" suggests the concept is oriented toward abstraction or a specific sensory quality.`;
+    }
+  }
 
-// ─── Focus trap hook ──────────────────────────────────────────────────────────
+  body += ` The visual register reads as ${direction.toLowerCase().includes("green") ? "botanical, wet, mineral-inflected" : direction.toLowerCase().includes("wood") ? "warm, structural, resinous" : direction.toLowerCase().includes("floral") ? "sensual, complex, multi-layered" : "atmospheric and composed"}.`;
 
-function useFocusTrap(
-  ref: React.RefObject<HTMLElement | null>,
-  active: boolean,
-  onEscape: () => void
+  return body;
+}
+
+// ─── Drag hook ────────────────────────────────────────────────────────────────
+
+function useDragObject(
+  obj: CanvasObject,
+  scale: number,
+  onMove: (id: string, dx: number, dy: number) => void,
+  onFocus: (id: string) => void,
 ) {
-  const prevFocus = useRef<HTMLElement | null>(null);
+  const dragging = useRef(false);
+  const startPointer = useRef({ x: 0, y: 0 });
+  const startObj = useRef({ x: 0, y: 0 });
 
-  useEffect(() => {
-    if (!active) return;
-
-    // Save current focus
-    prevFocus.current = document.activeElement as HTMLElement;
-
-    const el = ref.current;
-    if (!el) return;
-
-    const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-    const getFocusable = () => Array.from(el.querySelectorAll<HTMLElement>(FOCUSABLE));
-
-    // Focus first focusable element
-    setTimeout(() => getFocusable()[0]?.focus(), 16);
-
-    const handler = (e: globalThis.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onEscape();
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const nodes = getFocusable();
-      const first = nodes[0];
-      const last = nodes[nodes.length - 1];
-      if (e.shiftKey) {
-        if (document.activeElement === first) { e.preventDefault(); last?.focus(); }
-      } else {
-        if (document.activeElement === last) { e.preventDefault(); first?.focus(); }
-      }
-    };
-
-    el.addEventListener("keydown", handler);
-    return () => {
-      el.removeEventListener("keydown", handler);
-      // Restore focus
-      prevFocus.current?.focus();
-    };
-  }, [active, ref, onEscape]);
-}
-
-// ─── Chip / tag helpers ───────────────────────────────────────────────────────
-
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-block border border-border px-2 py-0.5 font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground">
-      {children}
-    </span>
+  const onPointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if ((e.target as HTMLElement).closest("[data-no-drag]")) return;
+      dragging.current = true;
+      startPointer.current = { x: e.clientX, y: e.clientY };
+      startObj.current = { x: obj.x, y: obj.y };
+      onFocus(obj.id);
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      e.currentTarget.classList.add("obj-lifted");
+    },
+    [obj.id, obj.x, obj.y, onFocus],
   );
-}
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-mono-ui text-[8px] uppercase tracking-[.24em] text-muted-foreground mb-2">
-      {children}
-    </p>
+  const onPointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (!dragging.current) return;
+      const dx = (e.clientX - startPointer.current.x) / scale;
+      const dy = (e.clientY - startPointer.current.y) / scale;
+      onMove(obj.id, startObj.current.x + dx, startObj.current.y + dy);
+    },
+    [obj.id, scale, onMove],
   );
-}
 
-function TagRow({ items }: { items: string[] }) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {items.map((t) => <Chip key={t}>{t}</Chip>)}
-    </div>
+  const onPointerUp = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      dragging.current = false;
+      const el = e.currentTarget as HTMLElement;
+      el.classList.remove("obj-lifted");
+      el.classList.add("obj-settled");
+      setTimeout(() => el.classList.remove("obj-settled"), 400);
+    },
+    [],
   );
+
+  return { onPointerDown, onPointerMove, onPointerUp };
 }
 
-function ReadOnlyBadge() {
-  return (
-    <span className="font-mono-ui text-[7px] uppercase tracking-widest text-muted-foreground/40">
-      Preview
-    </span>
-  );
-}
+// ─── Canvas object component ──────────────────────────────────────────────────
 
-// ─── Focus Mode viewer — delegates shell to S1 FocusViewer primitive ─────────
-// The S1 FocusViewer handles: focus trap, Escape dismissal, backdrop click,
-// role/aria-modal, and the bottom bar layout.
-// This wrapper renders the content body and composes the action bar.
-
-function FocusModeViewer({
-  item,
-  onClose,
-  onInterpret,
+function CanvasObject({
+  obj,
+  scale,
+  selected,
+  onSelect,
+  onMove,
+  onOpenFocus,
 }: {
-  item: InspirationItem;
-  onClose: () => void;
-  onInterpret: (item: InspirationItem) => void;
+  obj: CanvasObject;
+  scale: number;
+  selected: boolean;
+  onSelect: (id: string) => void;
+  onMove: (id: string, x: number, y: number) => void;
+  onOpenFocus: (item: InspirationItem) => void;
 }) {
-  const caption = item.caption ?? item.tag ?? undefined;
+  const { onPointerDown, onPointerMove, onPointerUp } = useDragObject(obj, scale, onMove, onSelect);
 
-  const actions = (
-    <div className="flex items-center overflow-x-auto gap-0 sm:gap-4 -my-1">
-      {/* Interpret */}
-      <button
-        onClick={() => { onClose(); onInterpret(item); }}
-        className="flex shrink-0 items-center gap-1.5 px-3 py-2 font-mono-ui text-[8px] uppercase tracking-[.18em] text-foreground border border-border hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:bg-secondary"
-        data-testid="button-focus-interpret"
+  const style: CSSProperties = {
+    position: "absolute",
+    left: obj.x,
+    top: obj.y,
+    width: obj.w,
+    height: obj.type === "text" || obj.type === "note" || obj.type === "direction" ? "auto" : obj.h,
+    zIndex: selected ? obj.zIndex + 50 : obj.zIndex,
+    userSelect: "none",
+    touchAction: "none",
+  };
+
+  const baseClass = [
+    "cursor-grab active:cursor-grabbing",
+    "transition-shadow duration-150",
+    selected ? "ring-1 ring-accent" : "",
+  ].join(" ");
+
+  if (obj.type === "image") {
+    return (
+      <div
+        style={style}
+        className={baseClass}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        data-testid={`canvas-obj-${obj.id}`}
       >
-        <Sparkles size={9} />
-        Interpret
-      </button>
-
-      {/* Material library link */}
-      {item.type === "material" && item.materialName && (
-        <Link
-          href={`/materials?search=${encodeURIComponent(item.materialName)}`}
-          onClick={onClose}
-          className="flex shrink-0 items-center gap-1.5 px-3 py-2 font-mono-ui text-[8px] uppercase tracking-[.18em] text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:text-foreground"
-          data-testid="link-focus-material"
+        <img
+          src={obj.data.src}
+          alt={obj.data.caption ?? ""}
+          draggable={false}
+          loading="lazy"
+          className="w-full h-full object-cover block select-none"
+          style={{ height: obj.h }}
+        />
+        {/* Focus button */}
+        <button
+          type="button"
+          data-no-drag
+          onClick={() => onOpenFocus(obj.data)}
+          aria-label="Open full view"
+          data-testid={`btn-focus-${obj.id}`}
+          className="absolute top-2 right-2 h-7 w-7 bg-background/80 flex items-center justify-center opacity-0 hover:opacity-100 focus-visible:opacity-100 transition-opacity"
         >
-          Search library
-          <ArrowRight size={9} />
-        </Link>
-      )}
-
-      {/* Kbd hint */}
-      <p className="hidden sm:block shrink-0 font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground/40 ml-2 mr-1">
-        Esc to close
-      </p>
-
-      {/* Close */}
-      <button
-        onClick={onClose}
-        className="shrink-0 px-3 py-2 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:text-foreground"
-        aria-label="Close focus view"
-        data-testid="button-focus-close"
-      >
-        <X size={14} />
-      </button>
-    </div>
-  );
-
-  return (
-    <FocusViewer
-      open={true}
-      label={`Focus view: ${item.caption ?? item.materialName ?? "Reference"}`}
-      onClose={onClose}
-      caption={caption}
-      actions={actions}
-      className="max-w-5xl"
-    >
-      {/* ── Content body — rendered inside FocusViewer's content slot ── */}
-      <div className="flex flex-1 items-center justify-center p-4 sm:p-8 min-h-[40vh]">
-        {item.type === "image" && item.src && (
-          <img
-            src={item.src}
-            alt={item.caption ?? ""}
-            className="max-h-full max-w-full object-contain"
-            style={{ maxHeight: "calc(100dvh - 160px)" }}
-          />
-        )}
-        {(item.type === "text" || item.type === "note") && (
-          <blockquote className="font-display text-2xl sm:text-4xl leading-snug text-center max-w-xl text-foreground">
-            {item.body}
-          </blockquote>
-        )}
-        {item.type === "quote" && (
-          <div className="text-center max-w-xl">
-            <blockquote className="font-display text-2xl sm:text-4xl leading-snug text-foreground">
-              &ldquo;{item.body}&rdquo;
-            </blockquote>
-            {item.caption && (
-              <p className="mt-4 font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">
-                {item.caption}
-              </p>
-            )}
-          </div>
-        )}
-        {item.type === "material" && (
-          <div className="text-center max-w-lg">
-            <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-muted-foreground mb-4">
-              Material reference
-            </p>
-            <p className="font-display text-4xl sm:text-6xl leading-tight text-foreground">{item.materialName}</p>
-            {item.materialSubtitle && (
-              <p className="mt-3 font-mono-ui text-[9px] uppercase tracking-[.14em] text-muted-foreground">
-                {item.materialSubtitle}
-              </p>
-            )}
-            {item.body && (
-              <p className="mt-5 text-sm leading-6 text-foreground/70 max-w-sm mx-auto">{item.body}</p>
-            )}
+          <ZoomIn size={10} strokeWidth={1.5} />
+        </button>
+        {obj.data.caption && (
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/50 to-transparent px-2 py-1.5">
+            <p className="font-mono-ui text-[7px] uppercase tracking-[.10em] text-white/70">{obj.data.caption}</p>
           </div>
         )}
       </div>
-    </FocusViewer>
-  );
-}
+    );
+  }
 
-// ─── + Add sheet ─────────────────────────────────────────────────────────────
+  if (obj.type === "material") {
+    return (
+      <div
+        style={{ ...style, height: "auto" }}
+        className={`${baseClass} bg-background border border-border px-3 py-3`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        data-testid={`canvas-obj-${obj.id}`}
+      >
+        <p className="font-mono-ui text-[6px] uppercase tracking-[.18em] text-muted-foreground">Material</p>
+        <p className="mt-1 font-display text-base leading-tight">{obj.data.materialName}</p>
+        {obj.data.body && (
+          <p className="mt-1 font-mono-ui text-[7px] text-muted-foreground/70 leading-4">{obj.data.body}</p>
+        )}
+      </div>
+    );
+  }
 
-const ADD_OPTIONS = [
-  { label: "Upload image", key: "image" },
-  { label: "Upload video", key: "video" },
-  { label: "Add text", key: "text" },
-  { label: "Add link", key: "link" },
-  { label: "Add material", key: "material" },
-];
+  if (obj.type === "direction") {
+    return (
+      <div
+        style={{ ...style, height: "auto" }}
+        className={`${baseClass} bg-background/90 border-l-2 border-accent px-3 py-2`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        data-testid={`canvas-obj-${obj.id}`}
+      >
+        <p className="font-mono-ui text-[6px] uppercase tracking-[.18em] text-muted-foreground">Olfactive direction</p>
+        <p className="mt-0.5 font-mono-ui text-[8px] text-foreground">{obj.data.body}</p>
+      </div>
+    );
+  }
 
-function AddSheet({ onClose }: { onClose: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const handleEscape = useCallback(() => onClose(), [onClose]);
-  useFocusTrap(ref, true, handleEscape);
-
+  // text / note / quote
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Add to board"
+      style={{ ...style, height: "auto", maxWidth: obj.w }}
+      className={`${baseClass}`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      data-testid={`canvas-obj-${obj.id}`}
     >
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
-      <motion.div
-        ref={ref}
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 24, opacity: 0 }}
-        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-sm border border-border bg-card mx-4 mb-4 sm:mb-0"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => { if (e.key === "Escape") handleEscape(); }}
-      >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <p className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-muted-foreground">
-            Add to board
-          </p>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none"
-            aria-label="Close"
-          >
-            <X size={14} />
-          </button>
-        </div>
-        <div className="py-1">
-          {ADD_OPTIONS.map(({ label, key }) => (
-            <button
-              key={key}
-              type="button"
-              className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-secondary/30 focus-visible:outline-none focus-visible:bg-secondary/30"
-              onClick={onClose}
-              data-testid={`button-add-${key}`}
-            >
-              <span className="text-sm text-foreground/80">{label}</span>
-              <ReadOnlyBadge />
-            </button>
-          ))}
-        </div>
-        <div className="border-t border-border px-5 py-4">
-          <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground/40 leading-5">
-            This board is representative · changes do not persist
-          </p>
-        </div>
-      </motion.div>
+      {obj.data.type === "quote" ? (
+        <p className="font-display text-xl leading-snug text-foreground italic">&ldquo;{obj.data.body}&rdquo;</p>
+      ) : (
+        <>
+          {obj.data.tag && (
+            <p className="font-mono-ui text-[6px] uppercase tracking-[.14em] text-muted-foreground/60 mb-1">{obj.data.tag}</p>
+          )}
+          <p className="text-sm leading-6 text-foreground/80">{obj.data.body}</p>
+        </>
+      )}
     </div>
   );
 }
 
-// ─── Single-item interpretation panel ────────────────────────────────────────
+// ─── Focus viewer — full-screen overlay ──────────────────────────────────────
 
-function InterpretPanel({ item, onClose }: { item: InspirationItem; onClose: () => void }) {
-  const interp = ITEM_INTERPRETATIONS[item.id];
-  const [showScent, setShowScent] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const handleEscape = useCallback(() => onClose(), [onClose]);
-  useFocusTrap(ref, true, handleEscape);
-
-  const fallback = {
-    visualReading: ["Restrained", "Tactile", "Cold"],
-    olfactiveTranslation: ["Green vegetal", "Cold floral", "Mineral skin"],
-    materialPossibilities: ["Violet Leaf Absolute", "Stemone", "Hedione HC"],
-    exploreAsScent: null,
-  };
-  const data = interp ?? fallback;
+function FocusViewer({ item, onClose }: { item: InspirationItem; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      onClick={onClose}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.22 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/90"
       role="dialog"
-      aria-modal="true"
-      aria-label="Interpret reference"
+      aria-modal
+      aria-label="Focus view"
+      onClick={onClose}
+      data-testid="focus-viewer"
     >
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
-      <motion.div
-        ref={ref}
-        initial={{ y: 32, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 20, opacity: 0 }}
-        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-lg border border-border bg-card mx-4 mb-4 sm:mb-0 max-h-[90dvh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); handleEscape(); } }}
+      <button
+        onClick={onClose}
+        data-testid="button-close-focus"
+        className="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition-colors focus-visible:outline-none"
+        aria-label="Close focus view"
       >
-        {/* Header */}
-        <div className="sticky top-0 flex items-center justify-between border-b border-border bg-card px-5 py-4 z-10">
-          <div>
-            <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-muted-foreground">
-              Possible translations
-            </p>
-            {(item.caption ?? item.body) && (
-              <p className="mt-0.5 text-sm text-foreground/60 truncate max-w-xs">
-                {item.caption ?? (item.body ? item.body.slice(0, 48) + (item.body.length > 48 ? "…" : "") : "")}
-              </p>
+        <X size={18} strokeWidth={1.5} />
+      </button>
+
+      <motion.div
+        initial={{ scale: 0.97, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.97, opacity: 0 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        className="max-h-[88dvh] max-w-5xl w-full mx-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {item.type === "image" && (
+          <img
+            src={item.src}
+            alt={item.caption ?? ""}
+            className="max-h-[80dvh] w-full object-contain"
+          />
+        )}
+        {item.type !== "image" && (
+          <div className="bg-background p-8 max-w-2xl mx-auto">
+            {item.type === "material" && (
+              <>
+                <p className="font-mono-ui text-[8px] uppercase tracking-[.20em] text-muted-foreground mb-3">Material</p>
+                <p className="font-display text-5xl">{item.materialName}</p>
+                {item.body && <p className="mt-4 text-sm leading-7 text-muted-foreground">{item.body}</p>}
+              </>
+            )}
+            {(item.type === "quote") && (
+              <p className="font-display text-4xl leading-tight italic">&ldquo;{item.body}&rdquo;</p>
+            )}
+            {(item.type === "text" || item.type === "note") && (
+              <>
+                {item.tag && <p className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground mb-4">{item.tag}</p>}
+                <p className="text-base leading-8">{item.body}</p>
+              </>
             )}
           </div>
-          <button
-            onClick={onClose}
-            className="ml-4 shrink-0 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none"
-            aria-label="Close"
-          >
-            <X size={14} />
-          </button>
-        </div>
-
-        <div className="px-5 py-5 space-y-6">
-          <div><SectionLabel>Visual reading</SectionLabel><TagRow items={data.visualReading} /></div>
-          <div><SectionLabel>Olfactive translation</SectionLabel><TagRow items={data.olfactiveTranslation} /></div>
-          <div>
-            <SectionLabel>Material possibilities</SectionLabel>
-            <div className="space-y-1.5">
-              {data.materialPossibilities.map((m) => (
-                <Link
-                  key={m}
-                  href={`/materials?search=${encodeURIComponent(m)}`}
-                  className="flex items-center justify-between py-1 text-sm text-foreground/70 hover:text-foreground transition-colors focus-visible:outline-none group"
-                  data-testid={`link-interp-material-${m.replace(/\s/g, "-").toLowerCase()}`}
-                >
-                  <span>{m}</span>
-                  <ChevronRight size={10} className="text-muted-foreground/30 group-hover:text-muted-foreground" />
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {data.exploreAsScent && !showScent && (
-            <div className="border-t border-border pt-5">
-              <button
-                type="button"
-                onClick={() => setShowScent(true)}
-                className="flex w-full items-center gap-2 text-left group"
-                data-testid="button-explore-as-scent"
-              >
-                <span className="font-mono-ui text-[9px] uppercase tracking-[.2em] text-foreground/60 group-hover:text-foreground transition-colors">
-                  Explore as scent
-                </span>
-                <ArrowRight size={10} className="text-muted-foreground/30 group-hover:text-muted-foreground" />
-              </button>
-            </div>
-          )}
-
-          {data.exploreAsScent && showScent && (
-            <div className="border-t border-border pt-5 space-y-4">
-              <div><SectionLabel>Character</SectionLabel><TagRow items={data.exploreAsScent.character} /></div>
-              <div>
-                <SectionLabel>Structure</SectionLabel>
-                <div className="space-y-1">
-                  {data.exploreAsScent.structure.map((s, i) => (
-                    <p key={i} className="text-sm text-foreground/70 leading-6">{s}</p>
-                  ))}
-                </div>
-              </div>
-              <div><SectionLabel>Explore</SectionLabel><TagRow items={data.exploreAsScent.explore} /></div>
-              <div className="border-t border-border pt-4 flex flex-wrap items-center gap-4">
-                <span className="text-sm text-muted-foreground/50 flex items-center gap-2">
-                  Save as olfactive direction <ReadOnlyBadge />
-                </span>
-                <Link
-                  href="/materials"
-                  className="text-sm text-foreground underline-offset-4 hover:underline transition-colors focus-visible:outline-none"
-                  data-testid="link-scent-explore-materials"
-                >
-                  Explore materials →
-                </Link>
-              </div>
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground/40 leading-5">
-                Possible direction only · the perfumer remains the author
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer actions */}
-        <div className="sticky bottom-0 border-t border-border bg-card px-5 py-4 flex flex-wrap gap-3 items-center">
-          <span className="text-sm text-muted-foreground/40 flex items-center gap-2 mr-auto">
-            Add note <ReadOnlyBadge />
-          </span>
-          <span className="text-sm text-muted-foreground/40 flex items-center gap-2">
-            Connect material <ReadOnlyBadge />
-          </span>
-          <span className="text-sm text-muted-foreground/40 flex items-center gap-2">
-            Use as direction <ReadOnlyBadge />
-          </span>
-        </div>
+        )}
+        {item.caption && item.type === "image" && (
+          <p className="mt-3 text-center font-mono-ui text-[8px] uppercase tracking-[.14em] text-white/40">{item.caption}</p>
+        )}
       </motion.div>
-    </div>
-  );
-}
-
-// ─── Multi-select interpret panel ─────────────────────────────────────────────
-
-function MultiInterpretPanel({ count, onClose }: { count: number; onClose: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const handleEscape = useCallback(() => onClose(), [onClose]);
-  useFocusTrap(ref, true, handleEscape);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Interpret selection"
-    >
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
-      <motion.div
-        ref={ref}
-        initial={{ y: 32, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 20, opacity: 0 }}
-        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-lg border border-border bg-card mx-4 mb-4 sm:mb-0 max-h-[90dvh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); handleEscape(); } }}
-      >
-        <div className="sticky top-0 flex items-center justify-between border-b border-border bg-card px-5 py-4 z-10">
-          <div>
-            <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-muted-foreground">Interpret selection</p>
-            <p className="mt-0.5 font-mono-ui text-[7px] text-muted-foreground/60">{count} references selected</p>
-          </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none" aria-label="Close">
-            <X size={14} />
-          </button>
-        </div>
-        <div className="px-5 py-5 space-y-6">
-          <div><SectionLabel>Shared atmosphere</SectionLabel><TagRow items={MULTI_SELECT_READING.atmosphere} /></div>
-          <div>
-            <SectionLabel>Creative tensions</SectionLabel>
-            <div className="space-y-1.5">
-              {MULTI_SELECT_READING.tensions.map((t) => (
-                <p key={t} className="text-sm text-foreground/70 italic">{t}</p>
-              ))}
-            </div>
-          </div>
-          <div><SectionLabel>Olfactive translation</SectionLabel><TagRow items={MULTI_SELECT_READING.olfactiveTranslation} /></div>
-          <div>
-            <SectionLabel>Material territories</SectionLabel>
-            <div className="space-y-1.5">
-              {MULTI_SELECT_READING.materialTerritories.map((m) => (
-                <Link
-                  key={m}
-                  href={`/materials?search=${encodeURIComponent(m)}`}
-                  className="flex items-center justify-between py-1 text-sm text-foreground/70 hover:text-foreground transition-colors focus-visible:outline-none group"
-                >
-                  <span>{m}</span>
-                  <ChevronRight size={10} className="text-muted-foreground/30 group-hover:text-muted-foreground" />
-                </Link>
-              ))}
-            </div>
-          </div>
-          <div className="border-t border-border pt-4">
-            <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground/40 leading-5">
-              Relational reading of selected references · interpretive only · the perfumer remains the author
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    </div>
+    </motion.div>
   );
 }
 
 // ─── Board reading panel ──────────────────────────────────────────────────────
 
-function BoardReadingPanel({ onClose }: { onClose: () => void }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const handleEscape = useCallback(() => onClose(), [onClose]);
-  useFocusTrap(ref, true, handleEscape);
+interface BoardReadingProject {
+  name: string;
+  olfactiveDirection: string;
+  inspiration: InspirationItem[];
+}
 
-  const br = LAIT_VERT_BOARD_READING;
+function BoardReadingPanel({
+  project,
+  onClose,
+}: {
+  project: BoardReadingProject;
+  onClose: () => void;
+}) {
+  const interpretation = deriveOlfactiveInterpretation(
+    project.inspiration as InspirationItem[],
+    project.name,
+    project.olfactiveDirection,
+  );
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Board reading"
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 40 }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      className="fixed bottom-6 right-6 top-16 z-40 w-80 bg-background border border-border flex flex-col"
+      role="complementary"
+      aria-label="Olfactive reading"
+      data-testid="board-reading-panel"
     >
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
-      <motion.div
-        ref={ref}
-        initial={{ y: 32, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 20, opacity: 0 }}
-        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-xl border border-border bg-card mx-4 mb-4 sm:mb-0 max-h-[92dvh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); handleEscape(); } }}
-      >
-        <div className="sticky top-0 flex items-center justify-between border-b border-border bg-card px-5 py-4 z-10">
-          <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-muted-foreground">Board reading</p>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none" aria-label="Close">
-            <X size={14} />
-          </button>
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-1 w-1 bg-accent" aria-hidden />
+          <p className="font-mono-ui text-[8px] uppercase tracking-[.20em]">Olfactive reading</p>
         </div>
-        <div className="px-5 py-6 space-y-6">
-          <div><SectionLabel>Atmosphere</SectionLabel><TagRow items={br.atmosphere} /></div>
-          <div>
-            <SectionLabel>Visual tensions</SectionLabel>
-            <div className="space-y-1.5">
-              {br.visualTensions.map((t) => (
-                <p key={t} className="text-sm text-foreground/70 italic">{t}</p>
-              ))}
-            </div>
-          </div>
-          <div><SectionLabel>Olfactive territories</SectionLabel><TagRow items={br.olfactiveTerritories} /></div>
-          <div>
-            <SectionLabel>Material directions</SectionLabel>
-            <div className="space-y-1.5">
-              {br.materialDirections.map((m) => (
-                <Link
-                  key={m}
-                  href={`/materials?search=${encodeURIComponent(m)}`}
-                  className="flex items-center justify-between py-1 text-sm text-foreground/70 hover:text-foreground transition-colors focus-visible:outline-none group"
-                >
-                  <span>{m}</span>
-                  <ChevronRight size={10} className="text-muted-foreground/30 group-hover:text-muted-foreground" />
-                </Link>
-              ))}
-            </div>
-          </div>
-          <div>
-            <SectionLabel>Avoid</SectionLabel>
-            <div className="space-y-1">
-              {br.avoid.map((a) => (
-                <p key={a} className="text-sm text-muted-foreground/60 line-through decoration-muted-foreground/30">{a}</p>
-              ))}
-            </div>
-          </div>
-          <div className="border-t border-border pt-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-foreground/60">Save as olfactive direction</span>
-              <ReadOnlyBadge />
-            </div>
-            <Link
-              href="/materials"
-              onClick={onClose}
-              className="flex items-center gap-2 text-sm text-foreground hover:underline underline-offset-4 transition-colors focus-visible:outline-none"
-              data-testid="link-board-explore-materials"
-            >
-              Explore materials <ArrowRight size={11} />
-            </Link>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-foreground/60">Refine interpretation</span>
-              <ReadOnlyBadge />
-            </div>
-          </div>
-          <p className="font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground/40 leading-5">
-            Board-level reading · derived from representative board content · interpretive only
+        <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Close panel" data-testid="button-close-reading">
+          <X size={14} strokeWidth={1.5} />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto px-5 py-5">
+        <p className="font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground mb-4">
+          Reading · {project.name}
+        </p>
+        <p className="text-sm leading-7 text-foreground/80">{interpretation}</p>
+
+        <div className="mt-6 border-t border-border pt-5">
+          <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground mb-3">Suggested direction</p>
+          <p className="font-mono-ui text-[9px] text-foreground/70 leading-6">{project.olfactiveDirection}</p>
+        </div>
+
+        <div className="mt-6 border-t border-border pt-5">
+          <p className="font-mono-ui text-[7px] uppercase tracking-[.10em] text-muted-foreground/50 leading-6">
+            This reading is interpretive. It is derived from the canvas objects and project direction — not from formula data.
           </p>
         </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ─── Masonry tile ─────────────────────────────────────────────────────────────
-
-function MasonryTile({
-  item,
-  selected,
-  selectMode,
-  onToggleSelect,
-  onOpen,
-  tileRef,
-}: {
-  item: InspirationItem;
-  selected: boolean;
-  selectMode: boolean;
-  onToggleSelect: (id: string) => void;
-  onOpen: (item: InspirationItem, ref: React.RefObject<HTMLElement | null>) => void;
-  tileRef?: React.RefObject<HTMLDivElement | null>;
-}) {
-  const localRef = useRef<HTMLDivElement>(null);
-  const ref = tileRef ?? localRef;
-
-  const handleClick = useCallback(() => {
-    if (selectMode) onToggleSelect(item.id);
-    else onOpen(item, ref as React.RefObject<HTMLElement | null>);
-  }, [selectMode, item, onToggleSelect, onOpen, ref]);
-
-  const handleKey = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleClick(); }
-  }, [handleClick]);
-
-  const aspectClass =
-    item.aspect === "portrait" ? "aspect-[3/4]" :
-    item.aspect === "landscape" ? "aspect-[4/3]" :
-    item.aspect === "panoramic" ? "aspect-[16/7]" :
-    item.aspect === "tall" ? "aspect-[2/3]" : "aspect-square";
-
-  const isText = item.type === "text" || item.type === "quote" || item.type === "note";
-  const isMaterial = item.type === "material";
-
-  return (
-    <div
-      ref={ref as React.RefObject<HTMLDivElement>}
-      onClick={handleClick}
-      onKeyDown={handleKey}
-      tabIndex={0}
-      role="button"
-      aria-pressed={selected}
-      aria-label={item.caption ?? item.materialName ?? item.body?.slice(0, 40) ?? "Reference"}
-      data-testid={`tile-${item.id}`}
-      className={[
-        "group relative cursor-pointer overflow-hidden",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40",
-        "transition-opacity duration-150",
-        selected ? "opacity-90" : "hover:opacity-95",
-      ].join(" ")}
-    >
-      {/* Image tile */}
-      {item.type === "image" && item.src && (
-        <div className={`relative overflow-hidden ${aspectClass}`}>
-          <img
-            src={item.src}
-            alt={item.caption ?? ""}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-          />
-          {item.caption && (
-            <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-200 bg-foreground/80 px-3 py-2">
-              <p className="font-mono-ui text-[7px] uppercase tracking-[.16em] text-white/80 truncate">
-                {item.caption}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Text tile */}
-      {isText && (
-        <div className="flex h-full min-h-[120px] flex-col justify-center bg-secondary/20 px-5 py-6 border border-border/50">
-          {item.tag && (
-            <p className="mb-3 font-mono-ui text-[7px] uppercase tracking-[.2em] text-muted-foreground/60">{item.tag}</p>
-          )}
-          <blockquote className="font-display text-lg sm:text-xl leading-snug text-foreground">
-            {item.body}
-          </blockquote>
-        </div>
-      )}
-
-      {/* Material tile */}
-      {isMaterial && (
-        <div className="flex h-full min-h-[120px] flex-col justify-between border border-border bg-card px-5 py-5">
-          <div>
-            <p className="font-mono-ui text-[7px] uppercase tracking-[.2em] text-muted-foreground/60 mb-2">Material reference</p>
-            <p className="font-display text-xl leading-tight">{item.materialName}</p>
-            {item.materialSubtitle && (
-              <p className="mt-1.5 font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">{item.materialSubtitle}</p>
-            )}
-          </div>
-          {item.body && (
-            <p className="mt-3 text-xs leading-5 text-muted-foreground line-clamp-3">{item.body}</p>
-          )}
-        </div>
-      )}
-
-      {/* Select overlay */}
-      <AnimatePresence>
-        {selectMode && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-            className="absolute top-2 left-2"
-          >
-            <div className={[
-              "flex h-5 w-5 items-center justify-center border transition-colors",
-              selected ? "border-foreground bg-foreground" : "border-white/60 bg-background/60",
-            ].join(" ")}>
-              {selected && <Check size={10} className="text-background" />}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-// ─── Masonry grid ─────────────────────────────────────────────────────────────
-
-function MasonryGrid({
-  items,
-  selectedIds,
-  selectMode,
-  onToggleSelect,
-  onOpen,
-}: {
-  items: InspirationItem[];
-  selectedIds: Set<string>;
-  selectMode: boolean;
-  onToggleSelect: (id: string) => void;
-  onOpen: (item: InspirationItem, ref: React.RefObject<HTMLElement | null>) => void;
-}) {
-  return (
-    <div className="w-full">
-      <style>{`
-        @media (min-width: 768px)  { .masonry-board { column-count: 3; column-gap: 0.625rem; } }
-        @media (min-width: 1280px) { .masonry-board { column-count: 4; column-gap: 0.75rem;  } }
-      `}</style>
-      <div className="masonry-board" style={{ columnCount: 2, columnGap: "0.5rem" }}>
-        {items.map((item) => {
-          const isFull = item.span === "full";
-          const isWide = item.span === "wide";
-          return (
-            <div
-              key={item.id}
-              style={{
-                breakInside: "avoid",
-                marginBottom: "0.5rem",
-                ...(isFull || isWide ? { columnSpan: "all" } : {}),
-              }}
-            >
-              <MasonryTile
-                item={item}
-                selected={selectedIds.has(item.id)}
-                selectMode={selectMode}
-                onToggleSelect={onToggleSelect}
-                onOpen={onOpen}
-              />
-            </div>
-          );
-        })}
       </div>
+
+      {/* Footer */}
+      <div className="border-t border-border px-5 py-4">
+        <Link
+          href="/coach"
+          data-testid="link-reading-to-coach"
+          className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Continue with Coach →
+        </Link>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Object placement helpers ─────────────────────────────────────────────────
+
+function placeObjects(items: InspirationItem[]): CanvasObject[] {
+  const COLS = 3;
+  const COL_W = 400;
+  const GUTTERX = 48;
+  const GUTTERY = 36;
+  const TOP_START = 60;
+  const IMAGE_H = 280;
+  const MATERIAL_H = 90;
+  const TEXT_H = 120;
+
+  const cols = Array.from({ length: COLS }, () => TOP_START);
+
+  // Jitter offsets for organic feel
+  const jitter = (i: number) => (((i * 13 + 7) % 40) - 20);
+
+  return items.map((item, i) => {
+    const colIdx = i % COLS;
+    const colTop = cols[colIdx] + (colIdx === 1 ? 40 : 0); // middle column offset
+    const x = colIdx * (COL_W + GUTTERX) + jitter(i);
+    const h = item.type === "image" ? IMAGE_H + Math.abs(jitter(i)) : item.type === "material" ? MATERIAL_H : TEXT_H;
+    const y = (colTop ?? TOP_START) + jitter(i + 3);
+    cols[colIdx] = (cols[colIdx] ?? TOP_START) + h + GUTTERY;
+
+    return {
+      id: item.id,
+      type: item.type as CanvasObject["type"],
+      x: Math.max(0, x),
+      y: Math.max(0, y),
+      w: item.type === "image" ? COL_W + Math.abs(jitter(i) / 2) : item.type === "text" || item.type === "quote" ? 240 + Math.abs(jitter(i)) : 220,
+      h,
+      zIndex: i + 1,
+      data: item,
+    };
+  });
+}
+
+// ─── Multi-select toolbar ─────────────────────────────────────────────────────
+
+function MultiSelectBar({ count, onClear }: { count: number; onClear: () => void }) {
+  return (
+    <div className="flex items-center gap-4 border border-border bg-background px-4 py-2.5">
+      <span className="font-mono-ui text-[8px] uppercase tracking-[.14em] text-muted-foreground">
+        {count} selected
+      </span>
+      <button
+        onClick={onClear}
+        className="font-mono-ui text-[8px] uppercase tracking-[.12em] text-muted-foreground hover:text-foreground transition-colors"
+        data-testid="button-clear-selection"
+      >
+        Clear
+      </button>
     </div>
   );
 }
 
-// ─── Tab bar — hrefs use ?tab= query param so ProjectWorkspace deep-links correctly
+// ─── Canvas toolbar ───────────────────────────────────────────────────────────
 
-const TABS = [
-  { id: "overview",    label: "Overview",    href: (id: string) => `/projects/${id}` },
-  { id: "inspiration", label: "Inspiration", href: (id: string) => `/projects/${id}/inspiration` },
-  { id: "evaluation",  label: "Evaluation",  href: (id: string) => `/projects/${id}?tab=evaluation` },
-  { id: "notes",       label: "Notes",       href: (id: string) => `/projects/${id}?tab=notes` },
-  { id: "materials",   label: "Materials",   href: (id: string) => `/projects/${id}?tab=materials` },
-  { id: "formulas",    label: "Mods",        href: (id: string) => `/projects/${id}?tab=formulas` },
-];
+function CanvasToolbar({
+  scale,
+  onZoomIn,
+  onZoomOut,
+  onReset,
+  multiCount,
+  onClearMulti,
+  onToggleReading,
+  showReading,
+}: {
+  scale: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onReset: () => void;
+  multiCount: number;
+  onClearMulti: () => void;
+  onToggleReading: () => void;
+  showReading: boolean;
+}) {
+  return (
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 border border-border bg-background/95 px-2 py-1.5 backdrop-blur-sm">
+      {multiCount > 0 ? (
+        <MultiSelectBar count={multiCount} onClear={onClearMulti} />
+      ) : (
+        <>
+          <button
+            onClick={onZoomOut}
+            disabled={scale <= 0.35}
+            className="flex h-7 w-7 items-center justify-center text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+            aria-label="Zoom out"
+            data-testid="btn-canvas-zoom-out"
+          >
+            <Minus size={11} strokeWidth={1.5} />
+          </button>
+          <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground px-1 min-w-[40px] text-center">
+            {Math.round(scale * 100)}%
+          </span>
+          <button
+            onClick={onZoomIn}
+            disabled={scale >= 2.2}
+            className="flex h-7 w-7 items-center justify-center text-muted-foreground hover:text-foreground transition-colors disabled:opacity-30"
+            aria-label="Zoom in"
+            data-testid="btn-canvas-zoom-in"
+          >
+            <Plus size={11} strokeWidth={1.5} />
+          </button>
+          <div className="h-4 w-[1px] bg-border mx-1" aria-hidden />
+          <button
+            onClick={onReset}
+            className="flex h-7 w-7 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Reset view"
+            data-testid="btn-canvas-reset"
+          >
+            <RotateCcw size={11} strokeWidth={1.5} />
+          </button>
+          <div className="h-4 w-[1px] bg-border mx-1" aria-hidden />
+          <button
+            onClick={onToggleReading}
+            className={[
+              "flex items-center gap-1.5 h-7 px-2.5 font-mono-ui text-[7px] uppercase tracking-[.14em] transition-colors",
+              showReading ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+            ].join(" ")}
+            aria-label="Toggle olfactive reading"
+            data-testid="btn-canvas-reading"
+          >
+            <span className="inline-block h-1 w-1 bg-accent" aria-hidden />
+            Reading
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// ─── Filter legend ────────────────────────────────────────────────────────────
+
+type FilterType = "all" | "image" | "material" | "text";
+
+function FilterLegend({ active, onChange }: { active: FilterType; onChange: (f: FilterType) => void }) {
+  return (
+    <div className="absolute bottom-4 left-4 z-20 flex items-center gap-0 border border-border bg-background/95">
+      {(["all", "image", "material", "text"] as FilterType[]).map((f) => (
+        <button
+          key={f}
+          onClick={() => onChange(f)}
+          data-testid={`filter-canvas-${f}`}
+          className={[
+            "px-3 py-2 font-mono-ui text-[7px] uppercase tracking-[.14em] transition-colors",
+            active === f ? "text-foreground bg-secondary/50" : "text-muted-foreground hover:text-foreground",
+          ].join(" ")}
+          aria-pressed={active === f}
+        >
+          {f === "text" ? "Text" : f === "material" ? "Mat." : f === "image" ? "Image" : "All"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Main canvas ──────────────────────────────────────────────────────────────
 
 export function Inspiration() {
   const params = useParams<{ id: string }>();
   const project = DEMO_PROJECTS.find((p) => p.id === params.id);
 
-  // Selection
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [selectMode, setSelectMode] = useState(false);
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+  const [scale, setScale] = useState(1);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const isPanning = useRef(false);
+  const lastPointer = useRef({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
+  const [focusItem, setFocusItem] = useState<InspirationItem | null>(null);
+  const [showReading, setShowReading] = useState(false);
+  const [filter, setFilter] = useState<FilterType>("all");
+
+  const [objects, setObjects] = useState<CanvasObject[]>(() => {
+    if (!project) return [];
+    return placeObjects(project.inspiration);
+  });
+
+  const filteredObjects = objects.filter((o) => {
+    if (filter === "all") return true;
+    if (filter === "image") return o.type === "image";
+    if (filter === "material") return o.type === "material";
+    if (filter === "text") return o.type === "text" || o.type === "note" || o.type === "quote" || o.type === "direction";
+    return true;
+  });
+
+  // Pan by pointerdown on canvas (not on objects)
+  const onCanvasPointerDown = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest("[data-testid^='canvas-obj']")) return;
+    isPanning.current = true;
+    lastPointer.current = { x: e.clientX, y: e.clientY };
+    setSelectedId(null);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }, []);
+
+  const onCanvasPointerMove = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isPanning.current) return;
+    const dx = e.clientX - lastPointer.current.x;
+    const dy = e.clientY - lastPointer.current.y;
+    setPanX((x) => x + dx);
+    setPanY((y) => y + dy);
+    lastPointer.current = { x: e.clientX, y: e.clientY };
+  }, []);
+
+  const onCanvasPointerUp = useCallback(() => {
+    isPanning.current = false;
+  }, []);
+
+  // Wheel to zoom
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.08 : 0.08;
+    setScale((s) => clamp(s + delta, 0.35, 2.2));
+  }, []);
+
+  const handleObjectMove = useCallback((id: string, x: number, y: number) => {
+    setObjects((prev) => prev.map((o) => (o.id === id ? { ...o, x, y } : o)));
+  }, []);
+
+  const handleObjectFocus = useCallback((id: string) => {
+    setSelectedId(id);
+    setObjects((prev) => {
+      const maxZ = Math.max(...prev.map((o) => o.zIndex));
+      return prev.map((o) => (o.id === id ? { ...o, zIndex: maxZ + 1 } : o));
     });
   }, []);
-  const clearSelect = useCallback(() => {
-    setSelectedIds(new Set());
-    setSelectMode(false);
-  }, []);
 
-  // Focus mode viewer
-  const [focusItem, setFocusItem] = useState<InspirationItem | null>(null);
-  const openFocus = useCallback((item: InspirationItem, _triggerRef: React.RefObject<HTMLElement | null>) => {
-    setFocusItem(item);
-  }, []);
-
-  const closeFocus = useCallback(() => {
-    setFocusItem(null);
-  }, []);
-
-  // Interpret panel
-  const [interpretItem, setInterpretItem] = useState<InspirationItem | null>(null);
-
-  // Other panels
-  const [showAdd, setShowAdd] = useState(false);
-  const [showMultiInterpret, setShowMultiInterpret] = useState(false);
-  const [showBoardReading, setShowBoardReading] = useState(false);
-
-  const handleInterpret = useCallback((item: InspirationItem) => {
-    setInterpretItem(item);
-  }, []);
+  const zoomIn = useCallback(() => setScale((s) => clamp(s + 0.12, 0.35, 2.2)), []);
+  const zoomOut = useCallback(() => setScale((s) => clamp(s - 0.12, 0.35, 2.2)), []);
+  const resetView = useCallback(() => { setScale(1); setPanX(0); setPanY(0); }, []);
 
   if (!project) {
     return (
-      <div className="py-20 text-center animate-fade-in">
-        <p className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground mb-4">
-          Project not found
-        </p>
-        <Link
-          href="/projects"
-          className="font-mono-ui text-[9px] uppercase tracking-widest underline-offset-4 hover:underline"
-          data-testid="link-back-projects"
-        >
-          Back to projects
-        </Link>
+      <div className="flex min-h-[60dvh] items-center justify-center">
+        <div className="text-center">
+          <p className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground mb-3">Not found</p>
+          <Link href="/projects" className="font-mono-ui text-[9px] uppercase tracking-widest underline-offset-4 hover:underline" data-testid="link-back-projects">
+            Back to projects
+          </Link>
+        </div>
       </div>
     );
   }
 
-  const board = project.inspiration;
-
   return (
-    <>
-      <div className="animate-fade-in overflow-x-hidden">
-        {/* ── Compact project header ───────────────────────────────── */}
-        <header className="pt-6 pb-0">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 mb-3">
-            <Link
-              href="/projects"
-              data-testid="link-breadcrumb-projects"
-              className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none"
-            >
-              Projects
-            </Link>
-            <span className="text-muted-foreground/30">/</span>
-            <Link
-              href={`/projects/${project.id}`}
-              data-testid="link-breadcrumb-project"
-              className="font-mono-ui text-[8px] uppercase tracking-[.2em] text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none"
-            >
-              {project.name}
-            </Link>
-          </div>
-
-          {/* Title row */}
-          <div className="flex items-end justify-between gap-4 flex-wrap">
-            <div>
-              <p className="font-mono-ui text-[8px] uppercase tracking-[.24em] text-muted-foreground">
-                {project.name}
-              </p>
-              <h1
-                className="mt-1.5 font-display text-4xl sm:text-5xl tracking-[-0.03em] leading-[.88]"
-                data-testid="heading-inspiration"
-              >
-                Inspiration
-              </h1>
-            </div>
-
-            {/* Actions — includes explicit Select toggle so selectMode is keyboard-reachable */}
-            <div className="flex items-center gap-3 flex-wrap self-start mt-2 sm:mt-0 sm:self-auto">
-              {/* Explicit labelled entry control for selection mode */}
-              <button
-                onClick={() => {
-                  if (selectMode) {
-                    clearSelect();
-                  } else {
-                    setSelectMode(true);
-                  }
-                }}
-                aria-pressed={selectMode}
-                data-testid="button-toggle-select-mode"
-                className={[
-                  "inline-flex items-center gap-1.5 border px-3 py-2",
-                  "font-mono-ui text-[8px] uppercase tracking-[.18em] transition-colors",
-                  "focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4",
-                  selectMode
-                    ? "border-foreground text-foreground bg-secondary/30"
-                    : "border-border text-muted-foreground hover:text-foreground",
-                ].join(" ")}
-              >
-                <Check size={9} />
-                {selectMode ? `${selectedIds.size} selected` : "Select"}
-              </button>
-              <button
-                onClick={() => setShowBoardReading(true)}
-                data-testid="button-interpret-board"
-                className="inline-flex items-center gap-1.5 font-mono-ui text-[8px] uppercase tracking-[.18em] text-muted-foreground hover:text-foreground transition-colors border border-border px-3 py-2 focus-visible:outline-none focus-visible:text-foreground"
-              >
-                <Sparkles size={9} />
-                Interpret board
-              </button>
-              <button
-                onClick={() => setShowAdd(true)}
-                data-testid="button-add-to-board"
-                className="inline-flex items-center gap-1.5 border border-border px-3 py-2 font-mono-ui text-[8px] uppercase tracking-[.18em] text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:text-foreground"
-                aria-label="Add to board"
-              >
-                <Plus size={10} />
-                Add
-              </button>
-            </div>
-          </div>
-
-          {/* Tab bar */}
-          <div className="flex overflow-x-auto mt-5 border-b border-border" data-testid="project-tabs">
-            {TABS.map((tab) => {
-              const active = tab.id === "inspiration";
-              return (
-                <Link
-                  key={tab.id}
-                  href={tab.href(project.id)}
-                  data-testid={`tab-${tab.id}`}
-                  className={[
-                    "relative shrink-0 px-4 py-3",
-                    "font-mono-ui text-[9px] uppercase tracking-[.14em]",
-                    "transition-colors focus-visible:outline-none",
-                    active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                  ].join(" ")}
-                >
-                  {tab.label}
-                  {active && (
-                    <span className="absolute inset-x-0 bottom-0 h-[2px] bg-foreground" />
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        </header>
-
-        {/* ── Selection toolbar — shown while selection mode is active ──────── */}
-        <AnimatePresence>
-          {selectMode && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.16 }}
-              className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-border bg-background/95 backdrop-blur-sm px-0 py-3"
-            >
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-foreground/70">
-                {selectedIds.size} reference{selectedIds.size !== 1 ? "s" : ""} selected
-              </p>
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setShowMultiInterpret(true)}
-                  disabled={selectedIds.size === 0}
-                  data-testid="button-interpret-selection"
-                  className="inline-flex items-center gap-1.5 border border-border px-3 py-1.5 font-mono-ui text-[8px] uppercase tracking-[.18em] text-foreground hover:bg-secondary transition-colors focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <Sparkles size={9} />
-                  Interpret selection
-                </button>
-                <button
-                  onClick={clearSelect}
-                  className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none"
-                  data-testid="button-clear-selection"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── Board hint ────────────────────────────────────────────── */}
-        {!selectMode && (
-          <div className="mt-4 mb-1">
-            <p className="font-mono-ui text-[7px] uppercase tracking-[.18em] text-muted-foreground/40">
-              {board.length} references · click to view in focus · use Select to multi-select for interpretation
-            </p>
-          </div>
-        )}
-
-        {/* ── Masonry board ─────────────────────────────────────────── */}
-        <div className="mt-3">
-          {board.length === 0 ? (
-            <div className="border border-dashed border-border py-20 text-center mt-6">
-              <p className="font-display text-2xl text-muted-foreground/40">
-                The board is empty.
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Add images, text, materials and references to build the visual world of this fragrance.
-              </p>
-            </div>
-          ) : (
-            <MasonryGrid
-              items={board}
-              selectedIds={selectedIds}
-              selectMode={selectMode}
-              onToggleSelect={toggleSelect}
-              onOpen={openFocus}
-            />
-          )}
+    <div className="animate-fade-in">
+      {/* ── Compact top bar ─────────────────────────── */}
+      <div className="flex items-center justify-between border-b border-border py-3 -mx-5 px-5 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
+        <div className="flex items-center gap-4">
+          <Link
+            href={`/projects/${project.id}`}
+            data-testid="link-back-to-project"
+            className="flex items-center gap-1.5 font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft size={11} strokeWidth={1.5} /> {project.name}
+          </Link>
+          <span className="text-border/60 text-xs" aria-hidden>/</span>
+          <p className="font-mono-ui text-[8px] uppercase tracking-[.16em] text-foreground">Canvas</p>
         </div>
-
-        {/* ── Current Olfactive Direction — S1 SectionRule divider ─── */}
-        <section
-          className="mt-12 pb-12"
-          data-testid="section-olfactive-direction"
-        >
-          <SectionRule label="Current olfactive direction · representative" />
-          <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
-            <div>
-              <p className="mt-0.5 font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground/40">
-                Derived from this board
-              </p>
-            </div>
-            <div className="flex items-center gap-4 flex-wrap">
-              <Link
-                href="/materials"
-                className="font-mono-ui text-[8px] uppercase tracking-widest text-foreground underline-offset-4 hover:underline transition-colors focus-visible:outline-none"
-                data-testid="link-direction-explore-materials"
-              >
-                Explore materials →
-              </Link>
-              <Link
-                href="/formulas/new"
-                className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground/60 hover:text-foreground transition-colors focus-visible:outline-none"
-                data-testid="link-direction-formula-lab"
-              >
-                Formula lab →
-              </Link>
-            </div>
-          </div>
-
-          <div className="space-y-2 max-w-lg">
-            {LAIT_VERT_DIRECTION.lines.map((line, i) => (
-              <p
-                key={i}
-                className={[
-                  "font-display leading-snug",
-                  i === 0 ? "text-2xl sm:text-3xl text-foreground" : "text-xl sm:text-2xl text-foreground/60",
-                ].join(" ")}
-              >
-                {line}
-              </p>
-            ))}
-          </div>
-
-          <p className="mt-6 font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground/30 leading-5">
-            This direction is representative and read-only. When Project persistence exists, board interpretations will be saved here and flow into Materials and Formula Lab.
-          </p>
-        </section>
+        <div className="flex items-center gap-4">
+          <span className="hidden sm:block font-mono-ui text-[7px] uppercase tracking-[.10em] text-muted-foreground/50">
+            {project.inspiration.length} objects
+          </span>
+          <button
+            onClick={() => setShowReading((v) => !v)}
+            data-testid="btn-toggle-reading"
+            className={[
+              "flex items-center gap-1.5 font-mono-ui text-[8px] uppercase tracking-[.14em] transition-colors",
+              showReading ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+            ].join(" ")}
+          >
+            <span className="inline-block h-1.5 w-1.5 bg-accent" aria-hidden />
+            Read board
+          </button>
+        </div>
       </div>
 
-      {/* ── Overlays ─────────────────────────────────────────────────── */}
+      {/* ── Canvas area ─────────────────────────────── */}
+      <div
+        className="relative overflow-hidden canvas-surface"
+        style={{
+          height: "calc(100dvh - 6rem)",
+          cursor: isPanning.current ? "grabbing" : "grab",
+          touchAction: "none",
+        }}
+        onPointerDown={onCanvasPointerDown}
+        onPointerMove={onCanvasPointerMove}
+        onPointerUp={onCanvasPointerUp}
+        onWheel={onWheel}
+        ref={canvasRef}
+        data-testid="canvas"
+        aria-label="Inspiration canvas"
+      >
+        {/* Dot grid — physical paper feel */}
+        <svg
+          className="pointer-events-none absolute inset-0 opacity-20"
+          style={{ width: "100%", height: "100%" }}
+          aria-hidden
+        >
+          <pattern id="dot-grid" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+            <circle cx="1.5" cy="1.5" r="1" fill="hsl(var(--muted-foreground))" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#dot-grid)" />
+        </svg>
+
+        {/* Olfactive direction label — large, subtle bg */}
+        <div
+          className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none"
+          aria-hidden
+        >
+          <p
+            className="font-display opacity-[0.04] whitespace-nowrap text-foreground select-none"
+            style={{ fontSize: "clamp(3rem, 10vw, 9rem)", letterSpacing: "-0.04em" }}
+          >
+            {project.olfactiveDirection}
+          </p>
+        </div>
+
+        {/* Transform layer */}
+        <div
+          style={{
+            transform: `translate(${panX}px, ${panY}px) scale(${scale})`,
+            transformOrigin: "top left",
+            position: "absolute",
+            width: "2400px",
+            height: "1600px",
+            willChange: "transform",
+          }}
+        >
+          {filteredObjects.map((obj) => (
+            <CanvasObject
+              key={obj.id}
+              obj={obj}
+              scale={scale}
+              selected={selectedId === obj.id}
+              onSelect={handleObjectFocus}
+              onMove={handleObjectMove}
+              onOpenFocus={(item) => setFocusItem(item)}
+            />
+          ))}
+        </div>
+
+        {/* Toolbar */}
+        <CanvasToolbar
+          scale={scale}
+          onZoomIn={zoomIn}
+          onZoomOut={zoomOut}
+          onReset={resetView}
+          multiCount={multiSelected.size}
+          onClearMulti={() => setMultiSelected(new Set())}
+          onToggleReading={() => setShowReading((v) => !v)}
+          showReading={showReading}
+        />
+
+        {/* Filter legend */}
+        <FilterLegend active={filter} onChange={setFilter} />
+
+        {/* Selection hint */}
+        {selectedId && !focusItem && (
+          <div className="absolute bottom-4 right-4 z-20">
+            <button
+              onClick={() => {
+                const obj = objects.find((o) => o.id === selectedId);
+                if (obj) setFocusItem(obj.data);
+              }}
+              data-testid="btn-open-focus-selected"
+              className="flex items-center gap-1.5 border border-border bg-background px-3 py-2 font-mono-ui text-[7px] uppercase tracking-[.14em] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ZoomIn size={9} strokeWidth={1.5} /> Full view
+            </button>
+          </div>
+        )}
+
+        {/* Object count — per type */}
+        <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
+          {[
+            { icon: <ImageIcon size={10} strokeWidth={1.5} />, count: objects.filter((o) => o.type === "image").length },
+            { icon: <Type size={10} strokeWidth={1.5} />, count: objects.filter((o) => o.type === "text" || o.type === "note" || o.type === "quote").length },
+            { icon: <Layers size={10} strokeWidth={1.5} />, count: objects.filter((o) => o.type === "material" || o.type === "direction").length },
+          ].map(({ icon, count }, i) => (
+            count > 0 && (
+              <div key={i} className="flex items-center gap-1 text-muted-foreground/50">
+                {icon}
+                <span className="font-mono-ui text-[7px]">{count}</span>
+              </div>
+            )
+          ))}
+        </div>
+      </div>
+
+      {/* Focus viewer */}
       <AnimatePresence>
         {focusItem && (
-          <motion.div
-            key="focus-viewer"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-          >
-            <FocusModeViewer
-              item={focusItem}
-              onClose={closeFocus}
-              onInterpret={handleInterpret}
-            />
-          </motion.div>
+          <FocusViewer key="focus" item={focusItem} onClose={() => setFocusItem(null)} />
         )}
       </AnimatePresence>
 
+      {/* Board reading panel */}
       <AnimatePresence>
-        {interpretItem && (
-          <InterpretPanel
-            key="interpret"
-            item={interpretItem}
-            onClose={() => setInterpretItem(null)}
+        {showReading && (
+          <BoardReadingPanel
+            key="reading"
+            project={project}
+            onClose={() => setShowReading(false)}
           />
         )}
       </AnimatePresence>
-
-      <AnimatePresence>
-        {showAdd && <AddSheet key="add-sheet" onClose={() => setShowAdd(false)} />}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showMultiInterpret && (
-          <MultiInterpretPanel
-            key="multi-interpret"
-            count={selectedIds.size}
-            onClose={() => { setShowMultiInterpret(false); clearSelect(); }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showBoardReading && (
-          <BoardReadingPanel key="board-reading" onClose={() => setShowBoardReading(false)} />
-        )}
-      </AnimatePresence>
-    </>
+    </div>
   );
 }

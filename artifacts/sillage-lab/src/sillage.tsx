@@ -35,8 +35,8 @@ function Logo({ light = false }: { light?: boolean }) {
   const { isSignedIn } = useAuth();
   const dest = isSignedIn ? "/studio" : "/";
   return (
-    <Link href={dest} data-testid="link-brand" className="flex items-center gap-3 group">
-      <span className={`font-mono-ui text-[10px] font-medium uppercase tracking-[.35em] ${light ? "text-white" : "text-foreground"}`}>MATIÈRE</span>
+    <Link href={dest} data-testid="link-brand" className="flex items-center gap-2 group">
+      <span className={`font-serif text-[11px] font-medium tracking-[.28em] uppercase transition-opacity group-hover:opacity-70 ${light ? "text-foreground/90" : "text-foreground"}`}>MATIÈRE</span>
     </Link>
   );
 }
@@ -51,7 +51,7 @@ function Button({ children, onClick, href, variant = "primary", testId, disabled
     variant === "danger" ? "bg-destructive text-destructive-foreground hover:opacity-80" :
     "bg-transparent text-muted-foreground hover:text-foreground"
   }`;
-  if (href) return <Link href={href} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-[11px] font-medium tracking-[.12em] uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-50 hover:opacity-80 border-t-[#140f0b05] border-r-[#140f0b05] border-b-[#140f0b05] border-l-[#140f0b05] text-white bg-[#000000]" data-testid={testId}>{children}</Link>;
+  if (href) return <Link href={href} className={cls} data-testid={testId}>{children}</Link>;
   return <button type={type} className={cls} onClick={onClick} disabled={disabled} data-testid={testId}>{children}</button>;
 }
 
@@ -131,23 +131,51 @@ function Sidebar() {
   const { user } = useUser();
   const { signOut } = useClerk();
   return (
-    <aside className="hidden min-h-[100dvh] w-[220px] shrink-0 flex-col bg-sidebar px-5 py-6 text-sidebar-foreground md:flex border-r border-border">
-      <Logo light />
-      <div className="mt-12">
-        <nav className="space-y-1">
-          {navItems.map(({ href, label, icon: Icon }) => {
+    <aside className="hidden min-h-[100dvh] w-[200px] shrink-0 flex-col bg-sidebar px-5 py-7 text-sidebar-foreground md:flex border-r border-border">
+      <Logo />
+      <div className="mt-14">
+        <nav className="space-y-0">
+          {navItems.map(({ href, label }) => {
             const active = location === href || (href !== "/studio" && location.startsWith(href));
-            return <Link href={href} key={href} data-testid={`link-nav-${label.toLowerCase().replaceAll(" ", "-")}`}
-              className={`flex items-center gap-3 px-3 py-3 text-[10px] tracking-[.18em] uppercase font-medium transition-colors ${active ? "border-l-2 border-accent text-white" : "text-white/50 hover:text-white"}`}>
-              <Icon size={14} strokeWidth={1.7} /><span>{label}</span>
-            </Link>;
+            return (
+              <Link
+                href={href}
+                key={href}
+                data-testid={`link-nav-${label.toLowerCase().replaceAll(" ", "-")}`}
+                className={[
+                  "flex items-center gap-0 py-2.5 text-[10px] tracking-[.20em] uppercase font-medium transition-all duration-150",
+                  "focus-visible:outline-none focus-visible:underline focus-visible:underline-offset-4",
+                  active
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                ].join(" ")}
+              >
+                {active && (
+                  <span className="mr-2.5 h-[1px] w-4 bg-accent inline-block" aria-hidden />
+                )}
+                {!active && <span className="mr-2.5 h-[1px] w-4 inline-block" aria-hidden />}
+                {label}
+              </Link>
+            );
           })}
         </nav>
       </div>
+      {/* Accent dot — sparse citron presence */}
+      <div className="my-8 h-[1px] w-8 bg-accent" aria-hidden />
       <div className="mt-auto">
-        <div className="flex items-center gap-3 border-t border-sidebar-border pt-4">
-          <div className="min-w-0 flex-1"><p className="truncate text-[10px] font-medium text-white">{user?.firstName ?? "Independent perfumer"}</p><p className="truncate text-[9px] text-white/50">{user?.primaryEmailAddress?.emailAddress ?? "Studio account"}</p></div>
-          <button onClick={() => signOut({ redirectUrl: basePath || "/" })} data-testid="button-sign-out" className="text-white/50 hover:text-white" aria-label="Sign out"><LogOut size={14} /></button>
+        <div className="flex items-center gap-3 border-t border-border pt-4">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[9px] font-medium text-foreground">{user?.firstName ?? "Studio"}</p>
+            <p className="truncate text-[8px] text-muted-foreground mt-0.5">{user?.primaryEmailAddress?.emailAddress ?? "Account"}</p>
+          </div>
+          <button
+            onClick={() => signOut({ redirectUrl: basePath || "/" })}
+            data-testid="button-sign-out"
+            className="text-muted-foreground/60 hover:text-foreground transition-colors"
+            aria-label="Sign out"
+          >
+            <LogOut size={13} />
+          </button>
         </div>
       </div>
     </aside>
@@ -165,9 +193,9 @@ function MobileNav() {
         data-testid="button-mobile-menu"
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
-        className="p-2 text-muted-foreground transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:bg-secondary"
+        className="p-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none"
       >
-        {open ? <X size={18} strokeWidth={1.5} /> : <Menu size={18} strokeWidth={1.5} />}
+        {open ? <X size={16} strokeWidth={1.5} /> : <Menu size={16} strokeWidth={1.5} />}
       </button>
 
       <AnimatePresence>
@@ -177,8 +205,8 @@ function MobileNav() {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute left-0 right-0 top-full z-40 border-b border-border bg-background shadow-md"
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute left-0 right-0 top-full z-40 border-b border-border bg-background"
           >
             {navItems.map(({ href, label }) => {
               const active = location === href || (href !== "/studio" && location.startsWith(href));
@@ -189,13 +217,13 @@ function MobileNav() {
                   onClick={() => setOpen(false)}
                   data-testid={`link-mobile-${label.toLowerCase().replaceAll(" ", "-")}`}
                   className={[
-                    "block border-t border-border px-5 py-4",
-                    "font-mono-ui text-[10px] uppercase tracking-[.22em]",
+                    "flex items-center border-t border-border px-5 py-4 gap-3",
+                    "font-mono-ui text-[10px] uppercase tracking-[.20em]",
                     "transition-colors duration-150",
-                    "hover:bg-secondary focus-visible:outline-none focus-visible:bg-secondary",
-                    active ? "text-foreground" : "text-muted-foreground",
+                    active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                   ].join(" ")}
                 >
+                  {active && <span className="h-[1px] w-3 bg-accent inline-block shrink-0" aria-hidden />}
                   {label}
                 </Link>
               );
@@ -213,7 +241,7 @@ function Shell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="min-w-0 flex-1 overflow-x-hidden">
         <MobileNav />
-        <main className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12 overflow-x-hidden">
+        <main className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12 pb-16 overflow-x-hidden">
           {children}
         </main>
       </div>
@@ -222,7 +250,24 @@ function Shell({ children }: { children: ReactNode }) {
 }
 
 function PageHeader({ eyebrow, title, description, action }: { eyebrow: string; title: string; description?: string; action?: ReactNode }) {
-  return <header className="mb-0 flex flex-col justify-between gap-4 border-b border-border pt-8 pb-6 sm:flex-row sm:items-end"><div><p className="font-mono-ui text-[9px] uppercase tracking-[.3em] text-muted-foreground">{eyebrow}</p><h1 className="mt-2 font-display text-5xl tracking-[-0.03em] leading-[.85] text-foreground sm:text-6xl" data-testid={`heading-${title.toLowerCase().replaceAll(" ", "-")}`}>{title}</h1>{description && <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">{description}</p>}</div>{action}</header>;
+  return (
+    <header className="mb-0 flex flex-col justify-between gap-4 border-b border-border pt-10 pb-7 sm:flex-row sm:items-end">
+      <div>
+        <p className="font-mono-ui text-[8px] uppercase tracking-[.32em] text-muted-foreground">{eyebrow}</p>
+        <h1
+          className="mt-2 font-display tracking-[-0.04em] leading-[.86] text-foreground"
+          style={{ fontSize: "clamp(2.4rem, 5vw, 4.5rem)" }}
+          data-testid={`heading-${title.toLowerCase().replaceAll(" ", "-")}`}
+        >
+          {title}
+        </h1>
+        {description && (
+          <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground">{description}</p>
+        )}
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </header>
+  );
 }
 
 function StatusPill({ value }: { value: string }) {
@@ -409,7 +454,7 @@ function WorkflowNav({
             <motion.div
               key={stage.id}
               data-testid={`workflow-stage-${stage.id}`}
-              whileHover={isClickable ? { backgroundColor: "hsl(var(--secondary)/0.6)" } : {}}
+              whileHover={isClickable ? { backgroundColor: "hsl(var(--secondary))" } : {}}
               className={[
                 "relative flex flex-col items-start px-4 py-4 transition-colors",
                 compact ? "min-w-[96px]" : "min-w-[110px]",
@@ -1398,100 +1443,100 @@ function Dashboard() {
 
   return (
     <Shell>
-      {/* ── HERO: brand mark + greeting ─────────────────────────── */}
+      {/* ── HERO: greeting + continue action ────────────────────── */}
       <motion.section
-        className="-mx-5 sm:-mx-8 lg:-mx-12 border-b border-border bg-foreground px-5 py-14 sm:px-8 sm:py-16 lg:px-12"
+        className="-mx-5 sm:-mx-8 lg:-mx-12 border-b border-border bg-background px-5 py-12 sm:px-8 sm:py-14 lg:px-12"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.55, ease: "easeOut" }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
         data-testid="dashboard-hero"
       >
         <motion.p
-          className="font-mono-ui text-[9px] uppercase tracking-[.35em] text-white/30"
-          initial={{ opacity: 0, y: 8 }}
+          className="font-mono-ui text-[8px] uppercase tracking-[.36em] text-muted-foreground"
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.05 }}
+          transition={{ duration: 0.38, delay: 0.04 }}
         >
-          MATIÈRE
+          {greeting}
         </motion.p>
         <motion.h1
           data-testid="heading-dashboard-greeting"
-          className="mt-4 font-display leading-[.88] tracking-[-0.03em] text-white"
-          style={{ fontSize: "clamp(2.6rem, 7vw, 6rem)" }}
-          initial={{ opacity: 0, y: 18 }}
+          className="mt-3 font-display leading-[.88] tracking-[-0.04em] text-foreground"
+          style={{ fontSize: "clamp(2.6rem, 7vw, 5.5rem)" }}
+          initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
-          {greeting}.
+          Formula Library.
         </motion.h1>
 
         {/* ── PRIMARY ACTION: continue or create ────────────────── */}
         {hasFormulas && continueTarget ? (
           <motion.div
-            className="mt-10 border-t border-white/10 pt-8"
-            initial={{ opacity: 0, y: 10 }}
+            className="mt-10 border-t border-border pt-8"
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.2 }}
+            transition={{ duration: 0.38, delay: 0.18 }}
           >
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.28em] text-white/30">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-muted-foreground mb-5">
               {inProgress.length > 0
-                ? `${String(inProgress.length).padStart(2, "0")} FORMULA${inProgress.length !== 1 ? "S" : ""} IN PROGRESS`
-                : "FORMULA LIBRARY"}
+                ? `${String(inProgress.length).padStart(2, "0")} formula${inProgress.length !== 1 ? "s" : ""} in progress`
+                : "Continue"}
             </p>
-            <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
               <Link
                 href={`/formulas/${continueTarget.id}`}
                 data-testid="link-dashboard-continue"
                 className="group flex items-baseline gap-4"
               >
-                <span className="font-display text-[clamp(1.5rem,3.5vw,2.8rem)] leading-tight tracking-[-0.02em] text-white transition-opacity group-hover:opacity-70">
+                <span className="font-display text-[clamp(1.5rem,3.5vw,2.6rem)] leading-tight tracking-[-0.03em] text-foreground transition-opacity group-hover:opacity-60">
                   {continueTarget.name || "Untitled"}
                   {continueTarget.id && (
-                    <span className="ml-3 font-mono-ui text-[10px] font-normal uppercase tracking-[.18em] text-white/30 align-middle">
+                    <span className="ml-3 font-mono-ui text-[9px] font-normal uppercase tracking-[.18em] text-muted-foreground align-middle">
                       / {String(continueTarget.id).padStart(3, "0")}
                     </span>
                   )}
                 </span>
-                <span className="shrink-0 font-mono-ui text-[11px] uppercase tracking-[.22em] text-white/50 transition-all group-hover:text-white group-hover:translate-x-1">
-                  CONTINUE &rarr;
+                <span className="shrink-0 font-mono-ui text-[10px] uppercase tracking-[.22em] text-muted-foreground transition-all group-hover:text-foreground group-hover:translate-x-1">
+                  Continue →
                 </span>
               </Link>
             </div>
-            <div className="mt-8 border-t border-white/10 pt-6">
+            <div className="mt-7 border-t border-border pt-5">
               <Link
                 href="/formulas/new"
                 data-testid="button-new-formula"
-                className="group inline-flex items-center gap-4 font-display text-xl uppercase tracking-[-0.01em] text-white transition-colors hover:text-accent sm:text-2xl"
+                className="group inline-flex items-center gap-3 font-mono-ui text-[10px] uppercase tracking-[.18em] text-muted-foreground transition-colors hover:text-foreground"
               >
-                START SOMETHING NEW
-                <Plus size={18} strokeWidth={1.5} className="transition-transform group-hover:rotate-90" />
+                New formula
+                <Plus size={14} strokeWidth={1.5} className="transition-transform group-hover:rotate-90" />
               </Link>
             </div>
           </motion.div>
         ) : (
           <motion.div
-            className="mt-10 border-t border-white/10 pt-8"
-            initial={{ opacity: 0, y: 10 }}
+            className="mt-10 border-t border-border pt-8"
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.2 }}
+            transition={{ duration: 0.38, delay: 0.18 }}
           >
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.28em] text-white/30 mb-7">
-              WHAT DO YOU WANT TO CREATE?
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-muted-foreground mb-6">
+              Begin here
             </p>
             <div className="flex flex-col gap-0 sm:flex-row sm:gap-0">
               {[
                 { label: "Start with an idea", href: "/formulas/new", testId: "link-start-idea" },
                 { label: "Explore materials", href: "/materials", testId: "link-explore-materials" },
-                { label: "Browse formula library", href: "/formulas", testId: "link-browse-formulas" },
+                { label: "Formula library", href: "/formulas", testId: "link-browse-formulas" },
               ].map(({ label, href, testId }, i) => (
                 <Link
                   key={href}
                   href={href}
                   data-testid={testId}
-                  className={`group flex items-center justify-between py-4 font-mono-ui text-[10px] uppercase tracking-[.18em] text-white/50 transition-colors hover:text-white sm:flex-col sm:items-start sm:pr-10 ${i > 0 ? "border-t border-white/10 sm:border-t-0 sm:border-l sm:pl-8 sm:border-l-white/10" : ""}`}
+                  className={`group flex items-center justify-between py-4 font-mono-ui text-[10px] uppercase tracking-[.18em] text-muted-foreground transition-colors hover:text-foreground sm:flex-col sm:items-start sm:pr-10 ${i > 0 ? "border-t border-border sm:border-t-0 sm:border-l sm:pl-8" : ""}`}
                 >
-                  <span className="group-hover:opacity-100">{label}</span>
-                  <ArrowRight size={11} className="sm:mt-4 transition-transform group-hover:translate-x-1" />
+                  <span>{label}</span>
+                  <ArrowRight size={10} className="sm:mt-4 transition-transform group-hover:translate-x-1" />
                 </Link>
               ))}
             </div>
@@ -2679,14 +2724,14 @@ function MaterialBars({ materials }: { materials: FormulaIdeaMaterial[] }) {
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
                 <span className={`inline-block h-1.5 w-1.5 shrink-0 ${meta.dotColor}`} />
-                <span className="text-sm text-white/90">{mat.name}</span>
-                <span className="font-mono-ui text-[8px] uppercase tracking-widest text-white/30">{meta.label}</span>
+                <span className="text-sm">{mat.name}</span>
+                <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">{meta.label}</span>
               </div>
-              <span className="font-mono-ui text-[11px] tabular-nums text-white/50">{mat.pct}%</span>
+              <span className="font-mono-ui text-[11px] tabular-nums text-muted-foreground">{mat.pct}%</span>
             </div>
-            <div className="h-[2px] w-full bg-white/10">
+            <div className="h-[2px] w-full bg-border">
               <motion.div
-                className={`h-full bg-white ${meta.barOpacity}`}
+                className={`h-full bg-foreground ${meta.barOpacity}`}
                 initial={{ width: 0 }}
                 animate={{ width: barWidth }}
                 transition={{ delay: 0.06 + i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
@@ -2699,10 +2744,10 @@ function MaterialBars({ materials }: { materials: FormulaIdeaMaterial[] }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: sorted.length * 0.07 + 0.1, duration: 0.3 }}
-        className="mt-2 flex items-center justify-between border-t border-white/10 pt-3"
+        className="mt-2 flex items-center justify-between border-t border-border pt-3"
       >
-        <span className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-white/30">Concentrate total</span>
-        <span className="font-mono-ui text-[11px] tabular-nums text-white/50">
+        <span className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Concentrate total</span>
+        <span className="font-mono-ui text-[11px] tabular-nums text-muted-foreground">
           {sorted.reduce((s, m) => s + m.pct, 0)}%
         </span>
       </motion.div>
@@ -2761,12 +2806,12 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: (m
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", stiffness: 340, damping: 38, mass: 0.9 }}
-        className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[90vh] flex-col overflow-hidden bg-[#0C0C0C]"
+        className="fixed bottom-0 left-0 right-0 z-50 flex max-h-[90vh] flex-col overflow-hidden bg-card border-t border-border"
         onClick={e => e.stopPropagation()}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
-          <div className="h-[3px] w-10 bg-white/20" />
+          <div className="h-[3px] w-10 bg-border" />
         </div>
 
         {/* Scrollable content */}
@@ -2774,10 +2819,10 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: (m
           {/* Eyebrow */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <Sparkles size={12} className="text-white/50" />
-              <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/50">Formula suggestion</p>
+              <Sparkles size={12} className="text-muted-foreground" />
+              <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-muted-foreground">Formula suggestion</p>
             </div>
-            <button onClick={onClose} className="p-1 text-white/40 hover:text-white/80 transition-colors" aria-label="Close">
+            <button onClick={onClose} className="p-1 text-muted-foreground hover:text-foreground transition-colors" aria-label="Close">
               <X size={18} />
             </button>
           </div>
@@ -2787,7 +2832,7 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: (m
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="font-display text-4xl sm:text-5xl leading-[.92] text-white"
+            className="font-display text-4xl sm:text-5xl leading-[.92]"
           >
             {idea.name}
           </motion.h2>
@@ -2797,10 +2842,10 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: (m
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.08, duration: 0.3 }}
-            className="mt-6 border-t border-white/10 pt-5"
+            className="mt-6 border-t border-border pt-5"
           >
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-2">The brief</p>
-            <p className="text-base leading-7 text-white/85">{idea.brief}</p>
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-muted-foreground mb-2">The brief</p>
+            <p className="text-base leading-7">{idea.brief}</p>
           </motion.div>
 
           {/* Direction */}
@@ -2808,32 +2853,32 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: (m
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.13, duration: 0.3 }}
-            className="mt-5 border-t border-white/10 pt-5"
+            className="mt-5 border-t border-border pt-5"
           >
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-2">Direction</p>
-            <p className="text-sm leading-6 text-white/55">{idea.direction}</p>
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-muted-foreground mb-2">Direction</p>
+            <p className="text-sm leading-6 text-muted-foreground">{idea.direction}</p>
           </motion.div>
 
           {/* Materials — fetched on open */}
-          <div className="mt-6 border-t border-white/10 pt-5 pb-4">
-            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-white/40 mb-5">Materials &amp; ratios</p>
+          <div className="mt-6 border-t border-border pt-5 pb-4">
+            <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-muted-foreground mb-5">Materials &amp; ratios</p>
 
             {loadingMats && (
               <div className="space-y-4">
                 {[1, 2, 3, 4, 5].map(i => (
                   <div key={i} className="animate-pulse">
                     <div className="flex items-center justify-between mb-1.5">
-                      <div className="h-3 bg-white/10 rounded-none" style={{ width: `${40 + i * 8}%` }} />
-                      <div className="h-3 w-8 bg-white/10 rounded-none" />
+                      <div className="h-3 bg-muted rounded-none" style={{ width: `${40 + i * 8}%` }} />
+                      <div className="h-3 w-8 bg-muted rounded-none" />
                     </div>
-                    <div className="h-[2px] w-full bg-white/10" />
+                    <div className="h-[2px] w-full bg-border" />
                   </div>
                 ))}
               </div>
             )}
 
             {!loadingMats && matsError && (
-              <p className="text-xs text-white/40">Couldn't load materials. Try again.</p>
+              <p className="text-xs text-muted-foreground">Couldn&apos;t load materials. Try again.</p>
             )}
 
             {!loadingMats && !matsError && materials.length > 0 && (
@@ -2843,18 +2888,18 @@ function IdeaDrawer({ idea, onStart, onClose }: { idea: FormulaIdea; onStart: (m
         </div>
 
         {/* Sticky CTA */}
-        <div className="shrink-0 border-t border-white/10 bg-[#0C0C0C] px-6 py-5 sm:px-8">
+        <div className="shrink-0 border-t border-border bg-card px-6 py-5 sm:px-8">
           <button
             onClick={() => onStart(materials)}
             data-testid="button-idea-start"
-            className="flex w-full items-center justify-center gap-2 bg-white py-4 font-mono-ui text-[11px] uppercase tracking-widest text-black transition-opacity hover:opacity-90 active:opacity-80"
+            className="flex w-full items-center justify-center gap-2 bg-foreground text-background py-4 font-mono-ui text-[11px] uppercase tracking-widest transition-opacity hover:opacity-80 active:opacity-70"
           >
             Start this formula
             <ArrowRight size={13} />
           </button>
           <button
             onClick={onClose}
-            className="mt-3 w-full py-2 font-mono-ui text-[9px] uppercase tracking-widest text-white/40 hover:text-white/70 transition-colors"
+            className="mt-3 w-full py-2 font-mono-ui text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
           >
             ← Back to ideas
           </button>
@@ -2906,19 +2951,19 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="bg-[#000000] px-6 py-10 sm:px-10 sm:py-12"
+        className="border border-border bg-card px-6 py-10 sm:px-10 sm:py-12"
       >
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-6">
-          <Sparkles size={15} className="text-white/70" />
-          <p className="font-mono-ui text-[10px] uppercase tracking-[.22em] text-white/70">Idea generator</p>
+          <Sparkles size={15} className="text-muted-foreground" />
+          <p className="font-mono-ui text-[10px] uppercase tracking-[.22em] text-muted-foreground">Idea generator</p>
         </div>
-        <h2 className="font-display text-4xl sm:text-5xl text-white leading-[.9] mb-2">Not sure where to start?</h2>
-        <p className="text-white/60 text-sm leading-6 mb-8">Describe a feeling, a material, a mood — or leave it blank and be surprised.</p>
+        <h2 className="font-display text-4xl sm:text-5xl leading-[.9] mb-2">Not sure where to start?</h2>
+        <p className="text-muted-foreground text-sm leading-6 mb-8">Describe a feeling, a material, a mood — or leave it blank and be surprised.</p>
 
         {/* Input */}
         <form onSubmit={generate}>
-          <div className={`flex items-center bg-white/10 border transition-colors duration-200 ${focused ? "border-white/60" : "border-white/20"}`}>
+          <div className={`flex items-center border transition-colors duration-200 ${focused ? "border-foreground/50" : "border-border"}`}>
             <input
               value={mood}
               onChange={e => setMood(e.target.value)}
@@ -2926,21 +2971,21 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
               onBlur={() => setFocused(false)}
               placeholder={typewriter}
               data-testid="input-idea-mood"
-              className="min-w-0 flex-1 bg-transparent px-5 py-5 text-base text-white outline-none placeholder:text-white/40"
+              className="min-w-0 flex-1 bg-transparent px-5 py-5 text-base outline-none placeholder:text-muted-foreground/50"
             />
             <button
               type="submit"
               disabled={loading}
               data-testid="button-generate-ideas"
-              className="flex h-[60px] shrink-0 items-center gap-2 border-l border-white/20 bg-white px-5 font-mono-ui text-[10px] uppercase tracking-widest text-black transition-opacity disabled:opacity-50 hover:opacity-90"
+              className="flex h-[60px] shrink-0 items-center gap-2 border-l border-border bg-foreground px-5 font-mono-ui text-[10px] uppercase tracking-widest text-background transition-opacity disabled:opacity-50 hover:opacity-80"
             >
               {loading
-                ? <span className="size-3.5 animate-spin rounded-full border-2 border-black/30 border-t-black" />
+                ? <span className="size-3.5 animate-spin rounded-full border-2 border-background/30 border-t-background" />
                 : <Sparkles size={13} />}
               {loading ? "Thinking…" : "Generate"}
             </button>
           </div>
-          {error && <p className="mt-3 text-xs text-white/60" data-testid="status-idea-error">{error}</p>}
+          {error && <p className="mt-3 text-xs text-muted-foreground" data-testid="status-idea-error">{error}</p>}
         </form>
 
         {/* Results */}
@@ -2953,7 +2998,7 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="mt-8"
             >
-              <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-white/50 mb-3">Tap an idea to explore it</p>
+              <p className="font-mono-ui text-[8px] uppercase tracking-[.22em] text-muted-foreground mb-3">Tap an idea to explore it</p>
               <div className="grid gap-3 sm:grid-cols-3">
                 {ideas.map((idea, i) => (
                   <motion.button
@@ -2964,12 +3009,12 @@ function FormulaIdeaGenerator({ onSelect }: { onSelect: (name: string, brief: st
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.09, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                     data-testid={`button-idea-${i}`}
-                    className="group relative bg-white/10 border border-white/15 p-5 text-left transition-all hover:bg-white/20 hover:border-white/30 active:scale-[.98]"
+                    className="group relative border border-border bg-background p-5 text-left transition-all hover:bg-secondary/50 hover:border-foreground/30 active:scale-[.98]"
                   >
-                    <p className="font-display text-2xl leading-tight text-white pr-6">{idea.name}</p>
-                    <p className="mt-2 text-xs leading-5 text-white/65 line-clamp-3">{idea.brief}</p>
+                    <p className="font-display text-2xl leading-tight pr-6">{idea.name}</p>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground line-clamp-3">{idea.brief}</p>
                     {/* Arrow affordance */}
-                    <ArrowRight size={13} className="absolute top-5 right-5 text-white/30 transition-all group-hover:text-white/70 group-hover:translate-x-0.5" />
+                    <ArrowRight size={13} className="absolute top-5 right-5 text-muted-foreground/40 transition-all group-hover:text-foreground/70 group-hover:translate-x-0.5" />
                   </motion.button>
                 ))}
               </div>
@@ -3030,11 +3075,11 @@ function BlueprintPanel({ materials }: { materials: FormulaIdeaMaterial[] }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-foreground text-background p-6"
+      className="border border-border bg-card p-6"
     >
       <div className="flex items-center gap-2 mb-5">
-        <Sparkles size={12} className="text-background/50" />
-        <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-background/50">AI blueprint — materials &amp; ratios</p>
+        <Sparkles size={12} className="text-muted-foreground" />
+        <p className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-muted-foreground">AI blueprint — materials &amp; ratios</p>
       </div>
       <div className="space-y-4">
         {sorted.map((mat, i) => {
@@ -3050,14 +3095,14 @@ function BlueprintPanel({ materials }: { materials: FormulaIdeaMaterial[] }) {
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-background/90">{mat.name}</span>
-                  <span className="font-mono-ui text-[8px] uppercase tracking-widest text-background/35">{roleLabel}</span>
+                  <span className="text-sm font-medium">{mat.name}</span>
+                  <span className="font-mono-ui text-[8px] uppercase tracking-widest text-muted-foreground">{roleLabel}</span>
                 </div>
-                <span className="font-mono-ui text-[11px] tabular-nums text-background/50">{mat.pct}%</span>
+                <span className="font-mono-ui text-[11px] tabular-nums text-muted-foreground">{mat.pct}%</span>
               </div>
-              <div className="h-[2px] w-full bg-background/15">
+              <div className="h-[2px] w-full bg-border">
                 <motion.div
-                  className={`h-full bg-background ${barOpacity}`}
+                  className={`h-full bg-foreground ${barOpacity}`}
                   initial={{ width: 0 }}
                   animate={{ width: barWidth }}
                   transition={{ delay: 0.05 + i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -3067,11 +3112,11 @@ function BlueprintPanel({ materials }: { materials: FormulaIdeaMaterial[] }) {
           );
         })}
       </div>
-      <div className="mt-4 border-t border-background/15 pt-3 flex items-center justify-between">
-        <span className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-background/30">Concentrate total</span>
-        <span className="font-mono-ui text-[11px] tabular-nums text-background/50">{sorted.reduce((s, m) => s + m.pct, 0)}%</span>
+      <div className="mt-4 border-t border-border pt-3 flex items-center justify-between">
+        <span className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground">Concentrate total</span>
+        <span className="font-mono-ui text-[11px] tabular-nums text-muted-foreground">{sorted.reduce((s, m) => s + m.pct, 0)}%</span>
       </div>
-      <p className="mt-3 text-[10px] text-background/35 leading-5">Add each material using the ingredient builder below. Match names to your library.</p>
+      <p className="mt-3 text-[10px] text-muted-foreground/60 leading-5">Add each material using the ingredient builder below. Match names to your library.</p>
     </motion.div>
   );
 }
@@ -4599,17 +4644,14 @@ function FieldNoteCard() {
                 className="absolute inset-0 h-full w-full object-cover"
                 data-testid={i === 0 ? "img-hero-photo" : undefined}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#ffffffd9] via-[#ffffff55] to-transparent" />
-              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#ffffffb8] to-transparent" />
-
               {/* Field note header */}
-              <div className="relative flex justify-between px-8 pt-8 font-mono-ui text-[9px] uppercase tracking-[.16em] text-[#3a3a3f]">
+              <div className="relative flex justify-between px-8 pt-8 font-mono-ui text-[9px] uppercase tracking-[.16em] text-muted-foreground">
                 <span>Field note {scene.fieldNote}</span><span>{scene.date}</span>
               </div>
 
               {/* Bottom content */}
               <div className="absolute bottom-10 left-8 right-8 z-[1]">
-                <p className="font-display text-6xl leading-[.82] text-[#423838]">
+                <p className="font-display text-6xl leading-[.82] text-foreground">
                   {scene.name}<br /><em>{scene.nameEm}</em>
                 </p>
                 <div className="mt-7 flex items-end justify-between">
@@ -4642,362 +4684,304 @@ function FieldNoteCard() {
 }
 
 function Landing() {
-  const { scrollY } = useScroll();
-  // Scroll-zoom: hero text grows as user scrolls down (cinematic push-in)
-  const heroScale = useTransform(scrollY, [0, 700], [1, 1.13]);
-  const heroOpacity = useTransform(scrollY, [0, 420], [1, 0]);
-  const heroY = useTransform(scrollY, [0, 700], [0, 110]);
-  // Card drifts upward at a different rate — creates depth separation
-  const cardY = useTransform(scrollY, [0, 700], [0, -70]);
-  const smoothCardY = useSpring(cardY, { damping: 16, stiffness: 80 });
-  // Parallax image strip — three planes at independent scroll speeds
-  const para1Y = useTransform(scrollY, [300, 1400], [40, -120]);
-  const para2Y = useTransform(scrollY, [300, 1400], [10,  -60]);
-  const para3Y = useTransform(scrollY, [300, 1400], [80, -160]);
+  const BASE = import.meta.env.BASE_URL + "images/";
+  const focusProject = { name: "Lait Vert", direction: "Green · violet leaf · milky skin · transparent", mod: "MOD 02" };
 
   return (
-    <div className="min-h-[100dvh] overflow-x-hidden bg-[#000000]">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-background">
+      {/* ── Nav ── */}
       <motion.header
-        initial={{ opacity: 0, y: -14 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-10"
       >
         <Logo />
-        <div className="flex items-center gap-2">
-          <Button href="/sign-in" variant="quiet" testId="link-landing-sign-in">Sign in</Button>
-          <Button href="/sign-up" testId="link-landing-sign-up">Open the lab</Button>
+        <div className="flex items-center gap-6">
+          <Link
+            href="/sign-in"
+            data-testid="link-landing-sign-in"
+            className="font-mono-ui text-[9px] uppercase tracking-[.22em] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/sign-up"
+            data-testid="link-landing-sign-up"
+            className="border border-foreground px-4 py-2 font-mono-ui text-[9px] uppercase tracking-[.18em] hover:bg-foreground hover:text-background transition-colors"
+          >
+            Open studio
+          </Link>
         </div>
       </motion.header>
-      <main className="text-[#ffffff] bg-[#ffffffe0]">
-        {/* Hero — scroll zoom layer */}
-        <section className="relative mx-auto grid max-w-7xl items-center gap-14 overflow-visible px-5 pb-20 pt-16 sm:px-10 sm:pt-24 lg:grid-cols-[1.05fr_.95fr] lg:pb-32 pl-[0px]">
-          <motion.div
-            style={{ scale: heroScale, opacity: heroOpacity, y: heroY }}
-            className="origin-bottom-left"
-          >
-            <motion.p
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-              className="font-mono-ui text-[10px] uppercase tracking-[.24em] text-[#080000]"
-            >
-              A creative perfumery workspace
-            </motion.p>
-            <motion.h1
-              initial={{ opacity: 0, y: 36, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-              className="max-w-3xl font-display tracking-[-.045em] text-[69px] text-[#000000] mb-0 mt-[5px] pt-[0px] pb-[0px]"
-            >
-              Where instinct meets <em className="text-[#000000] ml-[1px] mr-[1px] pt-[0px] pb-[0px] mt-[50px] mb-[50px]">precision.</em>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 22 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.24, duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-9 max-w-lg text-[28px] text-left border-t-[#a62d2d] border-r-[#a62d2d] border-b-[#a62d2d] border-l-[#a62d2d] text-[#000000]"
-            >
-              Matière is a focused studio for independent perfumers: keep the instinct, keep the record, keep formula safety close enough to trust.
-            </motion.p>
+
+      {/* ── Hero — warm editorial split ── */}
+      <main>
+        <section className="mx-auto max-w-7xl px-5 sm:px-10">
+          <div className="grid items-stretch gap-0 lg:grid-cols-[1fr_1fr] min-h-[80vh]">
+            {/* Left — text column */}
+            <div className="flex flex-col justify-center py-16 lg:py-24 lg:pr-16">
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.05 }}
+                className="font-mono-ui text-[9px] uppercase tracking-[.30em] text-muted-foreground"
+              >
+                A creative perfumery workspace
+              </motion.p>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.65, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                className="mt-5 font-display tracking-[-0.045em] leading-[.88] text-foreground"
+                style={{ fontSize: "clamp(3.2rem, 7vw, 6.5rem)" }}
+              >
+                Where world becomes scent.
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.22 }}
+                className="mt-7 max-w-md text-base leading-8 text-muted-foreground"
+              >
+                Build a visual world. Translate it into atmosphere, materials, formula, and evaluation. MATIÈRE connects creative instinct with technical precision.
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.32 }}
+                className="mt-10 flex flex-wrap items-center gap-6"
+              >
+                <Link
+                  href="/sign-up"
+                  data-testid="button-landing-start"
+                  className="border border-foreground bg-foreground text-background px-6 py-3 font-mono-ui text-[10px] uppercase tracking-[.18em] hover:opacity-80 transition-opacity"
+                >
+                  Start making
+                </Link>
+                <Link
+                  href="/sign-in"
+                  data-testid="link-landing-learn"
+                  className="font-mono-ui text-[9px] uppercase tracking-[.18em] text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-2"
+                >
+                  Sign in <ArrowRight size={10} strokeWidth={1.5} />
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* Right — hero image, full height */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.38, duration: 0.55 }}
-              className="mt-9 flex flex-wrap items-center gap-3"
+              initial={{ opacity: 0, scale: 1.02 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="relative hidden lg:block overflow-hidden"
+              style={{ minHeight: "520px" }}
             >
-              <Button href="/sign-up" testId="button-landing-start">Start making</Button>
-              <span className="ml-4 font-mono-ui text-[10px] uppercase tracking-widest text-muted-foreground">No blank canvases required.</span>
+              <img
+                src={BASE + "leaves.jpg"}
+                alt=""
+                aria-hidden
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              {/* Current project overlay — bottom solid strip, no gradient */}
+              <div className="absolute bottom-0 inset-x-0 p-8 bg-foreground/80">
+                <p className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-primary-foreground/50">Current project</p>
+                <p className="mt-1 font-display text-3xl text-primary-foreground">{focusProject.name}</p>
+                <p className="mt-1 font-mono-ui text-[8px] uppercase tracking-[.16em] text-primary-foreground/50">{focusProject.direction}</p>
+                <div className="mt-4">
+                  <Link
+                    href="/sign-in"
+                    data-testid="link-landing-continue"
+                    className="inline-flex items-center gap-2 font-mono-ui text-[9px] uppercase tracking-[.20em] text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+                  >
+                    {focusProject.mod} · Continue <ArrowRight size={10} strokeWidth={1.5} />
+                  </Link>
+                </div>
+              </div>
             </motion.div>
-          </motion.div>
-
-          {/* Parallax card — drifts at independent scroll speed */}
-          <motion.div style={{ y: smoothCardY }}>
-            <FieldNoteCard />
-          </motion.div>
+          </div>
         </section>
 
-        {/* Parallax image strip — three planes at independent depths */}
-        <section className="relative overflow-hidden bg-[#080808]" style={{ height: "65vh", minHeight: 420 }}>
-          {/* Plane 1 — leftmost, slowest */}
-          <motion.div style={{ y: para1Y }} className="absolute left-0 top-0 h-[110%] w-[42%]">
-            <img src={`${import.meta.env.BASE_URL}images/hero-droplets.jpg`} alt="" aria-hidden className="h-full w-full object-cover opacity-70" style={{ objectPosition: "center" }} />
-          </motion.div>
-          {/* Plane 2 — centre, mid-speed */}
-          <motion.div style={{ y: para2Y }} className="absolute left-[39%] top-[8%] h-[95%] w-[30%]">
-            <img src={`${import.meta.env.BASE_URL}images/flower.jpg`} alt="" aria-hidden className="h-full w-full object-cover opacity-65" style={{ objectPosition: "center top" }} />
-          </motion.div>
-          {/* Plane 3 — rightmost, fastest */}
-          <motion.div style={{ y: para3Y }} className="absolute right-0 top-[-8%] h-[120%] w-[29%]">
-            <img src={auraFanetteImage} alt="" aria-hidden className="h-full w-full object-cover opacity-20 border-t-[color:var(--muted-border)] border-r-[color:var(--muted-border)] border-b-[color:var(--muted-border)] border-l-[color:var(--muted-border)] ml-[-34px] mr-[-34px]" style={{ objectPosition: "center" }} />
-          </motion.div>
-          {/* Depth gradients */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#080808]/70 via-transparent to-[#080808]/70" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#080808]/50 via-transparent to-[#080808]/50" />
-          {/* Floating label */}
-          <p className="absolute bottom-6 left-1/2 -translate-x-1/2 font-mono-ui text-[8px] uppercase tracking-[.28em] text-white/30">The palette · raw materials</p>
+        {/* ── Canvas preview section ── */}
+        <section className="border-t border-border mt-0">
+          <div className="mx-auto max-w-7xl px-5 sm:px-10 py-16">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <p className="font-mono-ui text-[8px] uppercase tracking-[.30em] text-muted-foreground">Creative canvas</p>
+                <h2 className="mt-2 font-display text-3xl sm:text-5xl tracking-[-0.03em] leading-[.9]">
+                  Build a world first.
+                </h2>
+              </div>
+              <p className="hidden sm:block font-mono-ui text-[8px] uppercase tracking-[.16em] text-muted-foreground text-right max-w-xs">
+                Visual research becomes olfactive direction
+              </p>
+            </div>
+
+            {/* Simulated canvas composition */}
+            <div
+              className="relative w-full overflow-hidden bg-card"
+              style={{ height: "clamp(320px, 55vw, 560px)" }}
+              aria-hidden
+            >
+              {/* Large background image */}
+              <div className="absolute top-0 left-0 w-[55%] h-[85%] overflow-hidden">
+                <img src={BASE + "mood-fresh.jpg"} alt="" className="w-full h-full object-cover" />
+              </div>
+              {/* Portrait image — offset */}
+              <div className="absolute top-[10%] left-[38%] w-[28%] h-[70%] overflow-hidden" style={{ zIndex: 2 }}>
+                <img src={BASE + "flower.jpg"} alt="" className="w-full h-full object-cover" />
+              </div>
+              {/* Small accent image */}
+              <div className="absolute bottom-0 left-[8%] w-[22%] h-[35%] overflow-hidden" style={{ zIndex: 3 }}>
+                <img src={BASE + "texture.jpg"} alt="" className="w-full h-full object-cover" />
+              </div>
+              {/* Text object — editorial */}
+              <div className="absolute top-[6%] right-[6%] max-w-[220px]" style={{ zIndex: 4 }}>
+                <p className="font-display text-2xl leading-snug text-foreground">Not botanical. Architectural green.</p>
+              </div>
+              {/* Material object */}
+              <div className="absolute bottom-[8%] right-[4%] border border-border bg-background px-4 py-3" style={{ zIndex: 5 }}>
+                <p className="font-mono-ui text-[7px] uppercase tracking-[.18em] text-muted-foreground">Material</p>
+                <p className="mt-1 font-display text-lg">Violet Leaf Absolute</p>
+                <p className="mt-0.5 font-mono-ui text-[7px] uppercase tracking-[.12em] text-muted-foreground">Green · wet leaf · metallic</p>
+              </div>
+              {/* Olfactive direction label */}
+              <div className="absolute bottom-[8%] left-[34%] bg-background/90 border-l-2 border-accent px-3 py-2" style={{ zIndex: 5 }}>
+                <p className="font-mono-ui text-[7px] uppercase tracking-[.16em] text-muted-foreground">Olfactive direction</p>
+                <p className="mt-0.5 font-mono-ui text-[9px] text-foreground">Green · transparent · mineral skin</p>
+              </div>
+              {/* Enter canvas CTA */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ zIndex: 6 }}>
+                <Link
+                  href="/sign-up"
+                  data-testid="link-landing-canvas"
+                  className="bg-foreground text-background px-5 py-3 font-mono-ui text-[9px] uppercase tracking-[.22em] hover:opacity-80 transition-opacity inline-flex items-center gap-2"
+                >
+                  Enter Canvas <ArrowRight size={10} strokeWidth={1.5} />
+                </Link>
+              </div>
+            </div>
+          </div>
         </section>
 
-        {/* 01 / 02 / 03 — editorial row layout on dark */}
-        <section className="bg-[#0c0c0c]">
+        {/* ── Three-column feature strip ── */}
+        <section className="border-t border-border">
           <div className="mx-auto max-w-7xl">
             {[
               {
                 num: "01",
-                label: "Capture",
-                title: "Every instinct, on record.",
-                copy: "The brief that usually lives in your head — the mood, the reference, the strange thing you smelled on a Tuesday — has a place. Write it before the formula starts behaving.",
-                tag: "Brief → Formula",
-                img: null,
+                title: "Gallery",
+                body: "Build a visual world on a spatial canvas. Layer images, text, materials, and olfactive interpretations into a composition that drives the fragrance.",
               },
               {
                 num: "02",
-                label: "Build",
-                title: "A library that works the way you think.",
-                copy: "Search by family, odour profile, or supplier. IFRA limits and allergen flags surface the moment you're making a decision — not buried somewhere else.",
-                tag: "Materials → Safety",
-                img: null,
+                title: "Studio",
+                body: "Develop the project through briefs, evaluations, and notes. Every iteration connects back to its visual origin.",
               },
               {
                 num: "03",
-                label: "Refine",
-                title: "The record is the whole process.",
-                copy: "Every version is saved. Every note stays next to the work. The formula that finally clicked — and the seven that didn't — are all still there, waiting.",
-                tag: "Iteration → Archive",
-                img: `${import.meta.env.BASE_URL}images/aura.jpg`,
+                title: "Laboratory",
+                body: "Translate visual direction into formula. Precise, compact, information-rich. IFRA compliance and allergen review included.",
               },
-            ].map(({ num, label, title, copy, tag, img }, i) => (
+            ].map(({ num, title, body }, i) => (
               <motion.div
                 key={num}
-                initial={{ opacity: 0, y: 40 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
-                className={`grid items-center gap-6 border-b border-white/[0.07] px-5 py-12 sm:px-10 sm:py-14 ${img ? "lg:grid-cols-[140px_1fr_320px]" : "lg:grid-cols-[140px_1fr_200px]"}`}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                className={[
+                  "border-b border-border px-5 py-10 sm:px-10",
+                  i < 2 ? "lg:border-r" : "",
+                  "lg:grid lg:grid-cols-[80px_1fr] lg:gap-8 lg:border-b-0",
+                  i === 0 ? "lg:border-t border-t border-border" : "",
+                ].join(" ")}
               >
-                {/* Decorative number */}
-                <div className="font-display text-[96px] leading-none lg:text-[120px] bg-[#e5d5d500] text-[#ffffffb8]">{num}</div>
-                {/* Content */}
+                <p className="font-mono-ui text-[8px] uppercase tracking-[.24em] text-accent mb-4 lg:mb-0 lg:mt-1">{num}</p>
                 <div>
-                  <p className="font-mono-ui text-[9px] uppercase tracking-[.26em] text-[#B0AAB8]">{num} / {label}</p>
-                  <h2 className="mt-3 font-display text-[clamp(1.75rem,3.5vw,2.75rem)] leading-[1.05] text-white">{title}</h2>
-                  <p className="mt-4 max-w-2xl text-sm leading-[1.75] text-white/45">{copy}</p>
+                  <h3 className="font-display text-3xl tracking-[-0.02em]">{title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-muted-foreground max-w-sm">{body}</p>
                 </div>
-                {/* Right column — image or tag */}
-                {img ? (
-                  <div className="hidden h-48 overflow-hidden lg:block">
-                    <img
-                      src={img}
-                      alt=""
-                      aria-hidden
-                      className="h-full w-full object-cover opacity-80"
-                    />
-                  </div>
-                ) : (
-                  <p className="hidden font-mono-ui text-[8px] uppercase tracking-[.2em] text-white/20 lg:block lg:text-right">{tag}</p>
-                )}
               </motion.div>
             ))}
           </div>
         </section>
 
-        {/* Precision — two-column: photo left, features right */}
-        <section className="mx-auto max-w-7xl border-t border-border px-5 py-24 sm:px-10">
-          <div className="grid items-start gap-16 lg:grid-cols-[1fr_1.5fr]">
-
-            {/* Left — eyebrow, heading, photo */}
-            <motion.div
-              initial={{ opacity: 0, x: -24 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col gap-7"
-            >
-              <div>
-                <p className="font-mono-ui text-[10px] uppercase tracking-[.2em] text-muted-foreground">A studio practice</p>
-                <h2 className="mt-5 font-display text-5xl leading-[.9]">Precision can feel personal.</h2>
-              </div>
-              <div className="overflow-hidden border border-border">
-                <img
-                  src={`${import.meta.env.BASE_URL}images/studio-practice.jpg`}
-                  alt="Perfumer's studio with curved shelves of fragrance materials"
-                  data-testid="img-precision-flower"
-                  className="w-full"
-                />
-              </div>
-            </motion.div>
-
-            {/* Right — 2×3 feature grid */}
-            <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2">
+        {/* ── Material showcase ── */}
+        <section className="border-t border-border py-16">
+          <div className="mx-auto max-w-7xl px-5 sm:px-10">
+            <p className="font-mono-ui text-[8px] uppercase tracking-[.30em] text-muted-foreground mb-10">The palette · key materials</p>
+            <div className="grid gap-px sm:grid-cols-3 border border-border">
               {[
-                { index: "01", title: "Formula builder",     copy: "Add materials by role — top, heart, base — with live percentage and gram weights as you go." },
-                { index: "02", title: "Safety in the margin", copy: "Allergen flags and IFRA limits surface at the exact moment a choice is made, not after." },
-                { index: "03", title: "AI idea generator",   copy: "Describe a brief in plain language. Get a material blueprint with role assignments to build from." },
-                { index: "04", title: "Material library",    copy: "Your ingredient collection, browsable by olfactive family. Every material links to the formulas that use it." },
-                { index: "05", title: "Creative lab",        copy: "Persistent AI coaching sessions — pick up a thread on longevity, accord balance, or what to try next." },
-                { index: "06", title: "Formula history",     copy: "A full changelog of every edit. Go back to any state, or use history to understand what changed and why." },
-              ].map(({ index, title, copy }, i) => (
+                { name: "Violet Leaf Absolute", family: "Green", img: "leaves.jpg", note: "Cold, metallic, ozonic. The smell of crushed plant. Rare in a formula for its sheer abstraction." },
+                { name: "Rose Absolute", family: "Floral", img: "rose.jpg", note: "The most complex natural in the palette. Honey, geraniol, damascenone. Nothing replaces it." },
+                { name: "Labdanum Absolute", family: "Resinous", img: "resin.jpg", note: "Warm, leathery, animalic. The backbone of chypre. Irreplaceable as a fixative." },
+              ].map(({ name, family, img, note }, i) => (
                 <motion.div
-                  key={title}
-                  initial={{ opacity: 0, y: 28, scale: 0.96 }}
-                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.6, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                  className="border-l border-border pl-5"
+                  key={name}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-30px" }}
+                  transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="group overflow-hidden bg-card"
                 >
-                  <span className="font-mono-ui text-[8px] text-muted-foreground/40">{index}</span>
-                  <p className="mt-1 font-medium text-[28px]">{title}</p>
-                  <p className="mt-2 text-muted-foreground text-[17px]">{copy}</p>
+                  <div className="relative h-40 overflow-hidden">
+                    <img
+                      src={BASE + img}
+                      alt=""
+                      aria-hidden
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                    />
+                  </div>
+                  <div className="p-5 border-t border-border">
+                    <p className="font-mono-ui text-[7px] uppercase tracking-[.20em] text-muted-foreground">{family}</p>
+                    <h3 className="mt-1 font-display text-2xl">{name}</h3>
+                    <p className="mt-2 text-xs leading-5 text-muted-foreground">{note}</p>
+                  </div>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Contact sheet — full-bleed horizontal image strip */}
-        <section className="border-t border-white/10 bg-[#000000]">
-          <div className="grid grid-cols-2 gap-px sm:grid-cols-4">
-            {[
-              { src: `${import.meta.env.BASE_URL}images/botanicals.jpg`, caption: "Dried botanicals",    pos: "center top" },
-              { src: `${import.meta.env.BASE_URL}images/resin.jpg`,    caption: "Labdanum resin",      pos: "center" },
-              { src: `${import.meta.env.BASE_URL}images/jasmine.jpg`,  caption: "Jasmine sambac",      pos: "center" },
-              { src: `${import.meta.env.BASE_URL}images/spice.jpg`,    caption: "Cardamom / pepper",   pos: "center" },
-            ].map(({ src, caption, pos }, i) => (
-              <motion.div
-                key={caption}
-                initial={{ opacity: 0, y: 22 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.8 }}
-                className="overflow-hidden"
-              >
-                <div className="relative overflow-hidden" style={{ height: "280px" }}>
-                  <img
-                    src={src}
-                    alt={caption}
-                    className="absolute inset-0 h-full w-full object-cover opacity-70 grayscale"
-                    style={{ objectPosition: pos }}
-                  />
-                  <div className="absolute inset-0 bg-black/40" />
-                  <p className="absolute bottom-4 left-4 font-mono-ui text-[9px] uppercase tracking-[.2em] text-white/40">{caption}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Manifesto — black section with large display type and decorative rules */}
-        <section className="bg-[#000000] px-5 py-24 sm:px-10">
-          <div className="mx-auto max-w-4xl">
-            {/* Top decorative rule */}
-            <motion.div
-              initial={{ opacity: 0, scaleX: 0 }}
-              whileInView={{ opacity: 1, scaleX: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-12 flex items-center gap-4 origin-left"
-            >
-              <div className="h-px flex-1 bg-white/20" />
-              <span className="font-mono-ui text-[8px] uppercase tracking-[.28em] text-white/30">Studio principle</span>
-              <div className="h-px flex-1 bg-white/20" />
-            </motion.div>
-
-            <motion.blockquote
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-              className="font-display tracking-[-0.035em] text-white text-[70px]"
-            >
-              The beginning of every formula.<br />
-              <em className="text-[#B0AAB8] ml-[119px] mr-[119px]">The future of every idea.</em>
-            </motion.blockquote>
-
-            {/* Bottom decorative rule with diamond */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-12 flex items-center gap-4"
-            >
-              <div className="h-px flex-1 bg-white/20" />
-              <svg width="10" height="10" viewBox="0 0 10 10" className="shrink-0 text-white/20" fill="currentColor">
-                <polygon points="5,0 10,5 5,10 0,5" />
-              </svg>
-              <div className="h-px flex-1 bg-white/20" />
-            </motion.div>
-            <motion.p
+        {/* ── CTA ── */}
+        <section className="border-t border-border py-20">
+          <div className="mx-auto max-w-7xl px-5 sm:px-10 text-center">
+            <motion.h2
               initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.55, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-10 max-w-lg text-sm leading-7 text-white/50"
-            >Built for the independent perfumers who works seriously. Every formula stays in the notebook. Every limit stays in the margin.</motion.p>
-          </div>
-        </section>
-
-        {/* Material showcase row — static, decorative */}
-        <section className="border-t border-white/10 bg-[#000000] px-5 py-20 sm:px-10">
-          <div className="mx-auto max-w-7xl">
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="mb-10 font-mono-ui text-[9px] uppercase tracking-[.3em] text-white/40"
+              transition={{ duration: 0.6 }}
+              className="font-display tracking-[-0.04em] leading-[.9]"
+              style={{ fontSize: "clamp(2.8rem, 6vw, 5.5rem)" }}
             >
-              The palette · key materials
-            </motion.p>
-            <div className="grid gap-px sm:grid-cols-3">
-              {[
-                { name: "Cardamom CO₂", family: "Spicy / Aromatic", origin: "Guatemala", ifra: "3.0%", img: "spice.jpg", pos: "center", note: "Eucalyptic and warm, with a cold green facet. Bridges green top notes into a spicy heart." },
-                { name: "Rose Absolute", family: "Floral", origin: "Bulgaria / Turkey", ifra: "12.0%", img: "rose.jpg", pos: "center", note: "The most complex natural in the palette. Honey, geraniol, damascenone. Nothing replaces it." },
-                { name: "Labdanum Abs.", family: "Resinous / Animalic", origin: "Spain / Greece", ifra: "6.0%", img: "resin.jpg", pos: "center", note: "Warm, leathery, animalic. The backbone of the chypre family. Irreplaceable as a fixative." },
-              ].map(({ name, family, origin, ifra, img, pos, note }, i) => (
-                <motion.div
-                  key={name}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.65, delay: i * 0.13, ease: [0.22, 1, 0.36, 1] }}
-                  className="relative overflow-hidden border border-white/10"
-                >
-                  <div className="relative h-44 overflow-hidden">
-                    <img
-                      src={`${import.meta.env.BASE_URL}images/${img}`}
-                      alt=""
-                      aria-hidden
-                      className="absolute inset-0 h-full w-full object-cover opacity-40"
-                      style={{ objectPosition: pos }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#000000] opacity-[0]" />
-                  </div>
-                  <div className="border-t border-white/10 p-5">
-                    <h3 className="font-display text-3xl text-white">{name}</h3>
-                    <p className="mt-2 font-mono-ui text-[8px] uppercase tracking-[.18em] text-white/40">{family} · {origin}</p>
-                    <p className="mt-3 text-xs leading-5 text-white/55">{note}</p>
-                    <div className="mt-4 flex items-center gap-3 border-t border-white/10 pt-4">
-                      <span className="font-mono-ui text-[8px] uppercase tracking-[.18em] text-white/30">IFRA limit</span>
-                      <span className="font-mono-ui text-[9px] text-white/60">{ifra}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              From world to scent.
+            </motion.h2>
+            <p className="mt-6 text-sm leading-7 text-muted-foreground max-w-md mx-auto">
+              The only fragrance workspace where visual culture and formula precision meet.
+            </p>
+            <div className="mt-10">
+              <Link
+                href="/sign-up"
+                data-testid="button-landing-final"
+                className="border border-foreground bg-foreground text-background px-8 py-4 font-mono-ui text-[10px] uppercase tracking-[.22em] hover:opacity-80 transition-opacity"
+              >
+                Open your studio
+              </Link>
             </div>
           </div>
         </section>
       </main>
+
       <footer className="border-t border-border px-5 py-8 sm:px-10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between text-[10px] text-muted-foreground">
-          <span className="font-mono-ui uppercase tracking-[.14em]">Matière · for independent noses</span>
-          <span>Made for the long drydown.</span>
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <span className="font-mono-ui text-[9px] uppercase tracking-[.14em] text-muted-foreground">MATIÈRE · for independent noses</span>
+          <span className="font-mono-ui text-[8px] text-muted-foreground/50">Made for the long drydown.</span>
         </div>
       </footer>
     </div>
   );
 }
-
 // ─── New page imports ─────────────────────────────────────────────────────────
 import { Studio } from "./pages/Studio";
 import { Projects } from "./pages/Projects";
@@ -5019,7 +5003,7 @@ function Protected({ children }: { children: ReactNode }) {
 }
 
 function AuthPage({ kind }: { kind: "in" | "up" }) {
-  return <div className="grid min-h-[100dvh] place-items-center px-4 py-10 bg-[#ffffff]"><div className="absolute left-6 top-6 sm:left-10 sm:top-8"><Logo /></div><div className="relative z-10 w-full max-w-[440px] border border-border bg-card p-2 shadow-2xl">{kind === "in" ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} fallbackRedirectUrl={`${basePath}/studio`} /> : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} fallbackRedirectUrl={`${basePath}/studio`} />}</div></div>;
+  return <div className="grid min-h-[100dvh] place-items-center px-4 py-10 bg-background"><div className="absolute left-6 top-6 sm:left-10 sm:top-8"><Logo /></div><div className="relative z-10 w-full max-w-[440px] border border-border bg-card p-2 shadow-2xl">{kind === "in" ? <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} fallbackRedirectUrl={`${basePath}/studio`} /> : <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} fallbackRedirectUrl={`${basePath}/studio`} />}</div></div>;
 }
 
 function NotFoundView() {
@@ -5027,7 +5011,7 @@ function NotFoundView() {
 }
 
 export function SillageApp() {
-  return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={{ theme: experimental__simple, options: { logoPlacement: "inside", logoLinkUrl: basePath || "/", logoImageUrl: `${window.location.origin}${basePath}/logo.svg` }, variables: { colorPrimary: "hsl(0 0% 7%)", colorForeground: "hsl(0 0% 7%)", colorMutedForeground: "hsl(0 0% 45%)", colorBackground: "hsl(0 0% 100%)", colorInput: "hsl(0 0% 94%)", colorInputForeground: "hsl(0 0% 7%)", colorDanger: "hsl(0 58% 48%)", colorNeutral: "hsl(0 0% 86%)", fontFamily: "Inter", borderRadius: "0rem" }, elements: { cardBox: "bg-card border border-border w-[440px] max-w-full", card: "!shadow-none !border-0 !bg-transparent", footer: "!shadow-none !border-0 !bg-transparent", headerTitle: "text-foreground font-medium", headerSubtitle: "text-muted-foreground", formFieldLabel: "text-foreground", formFieldInput: "bg-secondary text-foreground border border-border", formButtonPrimary: "bg-primary text-primary-foreground hover:opacity-80 rounded-none uppercase tracking-widest text-[11px]", footerActionLink: "text-foreground underline", socialButtonsBlockButtonText: "text-foreground", socialButtonsBlockButton__google: "!hidden", dividerRow: "!hidden", dividerText: "text-muted-foreground", footerActionText: "text-muted-foreground" } }} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{ signIn: { start: { title: "Return to the studio", subtitle: "Your next idea is still on the page." } }, signUp: { start: { title: "Open your studio", subtitle: "A place for the work between first thought and final blotter." } } }}>
+  return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={{ theme: experimental__simple, options: { logoPlacement: "inside", logoLinkUrl: basePath || "/", logoImageUrl: `${window.location.origin}${basePath}/logo.svg` }, variables: { colorPrimary: "hsl(var(--primary))", colorForeground: "hsl(var(--foreground))", colorMutedForeground: "hsl(var(--muted-foreground))", colorBackground: "hsl(var(--background))", colorInput: "hsl(var(--input))", colorInputForeground: "hsl(var(--foreground))", colorDanger: "hsl(var(--destructive))", colorNeutral: "hsl(var(--border))", fontFamily: "Inter", borderRadius: "0rem" }, elements: { cardBox: "bg-card border border-border w-[440px] max-w-full", card: "!shadow-none !border-0 !bg-transparent", footer: "!shadow-none !border-0 !bg-transparent", headerTitle: "text-foreground font-medium", headerSubtitle: "text-muted-foreground", formFieldLabel: "text-foreground", formFieldInput: "bg-secondary text-foreground border border-border", formButtonPrimary: "bg-primary text-primary-foreground hover:opacity-80 rounded-none uppercase tracking-widest text-[11px]", footerActionLink: "text-foreground underline", socialButtonsBlockButtonText: "text-foreground", socialButtonsBlockButton__google: "!hidden", dividerRow: "!hidden", dividerText: "text-muted-foreground", footerActionText: "text-muted-foreground" } }} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{ signIn: { start: { title: "Return to the studio", subtitle: "Your next idea is still on the page." } }, signUp: { start: { title: "Open your studio", subtitle: "A place for the work between first thought and final blotter." } } }}>
     <QueryClientProvider client={queryClient}><WouterRouter base={basePath}><Switch><Route path="/sign-in/*?" component={() => <AuthPage kind="in" />} /><Route path="/sign-up/*?" component={() => <AuthPage kind="up" />} /><Route path="/"><Landing /></Route><Route path="/dashboard"><Redirect to="/studio" /></Route><Route path="/studio"><Protected><Shell><StudioPage /></Shell></Protected></Route><Route path="/projects/:id/inspiration"><Protected><Shell><InspirationPage /></Shell></Protected></Route><Route path="/projects/:id"><Protected><Shell><ProjectWorkspacePage /></Shell></Protected></Route><Route path="/projects"><Protected><Shell><ProjectsPage /></Shell></Protected></Route><Route path="/formulas/new"><Protected><NewFormula /></Protected></Route><Route path="/formulas/:id"><Protected><FormulaDetail /></Protected></Route><Route path="/formulas"><Protected><Formulas /></Protected></Route><Route path="/materials/:id"><Protected><Shell><MaterialDetailPage /></Shell></Protected></Route><Route path="/materials"><Protected><Materials /></Protected></Route><Route path="/files"><Protected><FileDrawer /></Protected></Route><Route path="/coach"><Protected><Coach /></Protected></Route><Route path="/shop"><Protected><Shop /></Protected></Route><Route><NotFoundView /></Route></Switch></WouterRouter></QueryClientProvider>
   </ClerkProvider>;
 }
