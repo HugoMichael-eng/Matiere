@@ -5286,7 +5286,7 @@ function Landing() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.12 }}
-              className="font-mono-ui uppercase tracking-[.30em] text-muted-foreground mb-4 font-medium text-[19px]"
+              className="font-mono-ui uppercase tracking-[.30em] text-muted-foreground font-medium text-[19px] mt-[14px] mb-[64px]"
             >
               Fragrance beyond boundaries
             </motion.p>
@@ -5294,7 +5294,7 @@ function Landing() {
             {/* ── Monumental MATIÈRE masthead ── */}
             <h1
               data-testid="heading-landing"
-              className="font-title leading-[.86] text-foreground"
+              className="font-title text-foreground text-[109px]"
               style={{
                 fontSize: "clamp(4.5rem, 13vw, 14rem)",
                 fontWeight: 900,
