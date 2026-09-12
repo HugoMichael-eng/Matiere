@@ -1,51 +1,55 @@
-/* MATIÈRE — cinematic dark theme */
+/* MATIÈRE — warm gallery-white theme */
 @import "@workspace/verve-design-system/styles.css";
 
-/* ─── Force dark mode globally ──────────────────────────────────────────────
-   The visual language is full-bleed dark: near-black ground, warm off-white
-   text, acid citron only as a tiny active signal. We override the design
-   system's light default at the :root level.                                 */
+/* ─── Light palette — parchment, bone, plaster, stone ──────────────────────
+   Background: warm gallery white / bone
+   Card: slightly warmer, off-white
+   Text: charcoal / ink (not pure black)
+   Border: pale warm grey
+   Accent: acid citron — used at 1–3% only                                   */
 :root {
-  color-scheme: dark;
-  /* Ground — near-black warm charcoal */
-  --background:    20 8% 6%;
-  /* Surface lifted just above ground */
-  --card:          20 8% 9%;
-  /* Secondary surface */
-  --secondary:     20 6% 13%;
-  --secondary-foreground: 30 15% 88%;
+  color-scheme: light;
+
+  /* Ground — warm gallery white / bone parchment */
+  --background:    36 18% 96%;
+  /* Card — slightly warmer off-white */
+  --card:          36 14% 93%;
+  --card-foreground: 28 12% 18%;
+  /* Secondary surface — pale mineral grey */
+  --secondary:     30 8% 89%;
+  --secondary-foreground: 28 12% 22%;
   /* Muted */
-  --muted:         20 6% 13%;
-  --muted-foreground: 30 8% 45%;
-  /* Primary text — warm off-white */
-  --foreground:    30 15% 90%;
-  --primary:       30 15% 90%;
-  --primary-foreground: 20 8% 6%;
-  /* Border — very subtle warm grey */
-  --border:        20 6% 16%;
-  --input:         20 6% 16%;
-  --ring:          20 6% 22%;
-  /* Accent — acid citron, used sparingly */
-  --accent:        68 80% 48%;
-  --accent-foreground: 68 80% 12%;
+  --muted:         30 8% 89%;
+  --muted-foreground: 28 8% 48%;
+  /* Primary text — charcoal / ink */
+  --foreground:    28 12% 16%;
+  --primary:       28 12% 16%;
+  --primary-foreground: 36 18% 96%;
+  /* Border — pale warm grey hairline */
+  --border:        30 8% 82%;
+  --input:         30 8% 82%;
+  --ring:          30 8% 70%;
+  /* Accent — acid citron, 1–3% use only */
+  --accent:        68 75% 44%;
+  --accent-foreground: 68 75% 8%;
   /* Destructive */
-  --destructive:   0 60% 45%;
-  --destructive-foreground: 0 0% 95%;
+  --destructive:   0 65% 42%;
+  --destructive-foreground: 0 0% 98%;
   /* Popover */
-  --popover:       20 8% 9%;
-  --popover-foreground: 30 15% 88%;
-  /* Sidebar — same as card */
-  --sidebar:       20 8% 8%;
-  --sidebar-foreground: 30 10% 65%;
-  --sidebar-border: 20 6% 14%;
+  --popover:       36 14% 94%;
+  --popover-foreground: 28 12% 18%;
+  /* Sidebar — warm plaster / pale stone */
+  --sidebar:       36 14% 92%;
+  --sidebar-foreground: 28 10% 35%;
+  --sidebar-border: 30 8% 82%;
   /* Radius — zero for precision */
   --radius: 0rem;
 }
 
 /* ─── App-specific utilities ─────────────────────────────────────────────────── */
 @layer utilities {
-  .font-display  { font-family: var(--app-font-serif);  }
-  .font-mono-ui  { font-family: var(--app-font-mono);   }
+  .font-display  { font-family: var(--app-font-serif);  }   /* Bricolage Grotesque */
+  .font-mono-ui  { font-family: var(--app-font-mono);   }   /* IBM Plex Mono */
 
   input[type='search']::-webkit-search-cancel-button {
     @apply hidden;
@@ -57,15 +61,15 @@
     pointer-events: none;
   }
 
-  /* Canvas surface */
+  /* Canvas surface — slightly cooler parchment */
   .canvas-surface {
     background-color: hsl(var(--card));
   }
 
-  /* Deep cinematic — truly dark shell for full-bleed hero sections */
+  /* Immersive dark overlay — photography / focus moments only */
   .dark-cinematic {
-    background-color: hsl(20 8% 4%);
-    color: hsl(var(--foreground));
+    background-color: hsl(var(--foreground) / 0.92);
+    color: hsl(var(--background));
   }
 
   /* Gallery image */
@@ -73,12 +77,12 @@
     @apply block overflow-hidden;
   }
 
-  /* Acid citron active indicator */
+  /* Acid citron — tiny active signal */
   .accent-indicator {
     background-color: hsl(var(--accent));
   }
 
-  /* Lab surface */
+  /* Lab surface — same as card */
   .lab-surface {
     background-color: hsl(var(--card));
   }
@@ -111,10 +115,10 @@
 }
 .animate-slide-down { animation: slideDown 0.22s ease-out both; }
 
-/* Canvas drag animations */
+/* Canvas drag */
 @keyframes liftObj {
-  from { box-shadow: 0 1px 3px rgba(0,0,0,.30); transform: scale(1); }
-  to   { box-shadow: 0 12px 32px rgba(0,0,0,.55); transform: scale(1.015); }
+  from { box-shadow: 0 1px 3px hsl(var(--foreground) / 0.06); transform: scale(1); }
+  to   { box-shadow: 0 10px 28px hsl(var(--foreground) / 0.12); transform: scale(1.015); }
 }
 .obj-lifted  { animation: liftObj 0.15s ease-out forwards; }
 
@@ -149,7 +153,7 @@ a:focus-visible,
   outline-offset: 2px;
 }
 
-/* ─── Scrollbar — near invisible on dark ────────────────────────────────────── */
+/* ─── Scrollbar — subtle warm ───────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: hsl(var(--border)); }
