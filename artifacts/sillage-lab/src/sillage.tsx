@@ -4860,6 +4860,21 @@ const REFINEMENTS: Refinement[] = [
   },
 ];
 
+const DIRECTION_READINGS: Record<string, { qualities: string[]; tensions: string[] }> = {
+  "soft-focus": {
+    qualities: ["Translucent", "Intimate", "Controlled"],
+    tensions: ["Soft / Hard", "Clear / Obscured", "Skin / Surface"],
+  },
+  "after-dark": {
+    qualities: ["Reflective", "Shadowed", "Controlled"],
+    tensions: ["Warm / Cold", "Polished / Animalic", "Visible / Obscured"],
+  },
+  "warm-surface": {
+    qualities: ["Tactile", "Resinous", "Dry"],
+    tensions: ["Skin / Surface", "Warm / Mineral", "Soft / Structured"],
+  },
+};
+
 function MoodboardDemo({ BASE }: { BASE: string }) {
   const [selectedDir, setSelectedDir] = useState<string>("soft-focus");
   const [selectedRefinement, setSelectedRefinement] = useState<string | null>(null);
@@ -4875,6 +4890,7 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
   const displayKeywords = refinement ? refinement.keywords : direction.keywords;
   const displayRationale = refinement ? refinement.rationale : direction.rationale;
   const displayMaterials = refinement ? refinement.materials : direction.materials;
+  const activeReading = DIRECTION_READINGS[selectedDir] ?? DIRECTION_READINGS["soft-focus"];
 
   const handleDirSelect = (id: string) => {
     setSelectedDir(id);
@@ -4938,12 +4954,12 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
         </p>
       </motion.div>
 
-      {/* ── Asymmetric spatial composition ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,3fr)_minmax(360px,2fr)] gap-8 lg:gap-8 px-8 pb-12 sm:px-12">
+      {/* ── Board → reading → active direction ── */}
+      <div className="grid grid-cols-1 gap-10 px-8 pb-12 sm:px-12 lg:grid-cols-12 lg:gap-7">
 
         {/* LEFT — Your moodboard */}
         <motion.div
-          className="relative min-h-[560px]"
+          className="relative min-h-[540px] lg:col-span-5"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: "-40px" }}
@@ -4959,15 +4975,15 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
           </div>
 
           {/* Collage — three images: fogged glass, warm skin, dark lacquer */}
-          <div className="relative" style={{ height: "clamp(390px, 42vw, 620px)" }}>
-            {/* Fogged glass — left 48%, tall */}
+          <div className="relative mx-auto max-w-[660px]" style={{ height: "clamp(390px, 38vw, 560px)" }}>
+            {/* Fogged glass — large anchor */}
             <button
               type="button"
               onClick={() => setFocusedImage(BASE + "lait-vert-02.jpg")}
-              className={`absolute top-[4%] left-0 overflow-hidden text-left transition-all duration-200 hover:-translate-y-1 hover:scale-[1.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              className={`absolute left-0 top-[4%] overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                 hoveredDir === "after-dark" ? "opacity-45" : "opacity-100"
               }`}
-              style={{ width: "56%", height: "78%", zIndex: selectedDir === "soft-focus" ? 3 : 1 }}
+              style={{ width: "62%", height: "78%", zIndex: selectedDir === "soft-focus" ? 3 : 1 }}
               aria-label="Focus fogged glass reference"
             >
               <img
@@ -4979,12 +4995,14 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
               />
               <span className="absolute bottom-3 left-3 font-mono-ui uppercase tracking-[.16em] text-white/80" style={{ fontSize: "11px" }}>Fogged glass</span>
             </button>
-            {/* Warm skin — right 36%, top offset */}
+            {/* Warm skin — medium reference, restrained overlap */}
             <button
               type="button"
               onClick={() => setFocusedImage(BASE + "human-skin-01.jpg")}
-              className="absolute overflow-hidden text-left transition-all duration-200 hover:-translate-y-1 hover:scale-[1.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              style={{ top: "18%", left: "46%", width: "38%", height: "60%", zIndex: selectedDir === "warm-surface" ? 4 : 2 }}
+              className={`absolute overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                hoveredDir === "after-dark" ? "opacity-60" : "opacity-100"
+              }`}
+              style={{ top: "16%", left: "56%", width: "38%", height: "56%", zIndex: selectedDir === "warm-surface" ? 4 : 2 }}
               aria-label="Focus warm skin reference"
             >
               <img
@@ -4995,14 +5013,14 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
               />
               <span className="absolute bottom-3 left-3 font-mono-ui uppercase tracking-[.16em] text-white/80" style={{ fontSize: "11px" }}>Warm skin</span>
             </button>
-            {/* Dark lacquer — bottom right */}
+            {/* Dark lacquer — small lower reference */}
             <button
               type="button"
               onClick={() => setFocusedImage(BASE + "animal-mirror-01.jpg")}
-              className={`absolute overflow-hidden text-left transition-all duration-200 hover:-translate-y-1 hover:scale-[1.015] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              className={`absolute overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                 hoveredDir === "soft-focus" ? "opacity-50" : "opacity-100"
               }`}
-              style={{ bottom: "2%", right: 0, width: "46%", height: "48%", zIndex: selectedDir === "after-dark" ? 5 : 3 }}
+              style={{ bottom: "2%", right: "6%", width: "34%", height: "34%", zIndex: selectedDir === "after-dark" ? 5 : 3 }}
               aria-label="Focus dark lacquer reference"
             >
               <img
@@ -5013,68 +5031,74 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
               />
               <span className="absolute bottom-3 left-3 font-mono-ui uppercase tracking-[.16em] text-white/80" style={{ fontSize: "11px" }}>Dark lacquer</span>
             </button>
-            {/* Acid citron connection node */}
-            <svg className="pointer-events-none absolute inset-0 h-full w-full" style={{ zIndex: 4 }} aria-hidden>
-              <circle cx="48%" cy="46%" r="3" fill="hsl(var(--accent))" />
-              <circle cx="60%" cy="46%" r="3" fill="hsl(var(--accent))" />
-              <line x1="48%" y1="46%" x2="60%" y2="46%" stroke="hsl(var(--border))" strokeWidth="0.8" strokeDasharray="2 3" />
-            </svg>
-          </div>
-
-          {/* Editorial intelligence annotation */}
-          <div className="relative z-10 -mt-8 ml-[5%] max-w-2xl bg-background/95 px-5 py-5 sm:px-7">
-            <p className="font-mono-ui uppercase tracking-[.24em] text-accent-foreground/80" style={{ fontSize: "11px" }}>
-              MATIÈRE reading
-            </p>
-            <div className="mt-5 grid gap-6 sm:grid-cols-3">
-              <div>
-                <p className="font-mono-ui uppercase tracking-[.16em] text-muted-foreground" style={{ fontSize: "10px" }}>Visual qualities</p>
-                <p className="mt-2 font-display uppercase leading-6 text-foreground/75" style={{ fontSize: "15px" }}>Fogged · Translucent<br />Skin-close · Reflective · Warm</p>
-              </div>
-              <div>
-                <p className="font-mono-ui uppercase tracking-[.16em] text-muted-foreground" style={{ fontSize: "10px" }}>Creative tensions</p>
-                <p className="mt-2 font-display uppercase leading-6 text-foreground/75" style={{ fontSize: "15px" }}>Soft ↔ Hard<br />Intimate ↔ Distant<br />Organic ↔ Synthetic</p>
-              </div>
-              <div>
-                <p className="font-mono-ui uppercase tracking-[.16em] text-muted-foreground" style={{ fontSize: "10px" }}>Atmosphere</p>
-                <p className="mt-2 font-display uppercase leading-6 text-foreground/75" style={{ fontSize: "15px" }}>Quiet · Sensual<br />Ambiguous · Controlled</p>
-              </div>
-            </div>
-            <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono-ui uppercase tracking-[.13em] text-muted-foreground" style={{ fontSize: "10px" }} aria-label="Interpretation loop">
-              {["Prompt", "References", "Relationships", "Olfactive interpretation", "Material territory", "You refine"].map((step, index) => (
-                <span key={step} className="inline-flex items-center gap-3">
-                  {index > 0 && <ArrowRight size={10} className="text-accent" aria-hidden />}
-                  <span>{step}</span>
-                </span>
-              ))}
-            </div>
           </div>
         </motion.div>
 
-        {/* RIGHT — Three olfactive worlds */}
+          {/* CENTER — restrained interpretation layer */}
+          <motion.div
+            className="relative flex min-h-[360px] flex-col justify-center py-8 lg:col-span-2 lg:min-h-[540px] lg:py-24"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.3 }}
+          >
+            <span className="absolute left-0 top-1/2 hidden h-px w-5 -translate-x-full bg-accent/60 lg:block" aria-hidden />
+            <span className="absolute right-0 top-1/2 hidden h-px w-5 translate-x-full bg-accent/60 lg:block" aria-hidden />
+            <p className="font-mono-ui uppercase tracking-[.24em] text-accent-foreground/80" style={{ fontSize: "11px" }}>
+              MATIÈRE reading
+            </p>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedDir}
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.3 }}
+                className="mt-7"
+                aria-live="polite"
+              >
+                {activeReading.qualities.map((quality, index) => (
+                  <div key={quality}>
+                    {index > 0 && <div className="my-2 h-5 w-px bg-border" aria-hidden />}
+                    <p className="font-display uppercase leading-none tracking-[-0.01em] text-foreground/80" style={{ fontSize: "clamp(1.1rem, 1.7vw, 1.5rem)" }}>{quality}</p>
+                  </div>
+                ))}
+                <div className="mt-10">
+                  <p className="font-mono-ui uppercase tracking-[.18em] text-muted-foreground" style={{ fontSize: "9px" }}>Tensions</p>
+                  <div className="mt-3 space-y-2">
+                    {activeReading.tensions.map(tension => (
+                      <p key={tension} className="font-mono-ui uppercase tracking-[.12em] text-foreground/55" style={{ fontSize: "10px" }}>{tension}</p>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+
+        {/* RIGHT — one active olfactive direction */}
         <motion.div
-          className="flex flex-col pt-10 lg:pt-24"
+          className="flex flex-col pt-4 lg:col-span-5 lg:pt-24"
           initial={{ opacity: 0, x: 8 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.5, delay: 0.08 }}
         >
-          <div className="pb-8">
+          <div className="pb-7">
             <p className="font-mono-ui uppercase tracking-[.22em] text-muted-foreground mb-1" style={{ fontSize: "12px" }}>
-              Three possible interpretations
+              Possible readings
             </p>
             <p className="max-w-md text-muted-foreground/70 leading-6" style={{ fontSize: "clamp(0.875rem, 1.3vw, 0.9rem)" }}>
-              The same visual world can be read in more than one credible way. There is no single correct fragrance—choose a possible path to challenge and develop.
+              One visual world can lead in several olfactive directions.
             </p>
           </div>
 
-          {/* Direction worlds — typographic, spatial, expandable */}
+          {/* Quiet direction switcher */}
           <div
             role="list"
             aria-label="Scent directions"
-            className="space-y-1"
+            className="flex flex-wrap gap-x-5 gap-y-3"
           >
-            {SCENT_DIRECTIONS.map(dir => {
+            {SCENT_DIRECTIONS.map((dir, index) => {
               const isActive = selectedDir === dir.id;
               return (
                 <motion.button
@@ -5085,34 +5109,15 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                   onMouseEnter={() => setHoveredDir(dir.id)}
                   onMouseLeave={() => setHoveredDir(null)}
                   data-testid={`direction-card-${dir.id}`}
-                  className={[
-                    "relative w-full text-left py-7 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
-                    isActive
-                      ? "opacity-100"
-                      : hoveredDir && hoveredDir !== dir.id ? "opacity-35" : "opacity-65 hover:opacity-100",
-                  ].join(" ")}
-                  animate={{ x: isActive ? -18 : 0, scale: isActive ? 1.025 : 1 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  className={`group relative min-h-10 text-left font-mono-ui uppercase tracking-[.14em] transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+                    isActive ? "text-foreground" : "text-muted-foreground/55 hover:text-foreground"
+                  }`}
+                  transition={{ duration: 0.3 }}
                 >
-                  <div className="flex items-end justify-between gap-5">
-                    <div>
-                      <p className="font-title uppercase leading-[.88] tracking-[-0.04em] text-foreground" style={{ fontSize: isActive ? "clamp(2.8rem, 5vw, 5.6rem)" : "clamp(2rem, 3.6vw, 3.8rem)" }}>
-                        {dir.label}{isActive && refinement ? ` / ${refinement.label.replace("More ", "")}` : ""}
-                      </p>
-                      <p className="mt-3 max-w-md text-foreground/65 leading-7" style={{ fontSize: "17px" }}>{dir.tagline}</p>
-                      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                        <div>
-                          <span className="font-mono-ui uppercase tracking-[.15em] text-muted-foreground" style={{ fontSize: "9px" }}>Derived from</span>
-                          <p className="mt-1 text-foreground/55 leading-5" style={{ fontSize: "13px" }}>{dir.derivedFrom.join(" · ")}</p>
-                        </div>
-                        <div>
-                          <span className="font-mono-ui uppercase tracking-[.15em] text-muted-foreground" style={{ fontSize: "9px" }}>Olfactive territory</span>
-                          <p className="mt-1 text-foreground/55 leading-5" style={{ fontSize: "13px" }}>{dir.territory.join(" · ")}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <ArrowRight size={18} className={`mb-2 shrink-0 transition-transform ${isActive ? "translate-x-1 text-accent" : "text-muted-foreground"}`} />
-                  </div>
+                  <span style={{ fontSize: "11px" }}>{String(index + 1).padStart(2, "0")} {dir.label}</span>
+                  <span className="pointer-events-none absolute left-0 top-full z-10 hidden w-48 bg-background pt-2 normal-case tracking-normal text-muted-foreground group-hover:block" style={{ fontSize: "12px" }}>
+                    {dir.tagline}
+                  </span>
                 </motion.button>
               );
             })}
@@ -5130,13 +5135,18 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
               aria-live="polite"
               aria-atomic="true"
             >
+              <p className="font-title uppercase leading-[.9] tracking-[-0.04em] text-foreground" style={{ fontSize: "clamp(3rem, 5vw, 5.8rem)" }}>
+                {direction.label}{refinement ? ` / ${refinement.label.replace("More ", "")}` : ""}
+              </p>
+              <p className="mt-4 max-w-lg text-foreground/65 leading-7" style={{ fontSize: "17px" }}>{direction.tagline}</p>
+
               {/* Keywords */}
-              <div className="flex flex-wrap gap-1.5 mb-4">
+              <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2 mb-5">
                 {displayKeywords.map(kw => (
                   <span
                     key={kw}
-                    className="border border-border px-2.5 py-1 font-mono-ui uppercase tracking-[.12em] text-foreground/65"
-                    style={{ fontSize: "12px" }}
+                    className="font-mono-ui uppercase tracking-[.12em] text-foreground/65"
+                    style={{ fontSize: "11px" }}
                   >
                     {kw}
                   </span>
@@ -5169,6 +5179,12 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {!showReasoning && (
+                <p className="mb-7 max-w-lg leading-7 text-foreground/65" style={{ fontSize: "15px" }}>
+                  {direction.derivedFrom.join(", ")} repeatedly introduce {activeReading.qualities.join(", ").toLowerCase()} qualities.
+                </p>
+              )}
 
               {/* Material discoveries */}
               <div className="mb-8">
@@ -5214,6 +5230,15 @@ function MoodboardDemo({ BASE }: { BASE: string }) {
                   })}
                 </div>
               </div>
+
+              <Link
+                href="/studio"
+                data-testid={`link-explore-direction-${direction.id}`}
+                className="mb-7 inline-flex min-h-11 items-center gap-2 font-mono-ui uppercase tracking-[.16em] text-foreground hover:text-foreground/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                style={{ fontSize: "12px" }}
+              >
+                Explore {direction.label} <ArrowRight size={12} className="text-accent" />
+              </Link>
 
               {/* Refinement controls */}
               <div className="pt-4">

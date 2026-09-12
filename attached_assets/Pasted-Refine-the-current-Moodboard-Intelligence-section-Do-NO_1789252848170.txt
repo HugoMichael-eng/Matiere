@@ -1,0 +1,267 @@
+Refine the current Moodboard Intelligence section.
+
+Do NOT redesign the entire page.
+
+The current implementation feels visually messy because too many elements are competing for attention:
+
+- overlapping moodboard images
+- three oversized interpretation names
+- descriptive copy
+- olfactive tags
+- interpretation content
+
+We need significantly more hierarchy and calm.
+
+The design principle for this section is:
+
+# ONE BOARD → ONE READING → ONE ACTIVE DIRECTION
+
+The user should understand the process immediately.
+
+Do not display all three interpretations as equally dominant visual objects.
+
+---
+
+# 1. CREATE A CLEAR THREE-PART COMPOSITION
+
+On desktop use a controlled 12-column composition:
+
+## LEFT — MOODBOARD
+approximately 5 columns
+
+## CENTER — MATIÈRE READING
+approximately 2 columns
+
+## RIGHT — ACTIVE DIRECTION
+approximately 5 columns
+
+The composition should feel balanced and editorial.
+
+Do not use a hard vertical divider.
+
+Use whitespace to separate the three areas.
+
+---
+
+# 2. SIMPLIFY THE MOODBOARD PREVIEW
+
+The current moodboard preview contains too much overlap.
+
+This explanatory page is NOT the full Canvas.
+
+The actual Canvas can be freeform and expressive.
+
+Here, show a curated preview.
+
+Use only:
+
+- one large anchor image
+- one medium image
+- one smaller overlapping image
+
+Maximum 3 images visible at once.
+
+Do not overlap them excessively.
+
+Allow approximately 15–25% overlap, not 50%.
+
+Make the composition feel like photographs placed carefully on a gallery table.
+
+Use more negative space around them.
+
+Example:
+
+large fogged glass reference
+
+medium warm skin reference slightly overlapping the right edge
+
+small dark lacquer reference placed lower
+
+Do not create a dense pile.
+
+---
+
+# 3. ADD THE MISSING CENTER LAYER: “MATIÈRE READING”
+
+This is the conceptual bridge currently missing.
+
+Between Moodboard and Active Direction, add a very restrained vertical intelligence layer.
+
+Label:
+
+MATIÈRE READING
+
+Show only the strongest extracted relationships.
+
+Example:
+
+TRANSLUCENT
+
+↓
+
+INTIMATE
+
+↓
+
+CONTROLLED
+
+Then:
+
+TENSIONS
+
+SOFT / HARD
+
+CLEAR / OBSCURED
+
+SKIN / SURFACE
+
+Keep this very minimal.
+
+Do NOT turn it into a dashboard.
+
+Its purpose is to visually explain:
+
+MATIÈRE is interpreting the relationships between the references.
+
+---
+
+# 4. USE SUBTLE CONNECTIONS
+
+Allow extremely thin lines or small accent nodes to connect:
+
+MOODBOARD REFERENCE
+
+→
+
+MATIÈRE READING
+
+→
+
+ACTIVE DIRECTION
+
+Do not create a visible flowchart.
+
+Use only a few lines.
+
+The acid citron accent can appear here very subtly.
+
+This is an appropriate place for the accent color.
+
+---
+
+# 5. SHOW ONLY ONE LARGE INTERPRETATION
+
+Only the currently selected direction should be large.
+
+Example:
+
+# SOFT FOCUS
+
+Airy woods, gentle warmth, a close-to-skin feeling.
+
+TRANSPARENT  
+SKIN-CLOSE  
+AIRY  
+SOFT WOODS
+
+Then show a concise explanation:
+
+“Fogged glass, warm skin and softened reflection repeatedly introduce transparency, intimacy and blurred edges.”
+
+Then:
+
+MATERIAL TERRITORY
+
+Ambroxan  
+Cashmeran  
+Iso E Super
+
+EXPLORE SOFT FOCUS →
+
+This is the main content on the right.
+
+---
+
+# 6. MOVE OTHER INTERPRETATIONS INTO A QUIET SWITCHER
+
+Do NOT show:
+
+AFTER DARK
+
+and
+
+WARM SURFACE
+
+as giant headlines below Soft Focus.
+
+Instead, place the alternative directions in a compact selector above or beside the active interpretation.
+
+Example:
+
+01 SOFT FOCUS  
+02 AFTER DARK  
+03 WARM SURFACE
+
+The active direction can be dark / high contrast.
+
+Inactive directions should remain subtle.
+
+On hover:
+
+show the short descriptor.
+
+On selection:
+
+transition the active interpretation content.
+
+This dramatically reduces visual clutter.
+
+---
+
+# 7. DIRECTION SWITCHING SHOULD FEEL ELEGANT
+
+When the user changes:
+
+SOFT FOCUS
+
+to:
+
+AFTER DARK
+
+animate three things together:
+
+1. relevant moodboard reference gains emphasis
+2. MATIÈRE READING keywords change
+3. active direction content transitions
+
+Use a gentle 250–350ms transition.
+
+Do not reload the section.
+
+Do not move the entire layout.
+
+The framework stays stable while the interpretation evolves.
+
+---
+
+# 8. REMOVE DUPLICATED EXPLANATION
+
+Currently the section says:
+
+THREE POSSIBLE INTERPRETATIONS
+
+then again:
+
+“Three possible interpretations of the same moodboard…”
+
+This is redundant.
+
+Use simply:
+
+POSSIBLE READINGS
+
+Then a small line:
+
+One visual world can lead in several olfactive directions.
+
+Nothing
