@@ -5537,18 +5537,22 @@ function Landing() {
           </motion.div>
         </div>
       </section>
-      {/* ══════════════════════════════════════════════════════════════════════
-          SECTION 2 — ONE MOODBOARD. THREE SCENT DIRECTIONS.
-          Interactive demo: left collage + note, right selectable directions.
-          Fully curated — no live AI. Keyboard/touch/reduced-motion accessible.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <MoodboardDemo BASE={BASE} />
-      {/* ══════════════════════════════════════════════════════════════════════
-          SECTION 3 — EDITORIAL FEATURE MODULES
-          Four modular panels. Moodboard is primary.
-          Typography: headings ~28–40px, body 16–18px, labels 14px.
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section className="border-t border-border" aria-label="Feature modules">
+      <div className="flex flex-col">
+        <div className="order-2">
+          {/* ══════════════════════════════════════════════════════════════════════
+              SECTION 3 — ONE MOODBOARD. THREE SCENT DIRECTIONS.
+              Interactive demo: left collage + note, right selectable directions.
+              Fully curated — no live AI. Keyboard/touch/reduced-motion accessible.
+          ══════════════════════════════════════════════════════════════════════ */}
+          <MoodboardDemo BASE={BASE} />
+        </div>
+        <div className="order-1">
+          {/* ══════════════════════════════════════════════════════════════════════
+              SECTION 2 — EDITORIAL FEATURE MODULES
+              Four modular panels. Moodboard is primary.
+              Typography: headings ~28–40px, body 16–18px, labels 14px.
+          ══════════════════════════════════════════════════════════════════════ */}
+          <section className="border-t border-border" aria-label="Feature modules">
 
         {/* Row 1 — four columns, moodboard dominant */}
         <div
@@ -5756,7 +5760,9 @@ function Landing() {
             </div>
           </motion.div>
         </div>
-      </section>
+          </section>
+        </div>
+      </div>
       {/* ══════════════════════════════════════════════════════════════════════
           SECTION 4 — PLATFORM FUNCTIONALITY
           Accurate descriptions of what exists. Planned features labeled.
