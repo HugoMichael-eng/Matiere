@@ -18,8 +18,8 @@ export const modules: ModuleMap = {
   "./components/mockups/templates/EditorialPerfumeProductPage-rMCFNo/App.tsx": () => import("../components/mockups/templates/EditorialPerfumeProductPage-rMCFNo/App.tsx"),
   "./components/mockups/templates/MonochromeFashionLandingPage-hw1_nu/Verve.tsx": () => import("../components/mockups/templates/MonochromeFashionLandingPage-hw1_nu/Verve.tsx"),
   "./components/mockups/templates/MonochromeWeatherDashboard-kfnEOX/App.tsx": () => import("../components/mockups/templates/MonochromeWeatherDashboard-kfnEOX/App.tsx"),
-  "./components/mockups/templates/NeonFluidSimulator-wSYLnj/FluidSimulator.tsx": () => import("../components/mockups/templates/NeonFluidSimulator-wSYLnj/FluidSimulator.tsx"),
   "./components/mockups/templates/MonochromeWeatherDashboard-ls3dCi/App.tsx": () => import("../components/mockups/templates/MonochromeWeatherDashboard-ls3dCi/App.tsx"),
+  "./components/mockups/templates/NeonFluidSimulator-wSYLnj/FluidSimulator.tsx": () => import("../components/mockups/templates/NeonFluidSimulator-wSYLnj/FluidSimulator.tsx"),
   "./components/mockups/templates/RestfulClinicComponentLibrary-khV6N6/App.tsx": () => import("../components/mockups/templates/RestfulClinicComponentLibrary-khV6N6/App.tsx"),
   "./components/mockups/templates/SwissLearningApp-Q_1eba/App.tsx": () => import("../components/mockups/templates/SwissLearningApp-Q_1eba/App.tsx")
 };
