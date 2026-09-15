@@ -1,0 +1,67 @@
+2. **Extract each page** from the switch statement in `sillage.tsx`:
+- Extract `Dashboard()` → `pages/Dashboard.tsx`
+- Extract `Formulas()` → `pages/Formulas.tsx`
+- Extract `FormulaDetail()` → `pages/FormulaDetail.tsx`
+- Extract `NewFormula()` → `pages/NewFormula.tsx`
+- Extract `Materials()` → `pages/Materials.tsx`
+- Extract `FileDrawer()` → `pages/FileDrawer.tsx`
+- Extract `Coach()` → `pages/Coach.tsx`
+- Extract `Shop()` → `pages/Shop.tsx`
+- Extract `Landing()` → `pages/Landing.tsx`
+- Extract 404 → `pages/NotFound.tsx`
+
+3. **Extract reusable components** (in `components/`):
+- **Table/List components:**
+  - `FormulaRow.tsx` — Single formula row in a table
+  - `FormulaCard.tsx` — Card view of a formula
+  - `DashboardFormulaRow.tsx` — Dashboard-specific row variant
+  - `MaterialCard.tsx` — Material card with image background
+  - `MaterialsGrid.tsx` — Grid of materials
+
+- **Layout components:**
+  - `Shell.tsx` — Main layout wrapper (sidebar + mobile nav + main content)
+  - `Sidebar.tsx` — Left navigation sidebar
+  - `MobileNav.tsx` — Mobile hamburger menu
+  - `PageHeader.tsx` — Page title + eyebrow + action buttons
+
+- **Formula workflow:**
+  - `WorkflowNav.tsx` — Horizontal workflow stage selector
+  - `WorkflowStagePanel.tsx` — Stage-specific content (currently massive inline)
+  - `IngredientBuilder.tsx` — Ingredient list editor
+  - `MaterialCombobox.tsx` — Material search/select dropdown
+  - `IfraCategoryPicker.tsx` — IFRA category selector
+
+- **AI coaching:**
+  - `CoachingPanel.tsx` — Message thread + input for AI coach
+  - `FormulaIdeaGenerator.tsx` — "Generate ideas" form
+  - `IdeaDrawer.tsx` — Idea detail drawer/modal
+  - `BlueprintPanel.tsx` — AI-suggested materials visualization
+
+- **File handling:**
+  - `FileUploadZone.tsx` — Drag-and-drop upload area
+  - `FormulaImportReview.tsx` — Review imported formula modal
+  - `FormulaToolFileUpload.tsx` — Button + mini upload workflow
+
+- **Small reusables:**
+  - `Button.tsx` — Custom button with variants
+  - `StatusPill.tsx` — Formula/safety status badge
+  - `ErrorState.tsx` — Error message + retry
+  - `Skeleton.tsx` — Loading placeholder
+  - `MarkdownMessage.tsx` — Markdown renderer for AI responses
+
+4. **Extract hooks** (in `hooks/`):
+- `useFormula(id)` — Fetch + cache single formula, expose refetch
+- `useMaterials()` — Fetch all materials, expose filtering
+- `useCoaching(convId, formulaId)` — Manage coaching session, streaming
+- `useStreamMessage()` — Current stream hook (move as-is)
+- `useTypewriter(phrases)` — Typewriter animation (move as-is)
+
+### Phase 2: Extract Business Logic
+1. **Create `lib/formulas.ts`:**
+```typescript
+// Export these helpers currently inline:
+export function getCompletedWorkflowStages(formula, materials): Set<WorkflowStageId>
+export function getSuggestedWorkflowStage(formula, materials): WorkflowStageId
+export function matchBlueprintToLibrary(ingredients, materials): FormulaIngredientInput[]
+export function normalizeImportRole(role): FormulaIngredientInput['role']
+export function canAnalyzeFormulaFile(file): boolean

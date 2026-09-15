@@ -11,7 +11,7 @@
  *   6. Stock & sourcing — collapsible
  *   7. Library links (formulas, materials search)
  *
- * Data: real API via useListMaterials.
+ * Data: real API via useMaterials.
  * Context carry: referrer project/material from ?from= query param.
  */
 
@@ -19,7 +19,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useParams, useSearch } from "wouter";
 import { ArrowLeft, ChevronDown } from "lucide-react";
-import { useListMaterials } from "@workspace/api-client-react";
+import { useMaterials } from "../hooks/useMaterials";
 import type { Material } from "@workspace/api-client-react";
 import { normalizeMaterialFamilies } from "@workspace/material-families";
 // S1 primitives replaced with local equivalents below
@@ -378,7 +378,7 @@ export function MaterialDetail() {
   // Parse referrer context — ?from=proj-01 carries project id through
   const fromProject = new URLSearchParams(search).get("from") ?? null;
 
-  const query = useListMaterials();
+  const query = useMaterials();
   const material = query.data?.find((m) => m.id === materialId);
 
   if (query.isLoading) {
